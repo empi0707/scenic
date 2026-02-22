@@ -97,82 +97,83 @@ const Detail = () => {
       <div
         className="banner"
         style={{ backgroundImage: `url(${backgroundImage})` }}
-      ></div>
-      <div className="mb-3 movie-content container">
-        <div className="movie-content__poster">
-          <div
-            className="movie-content__poster__img"
-            style={{ backgroundImage: `url(${posterImage})` }}
-          >
-            <Button onClick={handlePlayButtonClick}>
-              <i className="bx bx-play"></i>
-            </Button>
-          </div>
-        </div>
-        <div className="movie-content__info">
-          <h1 className="title">{title}</h1>
-          <div className="meta-row">
-            {item.release_date && <span>{new Date(item.release_date).getFullYear()}</span>}
-            {item.first_air_date && <span>{new Date(item.first_air_date).getFullYear()}</span>}
-            {(item.runtime || item.episode_run_time?.[0]) && (
-              <>
-                <span className="meta-divider"></span>
-                <span>{item.runtime || item.episode_run_time?.[0]} min</span>
-              </>
-            )}
-            {item.seasons && (
-              <>
-                <span className="meta-divider"></span>
-                <span>{item.seasons.length} Season{item.seasons.length > 1 ? 's' : ''}</span>
-              </>
-            )}
-            {item.original_language && (
-              <>
-                <span className="meta-divider"></span>
-                <span>{item.original_language.toUpperCase()}</span>
-              </>
-            )}
-          </div>
-          <div className="genres">
-            {item.genres?.slice(0, 5).map((genre, i) => (
-              <span key={i} className="genres__item">
-                {genre.name}
-              </span>
-            ))}
-          </div>
-          <p className="overview">{item.overview}</p>
-          <div className="buttons">
-            {!item.seasons && (
-              <Button onClick={handleWatchNow} className='watch-now-btn' icon={<PlayIcon />}>
-                Watch Now
+      >
+        <div className="movie-content container">
+          <div className="movie-content__poster">
+            <div
+              className="movie-content__poster__img"
+              style={{ backgroundImage: `url(${posterImage})` }}
+            >
+              <Button onClick={handlePlayButtonClick}>
+                <i className="bx bx-play"></i>
               </Button>
-            )}
-            <OutlineButton onClick={handleWatchTrailer} className='trailer-btn'>Watch Trailer</OutlineButton>
-            <div className="rating-tag">
-              <i className="bx bxs-star"></i>
-              <span>{item.vote_average?.toFixed(1)}/10</span>
             </div>
-            <Modal active={modalActive} id="trailer-modal">
-              <ModalContent onClose={handleCloseModal}>
-                <iframe
-                  width="100%"
-                  height="400"
-                  src={trailerUrl}
-                  title="Trailer"
-                  frameborder="0"
-                  allowFullScreen
-                ></iframe>
-              </ModalContent>
-            </Modal>
           </div>
-          <div className="cast">
-            <div className="section__header">
-              <h2>Top Cast</h2>
+          <div className="movie-content__info">
+            <h1 className="title stagger-1">{title}</h1>
+            <div className="meta-row stagger-2">
+              {item.release_date && <span>{new Date(item.release_date).getFullYear()}</span>}
+              {item.first_air_date && <span>{new Date(item.first_air_date).getFullYear()}</span>}
+              {(item.runtime || item.episode_run_time?.[0]) && (
+                <>
+                  <span className="meta-divider"></span>
+                  <span>{item.runtime || item.episode_run_time?.[0]} min</span>
+                </>
+              )}
+              {item.seasons && (
+                <>
+                  <span className="meta-divider"></span>
+                  <span>{item.seasons.length} Season{item.seasons.length > 1 ? 's' : ''}</span>
+                </>
+              )}
+              {item.original_language && (
+                <>
+                  <span className="meta-divider"></span>
+                  <span>{item.original_language.toUpperCase()}</span>
+                </>
+              )}
             </div>
-            <CastList id={item.id} />
+            <div className="genres stagger-3">
+              {item.genres?.slice(0, 5).map((genre, i) => (
+                <span key={i} className="genres__item">
+                  {genre.name}
+                </span>
+              ))}
+            </div>
+            <p className="overview stagger-4">{item.overview}</p>
+            <div className="buttons stagger-5">
+              {!item.seasons && (
+                <Button onClick={handleWatchNow} className='watch-now-btn' icon={<PlayIcon />}>
+                  Watch Now
+                </Button>
+              )}
+              <OutlineButton onClick={handleWatchTrailer} className='trailer-btn'>Watch Trailer</OutlineButton>
+              <div className="rating-tag">
+                <i className="bx bxs-star"></i>
+                <span>{item.vote_average?.toFixed(1)}/10</span>
+              </div>
+            </div>
+            <div className="cast stagger-6">
+              <div className="section__header">
+                <h2>Top Cast</h2>
+              </div>
+              <CastList id={item.id} />
+            </div>
           </div>
         </div>
       </div>
+      <Modal active={modalActive} id="trailer-modal">
+        <ModalContent onClose={handleCloseModal}>
+          <iframe
+            width="100%"
+            height="400"
+            src={trailerUrl}
+            title="Trailer"
+            frameBorder="0"
+            allowFullScreen
+          ></iframe>
+        </ModalContent>
+      </Modal>
       <div className="container">
         <div className="section mb-3" ref={videoPlayerRef}>
           {item.seasons ? (
