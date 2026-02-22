@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import 'swiper/css';
 import './assets/boxicons-2.0.7/css/boxicons.min.css';
 import './App.scss';
@@ -8,29 +9,31 @@ import { Toaster } from 'react-hot-toast';
 import { theme } from './theme';
 import Header from './components/header/Header';
 import Footer from './components/footer/Footer';
-
 import ScrollToTop from './components/ScrollToTop';
-import Home from './pages/home/Home';
-import Catalog from './pages/Catalog';
-import Detail from './pages/detail/Detail';
-import MultiSearch from './components/MultiSearch/MultiSearch';
+import Loading from './components/loading/Loading';
+
+// Lazy-loaded route components
+const Home = lazy(() => import('./pages/home/Home'));
+const Catalog = lazy(() => import('./pages/Catalog'));
+const Detail = lazy(() => import('./pages/detail/Detail'));
+const MultiSearch = lazy(() => import('./components/MultiSearch/MultiSearch'));
 
 function App() {
     return (
         <MantineProvider theme={theme} defaultColorScheme="dark">
             <BrowserRouter>
                 <ScrollToTop />
-
-
                 <Header />
-                <Routes>
-                    <Route path='/:category/search/:keyword' element={<Catalog />} />
-                    <Route path='/:category/type/:type' element={<Catalog />} />
-                    <Route path='/:category/:id' element={<Detail />} />
-                    <Route path='/:category' element={<Catalog />} />
-                    <Route path='/' element={<Home />} />
-                    <Route path="/search/:keyword" element={<MultiSearch />} />
-                </Routes>
+                <Suspense fallback={<Loading />}>
+                    <Routes>
+                        <Route path='/:category/search/:keyword' element={<Catalog />} />
+                        <Route path='/:category/type/:type' element={<Catalog />} />
+                        <Route path='/:category/:id' element={<Detail />} />
+                        <Route path='/:category' element={<Catalog />} />
+                        <Route path='/' element={<Home />} />
+                        <Route path="/search/:keyword" element={<MultiSearch />} />
+                    </Routes>
+                </Suspense>
                 <Footer />
                 <Toaster
                     position="top-right"

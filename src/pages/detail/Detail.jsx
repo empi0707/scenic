@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
@@ -7,10 +7,11 @@ import CastList from "./CastList/CastList";
 import MovieList from "../../components/movie-list/MovieList";
 import VideoPlayer from "./MovieVideoPlayer/VideoPlayer";
 import Button, { OutlineButton } from "../../components/button/Button";
-import SeriesVideoPlayer from "./SeriesVideoPlayer/SeriesVideoPlayer";
 import Modal, { ModalContent } from "../../components/modal/Modal";
 import Loading from "../../components/loading/Loading";
 import { PlayIcon } from "../../assets/icons/PlayIcon";
+
+const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
 const Detail = () => {
   const { category, id } = useParams();
@@ -175,12 +176,14 @@ const Detail = () => {
       <div className="container">
         <div className="section mb-3" ref={videoPlayerRef}>
           {item.seasons ? (
-            <SeriesVideoPlayer
-              id={item.id}
-              title={title}
-              series={item}
-              onEpisodeClick={handlePlayButtonClick}
-            />
+            <Suspense fallback={<Loading size="small" />}>
+              <SeriesVideoPlayer
+                id={item.id}
+                title={title}
+                series={item}
+                onEpisodeClick={handlePlayButtonClick}
+              />
+            </Suspense>
           ) : (
             <VideoPlayer
               id={item.id}
