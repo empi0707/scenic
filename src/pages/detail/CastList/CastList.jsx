@@ -1,28 +1,13 @@
-import React, { useState, useEffect } from 'react';
-
-import { useParams } from 'react-router';
-
-import tmdbApi from '../../../api/tmdbApi';
 import apiConfig from '../../../api/apiConfig';
 
 
-const CastList = props => {
+const CastList = ({ casts = [] }) => {
+    const displayCasts = casts.slice(0, 8);
 
-    const {category} = useParams();
-
-    const [casts, setCasts] = useState([]);
-
-    useEffect(() => {
-        const getCredits = async () => {
-            const res = await tmdbApi.credits(category, props.id);
-            setCasts(res.cast.slice(0, 8));
-        }
-        getCredits();
-    }, [category, props.id]);
     return (
         <div className="casts">
             {
-                casts.map((item, i) => (
+                displayCasts.map((item, i) => (
                     <div key={i} className="casts__item">
                         {item.profile_path && <div className="casts__item__img" style={{backgroundImage: `url(${apiConfig.w500Image(item.profile_path)})`}}></div>}
                         {item.profile_path && <p className="casts__item__name">{item.name}</p>}

@@ -22,20 +22,16 @@ const Detail = () => {
   const [trailerUrl, setTrailerUrl] = useState("");
   const [shouldOpenPlayer, setShouldOpenPlayer] = useState(false);
 
-  const handleWatchTrailer = async () => {
-    try {
-      const response = await tmdbApi.getVideos(category, id);
-      const youtubeTrailer = response.results.find(
-        (video) => video.type === "Trailer" && video.site === "YouTube"
-      );
-      if (youtubeTrailer) {
-        setTrailerUrl(`https://www.youtube.com/embed/${youtubeTrailer.key}`);
-        setModalActive(true);
-      } else {
-        alert("Trailer not available");
-      }
-    } catch (error) {
-      console.error("Error fetching trailer:", error);
+  const handleWatchTrailer = () => {
+    const videos = item?.videos?.results || [];
+    const youtubeTrailer = videos.find(
+      (video) => video.type === "Trailer" && video.site === "YouTube"
+    );
+    if (youtubeTrailer) {
+      setTrailerUrl(`https://www.youtube.com/embed/${youtubeTrailer.key}`);
+      setModalActive(true);
+    } else {
+      alert("Trailer not available");
     }
   };
 
@@ -53,7 +49,9 @@ const Detail = () => {
         return;
       }
       
-      const response = await tmdbApi.detail(category, id, { params: {} });
+      const response = await tmdbApi.detail(category, id, {
+        params: { append_to_response: "credits,recommendations,videos" },
+      });
       setItem(response);
       window.scrollTo(0, 0);
     } catch (error) {
@@ -157,7 +155,7 @@ const Detail = () => {
               <div className="section__header">
                 <h2>Top Cast</h2>
               </div>
-              <CastList id={item.id} />
+              <CastList casts={item.credits?.cast} />
             </div>
           </div>
         </div>
@@ -196,7 +194,7 @@ const Detail = () => {
           <div className="section__header mb-2">
             <h2>More Like This</h2>
           </div>
-          <MovieList category={category} type="recommendations" id={item.id} />
+          <MovieList category={category} type="recommendations" id={item.id} data={item.recommendations?.results} />
         </div>
       </div>
     </>

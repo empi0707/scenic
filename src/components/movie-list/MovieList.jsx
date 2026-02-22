@@ -10,11 +10,15 @@ import tmdbApi, { category } from "../../api/tmdbApi";
 import MovieCard from "../movie-card/MovieCard";
 import Loading from "../loading/Loading";
 
-const MovieList = ({ category: cat, type, id }) => {
+const MovieList = ({ category: cat, type, id, data }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const getList = useCallback(async () => {
+    if (data) {
+      setItems(data);
+      return;
+    }
     setIsLoading(true);
     try {
       let response;
@@ -36,7 +40,7 @@ const MovieList = ({ category: cat, type, id }) => {
       console.error("Failed to fetch movie/TV list:", error);
       setIsLoading(false);
     }
-  }, [cat, type, id]);
+  }, [cat, type, id, data]);
 
   useEffect(() => {
     getList();
@@ -91,6 +95,7 @@ MovieList.propTypes = {
   category: PropTypes.oneOf([category.movie, category.tv]).isRequired,
   type: PropTypes.string.isRequired,
   id: PropTypes.number,
+  data: PropTypes.array,
 };
 
 export default MovieList;
