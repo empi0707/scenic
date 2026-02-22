@@ -9,7 +9,7 @@
     right: 0;
     bottom: 0;
     overflow: auto;
-    background-color: rgba($color: $black, $alpha: 0.4);
+    background-color: rgba($color: $black, $alpha: 0.7);
     opacity: 0;
     visibility: hidden;
 
@@ -20,7 +20,8 @@
 
     &__content {
         padding: 2rem;
-        background-color: $body-bg;
+        @include glass-heavy;
+        border-radius: $border-radius-xl;
         width: 50%;
         opacity: 0;
         transform: translateY(-250px);

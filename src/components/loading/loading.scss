@@ -4,29 +4,29 @@
     @include flex(center, center);
     flex-direction: column;
     padding: $space-16 $space-4;
-    
+
     &.small {
         padding: $space-8 $space-4;
-        
+
         .loading-spinner {
             width: 40px;
             height: 40px;
         }
-        
+
         .loading-text {
             font-size: 0.9rem;
         }
     }
-    
+
     &.large {
         padding: $space-24 $space-4;
         min-height: 50vh;
-        
+
         .loading-spinner {
             width: 80px;
             height: 80px;
         }
-        
+
         .loading-text {
             font-size: 1.2rem;
         }
@@ -47,29 +47,30 @@
     border: 3px solid transparent;
     border-radius: 50%;
     animation: spin 2s linear infinite;
-    
+
     &:nth-child(1) {
         border-top-color: $main-color;
         animation-delay: 0s;
     }
-    
+
     &:nth-child(2) {
-        border-right-color: $accent-color;
+        border-right-color: $main-color-hover;
         animation-delay: -0.5s;
         animation-duration: 1.5s;
     }
-    
+
     &:nth-child(3) {
-        border-bottom-color: $accent-secondary;
+        border-bottom-color: $gray-600;
         animation-delay: -1s;
         animation-duration: 1s;
     }
 }
 
 .loading-text {
-    color: $txt-secondary;
+    color: $txt-muted;
     font-size: 1rem;
     font-weight: 500;
+    font-family: $font-family;
     margin: 0;
     opacity: 0.8;
     animation: pulse 2s ease-in-out infinite;

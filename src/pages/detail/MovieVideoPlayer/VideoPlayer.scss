@@ -2,14 +2,14 @@
 
 .video-player-container {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
     max-width: 100%;
-    background: black;
-    border-radius: 16px;
+    background: $black;
+    border-radius: $border-radius-lg;
   }
-  
+
   .video-player-container iframe {
     position: absolute;
     top: 0;
@@ -17,47 +17,44 @@
     width: 100%;
     height: 100%;
     border: 0;
-    border-radius: 16px;
+    border-radius: $border-radius-lg;
   }
 
   .server-container {
-    @include glass-morphism;
+    @include surface-card;
     text-align: center;
     margin-top: 1rem;
     padding: 1rem;
-    border-radius: $border-radius-lg;
-    box-shadow: $box-shadow;
+    color: $txt-secondary;
+    font-size: 0.8rem;
   }
 
   .server-card-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.6rem;
   }
 
   .server-card {
     cursor: pointer;
     transition: all $transition-normal;
-    border: 2px solid rgba(0, 212, 255, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: $backdrop-blur;
-    margin-top: 0.6rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    
+    border: 1px solid $border-subtle;
+    background: $surface-bg;
+    margin-top: 0.5rem;
+
     &:hover {
-      border-color: $main-color;
-      background: rgba(0, 212, 255, 0.1);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      background: $surface-hover;
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
     }
   }
-  
+
   .server-card.selected {
-    background: linear-gradient(135deg, $main-color, $accent-secondary);
-    color: $white;
-    border-color: $main-color;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    background: $white;
+    color: $txt-inverse;
+    border-color: $white;
+    font-weight: 600;
   }
 
   .movie-content__poster__img {
@@ -65,38 +62,59 @@
     background-position: top;
     background-repeat: no-repeat;
     background-size: cover;
-    padding-top: 160%;
-    border-radius: $border-radius;
+    padding-top: 150%;
+    border-radius: $border-radius-xl;
     margin-bottom: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 
     .btn {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all $transition-normal;
+        z-index: 3;
+        background: rgba(255, 255, 255, 0.95);
+        color: $black;
+        padding: 0;
+        border: none;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 50%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+        i {
+            font-size: 1.3rem;
+            margin-left: 2px;
+        }
     }
 
     &::before {
         content: "";
         position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        background-color: $black;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
         opacity: 0;
-        transition: opacity 0.3s ease;
-        border-radius: $border-radius;
+        transition: opacity $transition-normal;
+        border-radius: $border-radius-xl;
+        z-index: 1;
     }
 
     @media (hover: hover) and (pointer: fine) {
-        &:hover::before {
-            opacity: 0.8;
-        }
+        &:hover {
+            border-color: rgba(255, 255, 255, 0.15);
 
-        &:hover .btn {
-            transform: translate(-50%, -50%) scale(1);
+            &::before {
+                opacity: 1;
+            }
+
+            .btn {
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
     }
 }
@@ -106,39 +124,39 @@
   cursor: pointer;
 
   .poster-image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 16px;
-    }
-
-    .gradient-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
-      border-radius: 16px;
-    }
-
-    .btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      z-index: 2; /* Ensure play icon is above the gradient */
-    }
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: $border-radius-xl;
   }
+
+  .gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
+    border-radius: $border-radius-xl;
+  }
+
+  .btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    z-index: 2;
+  }
+}
 
 @media (max-width: 768px) {
   .server-container {
-    font-size: 0.9rem;
-    padding: 0.8rem;
+    font-size: 0.8rem;
+    padding: 0.7rem;
   }
 
   .server-card-container {
@@ -146,19 +164,15 @@
   }
 
   .server-card {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-
-  .poster-container .btn {
-    font-size: 1.2rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
   .server-container {
-    font-size: 0.8rem;
-    padding: 0.6rem;
+    font-size: 0.75rem;
+    padding: 0.5rem;
   }
 
   .server-card-container {
@@ -166,5 +180,3 @@
     align-items: center;
   }
 }
-
-  

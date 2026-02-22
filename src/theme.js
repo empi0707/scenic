@@ -1,22 +1,34 @@
 import { createTheme } from '@mantine/core';
 
 export const theme = createTheme({
-  fontFamily: 'Inter, sans-serif',
-  primaryColor: 'blue',
-  defaultRadius: 'md',
-  
+  fontFamily: 'Sora, -apple-system, sans-serif',
+  primaryColor: 'indigo',
+  defaultRadius: 'sm',
+
   colors: {
     dark: [
-      '#C1C2C5',
-      '#A6A7AB',
-      '#909296',
-      '#5C5F66',
-      '#373A40',
-      '#2C2E33',
-      '#25262B',
-      '#1A1B1E',
-      '#141517',
-      '#101113',
+      '#e5e5e5',
+      '#b3b3b3',
+      '#999999',
+      '#808080',
+      '#666666',
+      '#4d4d4d',
+      '#333333',
+      '#1c1c1c',
+      '#141414',
+      '#0a0a0a',
+    ],
+    indigo: [
+      '#eef2ff',
+      '#e0e7ff',
+      '#c7d2fe',
+      '#a5b4fc',
+      '#818cf8',
+      '#6366f1',
+      '#4f46e5',
+      '#4338ca',
+      '#3730a3',
+      '#312e81',
     ],
   },
 
@@ -25,8 +37,8 @@ export const theme = createTheme({
       styles: {
         input: {
           '&:focus': {
-            borderColor: 'var(--mantine-color-blue-6)',
-            boxShadow: '0 0 0 2px var(--mantine-color-blue-1)',
+            borderColor: '#e5e5e5',
+            boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.08)',
           },
         },
       },
@@ -37,14 +49,7 @@ export const theme = createTheme({
       },
       styles: {
         root: {
-          '--button-translate-y': '0',
-          transform: 'translateY(var(--button-translate-y))',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-          
-          '&:hover': {
-            '--button-translate-y': '-2px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          },
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       },
     },

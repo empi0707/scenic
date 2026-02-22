@@ -6,6 +6,6 @@ export const PlayIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <circle cx="32" cy="32" r="32" fill="white" />
-    <polygon points="26,20 46,32 26,44" fill="#00925d" />
+    <polygon points="26,20 46,32 26,44" fill="#0a0a0a" />
   </svg>
 );

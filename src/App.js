@@ -8,7 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import { theme } from './theme';
 import Header from './components/header/Header';
 import Footer from './components/footer/Footer';
-import AnimatedBackground from './components/background/AnimatedBackground';
+
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/home/Home';
 import Catalog from './pages/Catalog';
@@ -20,7 +20,8 @@ function App() {
         <MantineProvider theme={theme} defaultColorScheme="dark">
             <BrowserRouter>
                 <ScrollToTop />
-                <AnimatedBackground />
+
+
                 <Header />
                 <Routes>
                     <Route path='/:category/search/:keyword' element={<Catalog />} />

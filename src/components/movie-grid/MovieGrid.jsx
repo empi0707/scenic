@@ -247,30 +247,28 @@ const MovieGrid = (props) => {
   const customSelectStyles = {
     control: (provided, state) => ({
       ...provided,
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
-      backdropFilter: "blur(20px)",
-      border: state.isFocused ? "2px solid #00d4ff" : "2px solid rgba(255, 255, 255, 0.2)",
-      borderRadius: "12px",
-      color: "white",
+      backgroundColor: "#141414",
+      border: state.isFocused ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.08)",
+      borderRadius: "6px",
+      color: "#e5e5e5",
       minWidth: '12rem',
       maxWidth: '12rem',
-      boxShadow: state.isFocused ? "0 6px 16px rgba(0, 0, 0, 0.15)" : "0 4px 12px rgba(0, 0, 0, 0.1)",
+      boxShadow: state.isFocused ? "0 0 0 2px rgba(255,255,255,0.06)" : "none",
       "&:hover": {
-        borderColor: "#00d4ff"
+        borderColor: "rgba(255,255,255,0.15)"
       }
     }),
     singleValue: (provided) => ({
       ...provided,
-      color: "#f8fafc",
+      color: "#e5e5e5",
     }),
     menu: (provided) => ({
       ...provided,
-      backgroundColor: "rgba(26, 26, 46, 0.95)",
-      backdropFilter: "blur(20px)",
-      border: "1px solid rgba(255, 255, 255, 0.1)",
-      borderRadius: "12px",
+      backgroundColor: "#1c1c1c",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: "6px",
       maxWidth: '12rem',
-      boxShadow: "0 8px 25px rgba(0, 0, 0, 0.15)",
+      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
       zIndex: 9999
     }),
     menuPortal: (provided) => ({
@@ -280,30 +278,30 @@ const MovieGrid = (props) => {
     option: (provided, state) => ({
       ...provided,
       backgroundColor: state.isSelected
-        ? "linear-gradient(135deg, #00d4ff, #4ecdc4)"
+        ? "#e5e5e5"
         : state.isFocused
-          ? "rgba(0, 212, 255, 0.1)"
+          ? "rgba(255,255,255,0.06)"
           : "transparent",
-      color: "#f8fafc",
+      color: state.isSelected ? "#0a0a0a" : "#e5e5e5",
       cursor: 'pointer',
       "&:hover": {
-        backgroundColor: "rgba(0, 212, 255, 0.1)",
+        backgroundColor: "rgba(255,255,255,0.06)",
       },
       maxWidth: '12rem'
     }),
     placeholder: (provided) => ({
       ...provided,
-      color: "#64748b",
+      color: "#666666",
     }),
     input: (provided) => ({
       ...provided,
-      color: "#f8fafc",
+      color: "#e5e5e5",
     }),
     dropdownIndicator: (provided) => ({
       ...provided,
-      color: "#64748b",
+      color: "#666666",
       "&:hover": {
-        color: "#00d4ff"
+        color: "#e5e5e5"
       }
     }),
   };

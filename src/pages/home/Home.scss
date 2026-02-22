@@ -3,48 +3,50 @@
 .search-container {
     display: flex;
     justify-content: center;
-    margin: $space-16 0 $space-12 0;
+    margin: $space-6 0 $space-8 0;
     padding: 0 $space-4;
 }
 
 .movie-search {
     position: relative;
     width: 100%;
-    max-width: 600px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    max-width: 560px;
+    background: $surface-bg;
+    border: 1px solid $border-subtle;
     border-radius: $border-radius;
-    padding: $space-2;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: $space-1 $space-2;
     transition: all $transition-normal;
     display: flex;
     align-items: center;
 
     &:focus-within {
-        border-color: $main-color;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.2);
+        background: $surface-elevated;
     }
 
     .search-icon {
         padding: 0 $space-4;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         color: $txt-muted;
         pointer-events: none;
-        
+
         @include mobile {
             padding: 0 $space-3;
-            font-size: 1rem;
         }
     }
 
     input {
         flex: 1;
-        padding: $space-4 $space-6;
+        padding: $space-4 $space-4;
         padding-left: 0;
         background: transparent;
         border: none;
-        color: $white;
-        font-size: 1.1rem;
+        border-radius: 0;
+        box-shadow: none;
+        color: $txt-color;
+        font-size: 0.95rem;
+        font-family: $font-body;
+        font-weight: 400;
 
         &::placeholder {
             color: $txt-muted;
@@ -52,24 +54,50 @@
 
         &:focus {
             outline: none;
+            border: none;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        &:hover {
+            border: none;
         }
     }
 }
 
 .section {
-    margin-bottom: $space-16;
+    margin-bottom: $space-8;
 
     &__header {
         @include flex(center, space-between);
-        margin-bottom: $space-8;
+        margin-bottom: $space-5;
 
         h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            @include gradient-text($main-color, $accent-secondary);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: $white;
+            letter-spacing: -0.02em;
+            font-family: $font-family;
 
             @include mobile {
-                font-size: 1.5rem;
+                font-size: 1.05rem;
+            }
+        }
+
+        // Make "View more" look like a subtle text link
+        .btn-outline {
+            background: transparent;
+            border: none;
+            color: $txt-muted;
+            font-size: 0.8rem;
+            font-weight: 400;
+            padding: $space-1 0;
+            transition: color 200ms ease;
+
+            &:hover {
+                background: transparent;
+                border: none;
+                color: $white;
             }
         }
     }

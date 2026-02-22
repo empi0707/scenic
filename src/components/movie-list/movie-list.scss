@@ -1,76 +1,104 @@
 @use "../../scss/" as *;
 
 .movie-list {
-  padding: $space-6 0;
-  position: relative;
+    padding: $space-2 0;
+    padding-bottom: 2.5rem;
+    position: relative;
 
-  .slick-slide {
-    padding: 0 $space-3;
-  }
-  
-  .slick-dots {
-    bottom: -50px;
-    
-    li button:before {
-      color: $main-color;
-      font-size: 12px;
-      opacity: 0.5;
+    .slick-slide {
+        padding: 0 6px;
     }
-    
-    li.slick-active button:before {
-      opacity: 1;
-      color: $accent-color;
-    }
-  }
-}
 
-.movie-list {
-  .slick-prev:before,
-  .slick-next:before {
-    color: $main-color !important;
-    font-size: 24px !important;
-    opacity: 0.8 !important;
-  }
+    .slick-list {
+        margin: 0 -6px;
+        overflow: hidden;
+    }
 
-  .slick-prev,
-  .slick-next {
-    z-index: 2;
-    
-    &:hover:before {
-      opacity: 1 !important;
-      color: $accent-color !important;
-    }
-  }
+    // === ARROWS — clean, minimal ===
+    .slick-prev,
+    .slick-next {
+        z-index: 5;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: none;
+        transition: background 200ms ease;
 
-  .slick-next {
-    @include mobile {
-      right: -10px !important;
-      width: 32px !important;
-      height: 32px !important;
-      
-      &:before {
-        font-size: 18px !important;
-        line-height: 32px !important;
-      }
-    }
-    @include tablet {
-      right: -20px !important;
-    }
-  }
+        &:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
 
-  .slick-prev {
-    @include mobile {
-      left: -10px !important;
-      width: 32px !important;
-      height: 32px !important;
-      
-      &:before {
-        font-size: 18px !important;
-        line-height: 32px !important;
-      }
+        &::before {
+            font-size: 14px !important;
+            color: $white !important;
+            opacity: 0.8 !important;
+        }
+
+        &:hover::before {
+            opacity: 1 !important;
+        }
+
+        @include mobile {
+            width: 26px;
+            height: 26px;
+
+            &::before {
+                font-size: 11px !important;
+            }
+        }
     }
-    @include tablet {
-      left: -20px !important;
+
+    .slick-prev {
+        left: -12px;
+
+        @include mobile {
+            left: -6px;
+        }
     }
-  }
+
+    .slick-next {
+        right: -12px;
+
+        @include mobile {
+            right: -6px;
+        }
+    }
+
+    // === PAGINATION DOTS — small bars ===
+    .slick-dots {
+        bottom: -32px;
+
+        li {
+            width: 20px;
+            height: 4px;
+            margin: 0 2px;
+
+            button {
+                width: 20px;
+                height: 4px;
+                padding: 0;
+
+                &::before {
+                    content: "";
+                    width: 20px;
+                    height: 3px;
+                    border-radius: 2px;
+                    background: rgba(255, 255, 255, 0.15);
+                    opacity: 1;
+                    font-size: 0;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    transition: all 300ms ease;
+                }
+            }
+        }
+
+        li.slick-active button::before {
+            background: $white;
+            width: 28px;
+            opacity: 1;
+        }
+    }
 }

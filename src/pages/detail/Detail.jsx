@@ -6,7 +6,7 @@ import "./detail.scss";
 import CastList from "./CastList/CastList";
 import MovieList from "../../components/movie-list/MovieList";
 import VideoPlayer from "./MovieVideoPlayer/VideoPlayer";
-import Button from "../../components/button/Button";
+import Button, { OutlineButton } from "../../components/button/Button";
 import SeriesVideoPlayer from "./SeriesVideoPlayer/SeriesVideoPlayer";
 import Modal, { ModalContent } from "../../components/modal/Modal";
 import Loading from "../../components/loading/Loading";
@@ -111,6 +111,28 @@ const Detail = () => {
         </div>
         <div className="movie-content__info">
           <h1 className="title">{title}</h1>
+          <div className="meta-row">
+            {item.release_date && <span>{new Date(item.release_date).getFullYear()}</span>}
+            {item.first_air_date && <span>{new Date(item.first_air_date).getFullYear()}</span>}
+            {(item.runtime || item.episode_run_time?.[0]) && (
+              <>
+                <span className="meta-divider"></span>
+                <span>{item.runtime || item.episode_run_time?.[0]} min</span>
+              </>
+            )}
+            {item.seasons && (
+              <>
+                <span className="meta-divider"></span>
+                <span>{item.seasons.length} Season{item.seasons.length > 1 ? 's' : ''}</span>
+              </>
+            )}
+            {item.original_language && (
+              <>
+                <span className="meta-divider"></span>
+                <span>{item.original_language.toUpperCase()}</span>
+              </>
+            )}
+          </div>
           <div className="genres">
             {item.genres?.slice(0, 5).map((genre, i) => (
               <span key={i} className="genres__item">
@@ -125,7 +147,7 @@ const Detail = () => {
                 Watch Now
               </Button>
             )}
-            <Button onClick={handleWatchTrailer} className='trailer-btn'>Watch Trailer</Button>
+            <OutlineButton onClick={handleWatchTrailer} className='trailer-btn'>Watch Trailer</OutlineButton>
             <div className="rating-tag">
               <i className="bx bxs-star"></i>
               <span>{item.vote_average?.toFixed(1)}/10</span>

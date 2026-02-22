@@ -10,18 +10,56 @@
     background-color: rgba($color: #000000, $alpha: 0.6);
 }
 
-// V2 Enhanced Mixins
-@mixin glass-morphism {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: $backdrop-blur;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+// === LIQUID GLASS SYSTEM (iOS 26) ===
+@mixin glass-heavy {
+    background: $glass-heavy-bg;
+    backdrop-filter: $glass-heavy-blur;
+    -webkit-backdrop-filter: $glass-heavy-blur;
+    border: 1px solid $glass-heavy-border;
+    box-shadow: $glass-heavy-glow, $glass-heavy-shadow;
+}
+
+@mixin glass-medium {
+    background: $glass-medium-bg;
+    backdrop-filter: $glass-medium-blur;
+    -webkit-backdrop-filter: $glass-medium-blur;
+    border: 1px solid $glass-medium-border;
+    box-shadow: $glass-medium-glow, $glass-medium-shadow;
+}
+
+@mixin glass-light {
+    background: $glass-light-bg;
+    backdrop-filter: $glass-light-blur;
+    -webkit-backdrop-filter: $glass-light-blur;
+    border: 1px solid $glass-light-border;
+    box-shadow: $glass-light-glow, $glass-light-shadow;
+}
+
+@mixin glass-accent {
+    background: $glass-accent-bg;
+    backdrop-filter: $glass-medium-blur;
+    -webkit-backdrop-filter: $glass-medium-blur;
+    border: 1px solid $glass-accent-border;
+    box-shadow: $glass-accent-glow;
+}
+
+// Backward-compatible aliases
+@mixin frosted-surface { @include glass-heavy; }
+@mixin liquid-glass { @include glass-medium; }
+@mixin glass-morphism { @include glass-light; }
+
+// Clean surface card
+@mixin surface-card {
+    background: $surface-bg;
+    border: 1px solid $border-subtle;
+    border-radius: $border-radius-lg;
 }
 
 @mixin hover-lift {
-    transition: all $transition-normal;
+    transition: transform $transition-normal, box-shadow $transition-normal;
     &:hover {
-        transform: translateY(-8px);
-        box-shadow: $box-shadow-lg;
+        transform: translateY(-2px);
+        box-shadow: $box-shadow;
     }
 }
 
@@ -33,24 +71,21 @@
 }
 
 @mixin card-hover {
-    transition: all $transition-normal;
+    transition: transform $transition-normal, box-shadow $transition-normal;
     &:hover {
-        transform: translateY(-4px) scale(1.02);
+        transform: scale(1.05);
         box-shadow: $box-shadow-lg;
-        background: $card-hover;
     }
 }
 
 @mixin button-glow($color) {
-    box-shadow: 0 0 20px rgba($color, 0.4);
     &:hover {
-        box-shadow: 0 0 30px rgba($color, 0.6);
+        box-shadow: $box-shadow-sm;
     }
 }
 
 @mixin button-subtle {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     &:hover {
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: $box-shadow-sm;
     }
 }

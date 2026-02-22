@@ -1,11 +1,18 @@
-.card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 16px;
-    margin: 10px 0;
-    cursor: pointer;
-    color: black;
-  }
+@use "../../scss/" as *;
 
-  
+.card {
+    background: $surface-bg;
+    border-radius: $border-radius-sm;
+    box-shadow: none;
+    padding: 12px;
+    border: 1px solid $border-subtle;
+    color: $txt-color;
+    cursor: pointer;
+    transition: all $transition-normal;
+    margin: 0;
+
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: $surface-hover;
+    }
+}

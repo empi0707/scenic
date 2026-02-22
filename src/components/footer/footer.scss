@@ -1,71 +1,69 @@
 @use "../../scss/" as *;
 
 .footer {
-    background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(16, 16, 32, 0.95) 100%);
-    backdrop-filter: $backdrop-blur;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: $space-24;
+    @include glass-light;
+    border: none;
+    border-top: 1px solid $border-subtle;
+    box-shadow: none;
+    margin-top: $space-16;
 
     &__content {
-        padding: $space-8 0 $space-8 0;
+        padding: $space-12 $space-8;
         @include flex(flex-start, space-between);
 
         @include tablet {
             flex-direction: column;
-            gap: $space-6;
+            gap: $space-8;
             text-align: center;
             align-items: center;
         }
 
         @include mobile {
-            gap: $space-4;
-            text-align: center;
-            align-items: center;
+            gap: $space-6;
+            padding: $space-8 0 $space-6 0;
         }
     }
 
     &__brand {
         flex: 0 0 auto;
-        max-width: 300px;
+        max-width: 280px;
 
         @include mobile {
             text-align: center;
         }
 
         .footer__logo {
-            font-size: 2.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             font-family: "Bebas Neue", sans-serif;
-            @include gradient-text($main-color, $accent-color);
+            color: $accent-color;
             margin-bottom: $space-2;
-            letter-spacing: 2px;
+            letter-spacing: 4px;
         }
 
         .footer__tagline {
-            color: $txt-secondary;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            color: $txt-muted;
+            font-size: 0.8rem;
+            line-height: 1.6;
             margin: 0;
-            opacity: 0.8;
         }
     }
 
     &__links {
         @include flex(flex-start, flex-start);
-        gap: $space-8;
+        gap: $space-10;
         flex: 0 0 auto;
 
         @include tablet {
             justify-content: center;
-            gap: $space-6;
+            gap: $space-8;
             flex-wrap: wrap;
         }
 
         @include mobile {
             flex-direction: column;
-            gap: $space-4;
+            gap: $space-6;
             align-items: center;
-            text-align: center;
         }
     }
 
@@ -75,12 +73,12 @@
         }
 
         h4 {
-            color: $main-color;
-            font-size: 0.95rem;
+            color: $txt-color;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: $space-3;
+            margin-bottom: $space-4;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 2px;
         }
 
         ul {
@@ -92,21 +90,14 @@
                 margin-bottom: $space-2;
 
                 a {
-                    color: $txt-secondary;
+                    color: $txt-muted;
                     text-decoration: none;
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
                     font-weight: 400;
-                    transition: all $transition-normal;
-                    opacity: 0.9;
+                    transition: color $transition-normal;
 
                     &:hover {
-                        color: $main-color;
-                        opacity: 1;
-                        transform: translateX(4px);
-
-                        @include mobile {
-                            transform: translateY(-2px);
-                        }
+                        color: $txt-color;
                     }
                 }
             }
@@ -115,55 +106,47 @@
 
     &__social-icons {
         @include flex(center, center);
-        gap: $space-4;
+        gap: $space-3;
         margin-top: $space-4;
-
-        @include mobile {
-            justify-content: center;
-        }
 
         a {
             @include flex(center, center);
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            color: $txt-secondary;
-            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid $border-subtle;
+            border-radius: $border-radius;
+            color: $txt-muted;
+            font-size: 1rem;
             transition: all $transition-normal;
-            backdrop-filter: $backdrop-blur;
 
             &:hover {
-                background: $main-color;
                 color: $white;
-                transform: translateY(-2px);
-                box-shadow: $glow-primary;
+                border-color: rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.05);
             }
         }
     }
 
     &__bottom {
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding: $space-6 0;
+        border-top: 1px solid $border-subtle;
+        padding: $space-4 0;
 
         .footer__credit {
             text-align: center;
 
             p {
                 color: $txt-muted;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 margin: 0;
-                opacity: 0.7;
 
                 a {
-                    color: $main-color;
+                    color: $txt-secondary;
                     text-decoration: none;
-                    font-weight: 500;
                     transition: color $transition-normal;
 
                     &:hover {
-                        color: $accent-color;
+                        color: $white;
                     }
                 }
             }
@@ -171,18 +154,14 @@
     }
 
     @include mobile {
-        &__content {
-            padding: $space-12 0 $space-6 0;
-        }
-
         &__brand .footer__logo {
-            font-size: 2rem;
+            font-size: 1.3rem;
         }
 
         &__social-icons a {
-            width: 36px;
-            height: 36px;
-            font-size: 1rem;
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
         }
     }
 }

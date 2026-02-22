@@ -1,5 +1,7 @@
+@use "../../scss/" as *;
+
 .search-page {
-  margin-top: 6rem;
+  margin-top: 4rem;
   padding: 2rem 0;
 
   .search-container {
@@ -7,45 +9,47 @@
   }
 
   .movie-search {
-    max-width: 800px;
+    max-width: 700px;
     margin: 0 auto;
 
     .search-input {
       width: 100%;
-      
+
       input {
         height: 3.5rem;
-        font-size: 1.1rem;
+        font-size: 1rem;
         padding-left: 3rem;
         padding-right: 3rem;
-        background: var(--mantine-color-dark-6);
-        border: 2px solid var(--mantine-color-dark-4);
+        @include glass-light;
+        border-radius: 6px;
+        color: #e5e5e5;
         transition: all 0.3s ease;
-        
+
         &:focus {
-          background: var(--mantine-color-dark-5);
-          border-color: var(--mantine-color-blue-7);
+          @include glass-medium;
+          border-color: rgba(99, 102, 241, 0.4);
+          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
         }
       }
 
       .search-icon {
-        font-size: 1.3rem;
-        color: var(--mantine-color-dark-1);
+        font-size: 1.1rem;
+        color: #666;
         opacity: 0.7;
         margin-left: 0.5rem;
       }
 
       .clear-button {
-        opacity: 0.6;
+        opacity: 0.5;
         transition: opacity 0.2s ease;
-        
+
         &:hover {
           opacity: 1;
           background: none;
         }
 
         i {
-          font-size: 1.2rem;
+          font-size: 1.1rem;
         }
       }
     }
@@ -54,8 +58,9 @@
   .search-title {
     margin: 2rem 0;
     text-align: center;
-    font-size: 1.5rem;
-    color: var(--mantine-color-gray-3);
+    font-size: 1.3rem;
+    color: #999;
+    font-weight: 400;
   }
 
   .error-container {

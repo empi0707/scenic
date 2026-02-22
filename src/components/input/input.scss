@@ -1,33 +1,32 @@
 @use "../../scss/" as *;
 
 input {
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid $border-subtle;
+    background: $surface-bg;
     padding: $space-4 $space-6;
     font-size: 1rem;
     border-radius: $border-radius;
     color: $txt-color;
-    font-family: $font-family;
+    font-family: $font-body;
     transition: all $transition-normal;
-    
+
     &::placeholder {
         color: $txt-muted;
         transition: color $transition-normal;
     }
-    
+
     &:focus {
         outline: none;
         border-color: $main-color;
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        
+        background: $surface-elevated;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+
         &::placeholder {
             color: transparent;
         }
     }
-    
+
     &:hover {
-        border-color: rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.07);
+        border-color: $gray-600;
     }
 }
