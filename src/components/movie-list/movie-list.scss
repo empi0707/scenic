@@ -4,101 +4,83 @@
     padding: $space-2 0;
     padding-bottom: 2.5rem;
     position: relative;
+    overflow: hidden;
 
-    .slick-slide {
-        padding: 0 6px;
+    .swiper {
+        padding-bottom: 2rem;
     }
 
-    .slick-list {
-        margin: 0 -6px;
-        overflow: hidden;
+    .swiper-slide {
+        height: auto;
     }
 
     // === ARROWS — clean, minimal ===
-    .slick-prev,
-    .slick-next {
-        z-index: 5;
+    .swiper-button-prev,
+    .swiper-button-next {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: none;
+        background: rgba(255, 255, 255, 0.1);
         transition: background 200ms ease;
+        top: calc(50% - 1rem);
+
+        &::after {
+            font-size: 14px;
+            color: $white;
+            opacity: 0.8;
+        }
 
         &:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-        }
+            background: rgba(255, 255, 255, 0.2);
 
-        &::before {
-            font-size: 14px !important;
-            color: $white !important;
-            opacity: 0.8 !important;
-        }
-
-        &:hover::before {
-            opacity: 1 !important;
+            &::after {
+                opacity: 1;
+            }
         }
 
         @include mobile {
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
 
-            &::before {
-                font-size: 11px !important;
+            &::after {
+                font-size: 10px;
             }
         }
     }
 
-    .slick-prev {
-        left: -12px;
+    .swiper-button-prev {
+        left: 4px;
 
         @include mobile {
-            left: -6px;
+            left: 2px;
         }
     }
 
-    .slick-next {
-        right: -12px;
+    .swiper-button-next {
+        right: 4px;
 
         @include mobile {
-            right: -6px;
+            right: 2px;
         }
     }
 
     // === PAGINATION DOTS — small bars ===
-    .slick-dots {
-        bottom: -32px;
+    .swiper-pagination {
+        bottom: 0 !important;
 
-        li {
+        .swiper-pagination-bullet {
             width: 20px;
-            height: 4px;
-            margin: 0 2px;
-
-            button {
-                width: 20px;
-                height: 4px;
-                padding: 0;
-
-                &::before {
-                    content: "";
-                    width: 20px;
-                    height: 3px;
-                    border-radius: 2px;
-                    background: rgba(255, 255, 255, 0.15);
-                    opacity: 1;
-                    font-size: 0;
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    transition: all 300ms ease;
-                }
-            }
-        }
-
-        li.slick-active button::before {
-            background: $white;
-            width: 28px;
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.15);
             opacity: 1;
+            margin: 0 2px !important;
+            transition: all 300ms ease;
+
+            &-active {
+                background: $white;
+                width: 28px;
+            }
         }
     }
 }

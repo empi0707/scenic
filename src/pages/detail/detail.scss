@@ -91,7 +91,7 @@
 
     @include mobile {
         min-height: auto;
-        padding-top: 30vh;
+        padding-top: max(30vh, 72px);
         padding-bottom: 2rem;
     }
 }

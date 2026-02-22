@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
-import Slider from "react-slick";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import "./movie-list.scss";
 import tmdbApi, { category } from "../../api/tmdbApi";
 import MovieCard from "../movie-card/MovieCard";
 import Loading from "../loading/Loading";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 const MovieList = ({ category: cat, type, id }) => {
   const [items, setItems] = useState([]);
@@ -40,54 +42,46 @@ const MovieList = ({ category: cat, type, id }) => {
     getList();
   }, [getList]);
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 6,
-    slidesToScroll: 3,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 4,
-          slidesToScroll: 3,
-          infinite: true,
-          dots: true,
-        },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3,
-          initialSlide: 2,
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-        },
-      },
-    ],
-  };
-
-  if(isLoading) {
-    return <Loading size="small" />
+  if (isLoading) {
+    return <Loading size="small" />;
   }
 
   return (
     <div className="movie-list">
       {items.length > 0 && (
-        <Slider {...settings}>
+        <Swiper
+          modules={[Navigation, Pagination]}
+          spaceBetween={12}
+          slidesPerView={2}
+          slidesPerGroup={2}
+          navigation
+          pagination={{ clickable: true }}
+          speed={500}
+          breakpoints={{
+            480: {
+              slidesPerView: 3,
+              slidesPerGroup: 3,
+            },
+            768: {
+              slidesPerView: 4,
+              slidesPerGroup: 3,
+            },
+            1024: {
+              slidesPerView: 5,
+              slidesPerGroup: 3,
+            },
+            1280: {
+              slidesPerView: 6,
+              slidesPerGroup: 3,
+            },
+          }}
+        >
           {items.map((item) => (
-            <div key={item.id}>
+            <SwiperSlide key={item.id}>
               <MovieCard item={item} category={cat} />
-            </div>
+            </SwiperSlide>
           ))}
-        </Slider>
+        </Swiper>
       )}
     </div>
   );
