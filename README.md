@@ -1,91 +1,95 @@
-**Scenic v2: Your gateway to endless entertainment universe**
+# Scenic
 
-Welcome to **Scenic**, a web application that offers a complete entertainment experience by providing comprehensive details about movies and TV series through the TMDB API. Whether you’re seeking the latest blockbuster or a hidden gem, Scenic has got you covered. Stream content from various servers and watch trailers instantly to make your viewing choices even easier.
+A modern movie and TV series discovery platform built with React. Browse trending content, explore genres, search across movies and shows, watch trailers, and stream from multiple servers — all wrapped in a sleek glass-morphism UI.
 
-## ✨ What's New in v2
-
-### **Modern Design System**
-- **Glass-morphism UI**: Beautiful translucent elements with backdrop blur effects
-- **Gradient Accents**: Eye-catching color gradients throughout the interface
-- **Enhanced Typography**: Improved readability with modern font choices
-- **Smooth Animations**: Subtle fade-in animations and hover effects
-
-### 🌟 **Enhanced User Experience**
-- **Improved Search**: Better search interface with enhanced styling
-- **Movie Cards**: Redesigned cards with ratings, hover effects, and better information display
-- **Loading States**: Beautiful animated loading components
-- **Responsive Design**: Optimized for all screen sizes with better mobile experience
-
-### 🎭 **Visual Improvements**
-- **Hero Section**: Dramatically enhanced hero slides with better typography and animations
-- **Navigation**: Modern header with glass-morphism and smooth transitions
-- **Footer**: Comprehensive footer with social links and better organization
-- **Background**: Subtle animated background elements for visual depth
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![SCSS](https://img.shields.io/badge/SCSS-Modules-CC6699?logo=sass&logoColor=white)
+![TMDB](https://img.shields.io/badge/TMDB-API-01D277?logo=themoviedatabase&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 ## Features
 
-- 🎬 Comprehensive movie and TV series details with enhanced presentation
-- 🌊 Stream content from various servers
-- 🍿 Watch trailers instantly with improved player interface
-- 🔍 Advanced search with modern, intuitive design
-- 📱 Fully responsive design optimized for all devices
-- ⭐ Movie ratings and detailed information display
+- **Multi-Server Streaming** — Watch movies and TV episodes from 10+ configurable servers with a built-in server selector
+- **TV Series Player** — Season and episode selector with previous/next navigation and auto-saved progress via localStorage
+- **Hero Carousel** — Auto-playing showcase of top 5 trending movies with poster art and quick actions
+- **Global Search** — Debounced multi-search across movies and TV shows with instant results
+- **Genre & Country Filters** — Filter content by genre or production country on catalog pages
+- **Trailer Playback** — Watch YouTube trailers directly in-app through a modal player
+- **Detailed Info Pages** — Backdrop art, cast lists, ratings, genres, runtime, and related recommendations
+- **Responsive Design** — Optimized layouts for mobile (with bottom nav), tablet, and desktop
+- **Glass-morphism UI** — Translucent panels, backdrop blur, gradient accents, and smooth fade-in animations
 
 ## Tech Stack
 
-- **Frontend**: React 18, React Router DOM
-- **Styling**: SCSS with modern design system
-- **UI Components**: Custom components with glass-morphism design
-- **Animations**: CSS transitions and keyframe animations
-- **API**: The Movie Database (TMDB) API
-- **Carousel**: React Slick for smooth content sliding
-- **Icons**: Boxicons and Font Awesome
+| Layer | Tools |
+|-------|-------|
+| **Framework** | React 18, React Router DOM v6 |
+| **Styling** | SCSS, Mantine UI |
+| **Animations** | Framer Motion, Swiper.js, CSS transitions |
+| **API** | TMDB (The Movie Database) |
+| **HTTP** | Axios with interceptors |
+| **Icons** | Boxicons, Font Awesome |
+| **Utilities** | use-debounce, query-string, react-hot-toast |
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn package manager
+
+- Node.js v14+
+- A free [TMDB API key](https://www.themoviedb.org/settings/api)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/vanshaj-pahwa/scenic.git
-   cd scenic
-   ```
+```bash
+git clone https://github.com/vanshaj-pahwa/scenic.git
+cd scenic
+npm install
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### Environment Setup
 
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory and add your TMDB API key:
-   ```
-   REACT_APP_TMDB_API_KEY=your_api_key_here
-   ```
+Create a `.env` file in the root directory:
 
-4. **Start the development server**
-   ```bash
-   npm start
-   ```
+```env
+# TMDB
+REACT_APP_API_KEY=your_tmdb_api_key
 
-5. **Open your browser**
-   Navigate to `http://localhost:3000` to see the application.
+# Streaming servers (movie & TV pairs)
+REACT_APP_MOVIE_SERVER1=https://example.com/embed/movie/
+REACT_APP_TV_SERVER1=https://example.com/embed/tv/
+# ... configure up to SERVER10
+```
+
+### Run
+
+```bash
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+
+## Routes
+
+| Path | Page |
+|------|------|
+| `/` | Home — hero slider, trending & top rated sections |
+| `/movie` | Movie catalog with filters |
+| `/tv` | TV series catalog with filters |
+| `/movie/type/:type` | Movies by type (popular, top_rated, now_playing, upcoming) |
+| `/tv/type/:type` | TV by type (popular, top_rated, on_the_air) |
+| `/movie/:id` | Movie detail + player |
+| `/tv/:id` | TV series detail + episode player |
+| `/search/:keyword` | Global search results |
 
 ## Contributing
 
-We welcome contributions to make Scenic even better! Here's how you can get involved:
-
-1. **Fork the Repository:** Click the "Fork" button at the top right of this page to create a copy of the repository in your GitHub account.
-2. **Clone the Repository:** Clone your forked repository to your local machine using `git clone https://github.com/vanshaj-pahwa/scenic.git`.
-3. **Create a Branch:** Create a new branch for your feature or bug fix using `git checkout -b your-branch-name`.
-4. **Make Your Changes:** Implement your feature or bug fix.
-5. **Commit Your Changes:** Commit your changes with a descriptive commit message using `git commit -m "Description of your changes"`.
-6. **Push to the Branch:** Push your changes to your forked repository using `git push origin your-branch-name`.
-7. **Create a Pull Request:** Go to the original repository on GitHub and create a pull request to merge your changes.
+1. Fork the repository
+2. Create a feature branch — `git checkout -b feature/your-feature`
+3. Commit your changes — `git commit -m "Add your feature"`
+4. Push to the branch — `git push origin feature/your-feature`
+5. Open a Pull Request
 
 ---
 
-**Enjoy exploring the world of entertainment with Scenic v2! 🎬✨**
+Built with ❤️ by [Vanshaj Pahwa](https://github.com/vanshaj-pahwa)
