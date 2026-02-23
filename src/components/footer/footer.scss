@@ -61,15 +61,20 @@
         }
 
         @include mobile {
-            flex-direction: column;
-            gap: $space-6;
-            align-items: center;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: $space-6 $space-4;
+            text-align: center;
         }
     }
 
     &__section {
         @include mobile {
             text-align: center;
+
+            &:last-child {
+                grid-column: 1 / -1;
+            }
         }
 
         h4 {
@@ -79,6 +84,10 @@
             margin-bottom: $space-4;
             text-transform: uppercase;
             letter-spacing: 2px;
+
+            @include mobile {
+                margin-bottom: $space-2;
+            }
         }
 
         ul {
@@ -107,7 +116,7 @@
     &__social-icons {
         @include flex(center, center);
         gap: $space-3;
-        margin-top: $space-4;
+        margin-top: $space-2;
 
         a {
             @include flex(center, center);

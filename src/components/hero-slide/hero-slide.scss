@@ -272,9 +272,10 @@
             flex: 1;
             display: flex;
             justify-content: flex-end;
-            align-items: flex-end;
+            align-items: flex-start;
             position: relative;
             z-index: 2;
+            padding-top: calc(#{$header-height} + #{$space-6});
 
             @include mobile {
                 display: none;
