@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
+import toast from "react-hot-toast";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import "./detail.scss";
@@ -10,6 +11,7 @@ import Button, { OutlineButton } from "../../components/button/Button";
 import Modal, { ModalContent } from "../../components/modal/Modal";
 import Loading from "../../components/loading/Loading";
 import { PlayIcon } from "../../assets/icons/PlayIcon";
+import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
 
 const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
@@ -22,6 +24,46 @@ const Detail = () => {
   const [modalActive, setModalActive] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState("");
   const [shouldOpenPlayer, setShouldOpenPlayer] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  const handleShare = async () => {
+    if (!item) return;
+    const title = item.title || item.name;
+    const year = (item.release_date || item.first_air_date || "").slice(0, 4);
+    const displayTitle = year ? `${title} (${year})` : title;
+    const overview = (item.overview || "").trim();
+    const url = window.location.href;
+    const shareText = overview
+      ? `${displayTitle}\n\n${overview}\n\n${url}`
+      : `${displayTitle}\n\n${url}`;
+
+    const flashSuccess = () => {
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 1400);
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${displayTitle} - Scenic`,
+          text: overview ? `${displayTitle}\n\n${overview}` : displayTitle,
+          url,
+        });
+        flashSuccess();
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("Link copied to clipboard");
+      flashSuccess();
+    } catch (_) {
+      toast.error("Could not copy link");
+    }
+  };
 
   const handleWatchTrailer = () => {
     const videos = item?.videos?.results || [];
@@ -151,6 +193,15 @@ const Detail = () => {
                 <i className="bx bxs-star"></i>
                 <span>{item.vote_average?.toFixed(1)}/10</span>
               </div>
+              <button
+                type="button"
+                onClick={handleShare}
+                className={`share-btn${shareSuccess ? " is-success" : ""}`}
+                aria-label={shareSuccess ? "Link copied" : "Share"}
+                title={shareSuccess ? "Copied" : "Share"}
+              >
+                {shareSuccess ? <CheckIcon /> : <ShareIcon />}
+              </button>
             </div>
             <div className="cast stagger-6">
               <div className="section__header">
