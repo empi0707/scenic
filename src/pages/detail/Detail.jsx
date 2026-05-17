@@ -46,7 +46,6 @@ const Detail = () => {
       try {
         await navigator.share({
           title: `${displayTitle} - Scenic`,
-          text: overview ? `${displayTitle}\n\n${overview}` : displayTitle,
           url,
         });
         flashSuccess();
