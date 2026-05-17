@@ -189,11 +189,6 @@ const Reviews = ({ mediaType, id, title, imdbId }) => {
   };
 
   if (isLoading) return <Loading size="small" />;
-  if (reviews.length === 0) {
-    return (
-      <p className="reviews-empty">No reviews yet. Be the first to weigh in.</p>
-    );
-  }
 
   const imdbUrl = imdbId
     ? `https://www.imdb.com/title/${imdbId}/reviews`
@@ -204,37 +199,46 @@ const Reviews = ({ mediaType, id, title, imdbId }) => {
       )}`
     : null;
 
+  const externalLinks = (imdbUrl || googleUrl) && (
+    <header className="reviews-list__count">
+      {imdbUrl && (
+        <a
+          href={imdbUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="reviews-list__external reviews-list__external--imdb"
+        >
+          Read more on IMDB
+          <ExternalIcon />
+        </a>
+      )}
+      {imdbUrl && googleUrl && <span className="reviews-list__sep">·</span>}
+      {googleUrl && (
+        <a
+          href={googleUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="reviews-list__external reviews-list__external--google"
+        >
+          Read more on Google
+          <ExternalIcon />
+        </a>
+      )}
+    </header>
+  );
+
+  if (reviews.length === 0) {
+    return (
+      <section className="reviews-list">
+        <p className="reviews-empty">No reviews</p>
+        {externalLinks}
+      </section>
+    );
+  }
+
   return (
     <section className="reviews-list">
-      {(imdbUrl || googleUrl) && (
-        <header className="reviews-list__count">
-          {imdbUrl && (
-            <a
-              href={imdbUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="reviews-list__external reviews-list__external--imdb"
-            >
-              Read more on IMDB
-              <ExternalIcon />
-            </a>
-          )}
-          {imdbUrl && googleUrl && (
-            <span className="reviews-list__sep">·</span>
-          )}
-          {googleUrl && (
-            <a
-              href={googleUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="reviews-list__external reviews-list__external--google"
-            >
-              Read more on Google
-              <ExternalIcon />
-            </a>
-          )}
-        </header>
-      )}
+      {externalLinks}
 
       {reviews.map((r) => (
         <ReviewByline

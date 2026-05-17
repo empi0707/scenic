@@ -176,6 +176,18 @@ const Detail = () => {
                   <span>{item.original_language.toUpperCase()}</span>
                 </>
               )}
+              {item.vote_average ? (
+                <>
+                  <span className="meta-divider"></span>
+                  <span
+                    className="meta-rating"
+                    aria-label={`Rated ${item.vote_average.toFixed(1)} out of 10`}
+                  >
+                    <i className="bx bxs-star" aria-hidden="true"></i>
+                    {item.vote_average.toFixed(1)}
+                  </span>
+                </>
+              ) : null}
             </div>
             <div className="genres stagger-3">
               {item.genres?.slice(0, 5).map((genre, i) => (
@@ -192,10 +204,6 @@ const Detail = () => {
                 </Button>
               )}
               <OutlineButton onClick={handleWatchTrailer} className='trailer-btn'>Watch Trailer</OutlineButton>
-              <div className="rating-tag">
-                <i className="bx bxs-star"></i>
-                <span>{item.vote_average?.toFixed(1)}/10</span>
-              </div>
               <button
                 type="button"
                 onClick={handleShare}
