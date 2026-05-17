@@ -67,6 +67,14 @@ const tmdbApi = {
     getCountryList: () => {
         const url = 'configuration/countries';
         return axiosClient.get(url, { params: {} });
+    },
+    person: (id) => {
+        const url = `person/${id}`;
+        return axiosClient.get(url, { params: {} });
+    },
+    personCombinedCredits: (id) => {
+        const url = `person/${id}/combined_credits`;
+        return axiosClient.get(url, { params: {} });
     }
 }
 

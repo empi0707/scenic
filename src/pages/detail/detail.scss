@@ -478,6 +478,10 @@
         flex: 0 0 auto;
         text-align: center;
         width: 88px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        cursor: pointer;
 
         &__img {
             width: 88px;
@@ -489,6 +493,18 @@
             border: 2px solid rgba(255, 255, 255, 0.08);
             transition: all $transition-normal;
             padding-top: 0;
+
+            &--placeholder {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(168, 85, 247, 0.14));
+                color: rgba(255, 255, 255, 0.78);
+                font-size: 1.45rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                user-select: none;
+            }
         }
 
         &__name {
