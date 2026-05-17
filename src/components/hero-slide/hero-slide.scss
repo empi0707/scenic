@@ -88,20 +88,24 @@
         );
     }
 
-    // Bottom fade into $body-bg
+    // Bottom fade into $body-bg — long, smooth, no visible seam
     &::after {
         content: "";
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 40%;
+        height: 65%;
         z-index: 1;
         background: linear-gradient(
             to top,
             $body-bg 0%,
-            rgba(10, 10, 10, 0.85) 25%,
-            rgba(10, 10, 10, 0.4) 55%,
+            rgba(10, 10, 10, 0.98) 12%,
+            rgba(10, 10, 10, 0.88) 25%,
+            rgba(10, 10, 10, 0.7) 40%,
+            rgba(10, 10, 10, 0.48) 55%,
+            rgba(10, 10, 10, 0.28) 70%,
+            rgba(10, 10, 10, 0.12) 85%,
             transparent 100%
         );
     }

@@ -43,7 +43,7 @@ const Home = () => {
   }, [keyword, goToSearch]);
 
   return (
-    <>
+    <div className="home-page">
       <HeroSlide />
       <div className="container">
         <FadeIn>
@@ -63,6 +63,20 @@ const Home = () => {
         </FadeIn>
 
         <FadeIn delay={150}>
+          <div className="section mb-3">
+            <div className="section__header mb-2">
+              <h2>Trending Today</h2>
+            </div>
+            <TrendingRow
+              mediaType="all"
+              timeWindow="day"
+              limit={20}
+              showRank={false}
+            />
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={175}>
           <div className="section mb-3">
             <div className="section__header mb-2">
               <h2>Top 10 This Week</h2>
@@ -119,7 +133,7 @@ const Home = () => {
           </div>
         </FadeIn>
       </div>
-    </>
+    </div>
   );
 };
 

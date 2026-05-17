@@ -33,6 +33,7 @@ const TrendingRow = ({
   mediaType = "all",
   timeWindow = "week",
   limit = 10,
+  showRank = true,
 }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,9 +99,11 @@ const TrendingRow = ({
                   <Button>
                     <i className="bx bx-play"></i>
                   </Button>
-                  <span className="trending-slide__rank" aria-hidden="true">
-                    <span className="trending-slide__rank-number">{rank}</span>
-                  </span>
+                  {showRank && (
+                    <span className="trending-slide__rank" aria-hidden="true">
+                      <span className="trending-slide__rank-number">{rank}</span>
+                    </span>
+                  )}
                   <span
                     className={`trending-slide__badge trending-slide__badge--${item.media_type}`}
                   >
