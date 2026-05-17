@@ -75,6 +75,10 @@ const tmdbApi = {
     personCombinedCredits: (id) => {
         const url = `person/${id}/combined_credits`;
         return axiosClient.get(url, { params: {} });
+    },
+    trending: (mediaType = 'all', timeWindow = 'week') => {
+        const url = `trending/${mediaType}/${timeWindow}`;
+        return axiosClient.get(url, { params: {} });
     }
 }
 

@@ -4,6 +4,7 @@ import { useDebounce } from "use-debounce";
 import { OutlineButton } from "../../components/button/Button";
 import HeroSlide from "../../components/hero-slide/HeroSlide";
 import MovieList from "../../components/movie-list/MovieList";
+import TrendingRow from "../../components/trending-row/TrendingRow";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
 import Input from "../../components/input/Input";
@@ -61,10 +62,19 @@ const Home = () => {
           </div>
         </FadeIn>
 
+        <FadeIn delay={150}>
+          <div className="section mb-3">
+            <div className="section__header mb-2">
+              <h2>Top 10 This Week</h2>
+            </div>
+            <TrendingRow mediaType="all" timeWindow="week" limit={10} />
+          </div>
+        </FadeIn>
+
         <FadeIn delay={200}>
           <div className="section mb-3">
             <div className="section__header mb-2">
-              <h2>Trending Movies</h2>
+              <h2>Popular Movies</h2>
               <Link to="/movie">
                 <OutlineButton className="small">View more</OutlineButton>
               </Link>
@@ -88,7 +98,7 @@ const Home = () => {
         <FadeIn delay={400}>
           <div className="section mb-3">
             <div className="section__header mb-2">
-              <h2>Trending TV</h2>
+              <h2>Popular TV</h2>
               <Link to="/tv">
                 <OutlineButton className="small">View more</OutlineButton>
               </Link>
