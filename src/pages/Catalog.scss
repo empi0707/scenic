@@ -9,4 +9,21 @@
     @include mobile {
         padding-top: calc(#{$header-height} + 2rem);
     }
+
+    // Page title — slightly bolder than home section headers so it reads
+    // as a page heading, not a section heading
+    &__header {
+        margin-bottom: $space-8;
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: $white;
+
+            @include mobile {
+                font-size: 1.25rem;
+            }
+        }
+    }
 }
