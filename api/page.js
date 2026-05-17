@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
 
       const displayTitle = year ? `${title} (${year}) - Scenic` : `${title} - Scenic`;
       const subject = type === 'movie' ? 'this movie' : 'this series';
-      const promo = `Stream ${subject} free on Scenic. Watch blockbusters and hidden gems instantly, no signup needed.`;
+      const promo = `Watch ${subject} free on Scenic. Stream blockbusters and hidden gems instantly, no signup needed.`;
       const credit = `© ${new Date().getFullYear()} Scenic. Developed with ❤️ by Vanshaj Pahwa`;
       const description = `${promo} ${credit}`;
 

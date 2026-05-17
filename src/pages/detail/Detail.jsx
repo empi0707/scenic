@@ -33,7 +33,9 @@ const Detail = () => {
     const displayTitle = year ? `${title} (${year})` : title;
     const subject = category === "tv" ? "this series" : "this movie";
     const url = window.location.href;
-    const shareText = `${displayTitle}\n\nStream ${subject} free on Scenic. Watch blockbusters and hidden gems instantly, no signup needed.\n\n${url}`;
+    const promo = `Watch ${subject} free on Scenic. Stream blockbusters and hidden gems instantly, no signup needed.`;
+    const messageBody = `${displayTitle}\n\n${promo}`;
+    const clipboardText = `${messageBody}\n\n${url}`;
 
     const flashSuccess = () => {
       setShareSuccess(true);
@@ -44,6 +46,7 @@ const Detail = () => {
       try {
         await navigator.share({
           title: `${displayTitle} - Scenic`,
+          text: messageBody,
           url,
         });
         flashSuccess();
@@ -54,7 +57,7 @@ const Detail = () => {
     }
 
     try {
-      await navigator.clipboard.writeText(shareText);
+      await navigator.clipboard.writeText(clipboardText);
       toast.success("Link copied to clipboard");
       flashSuccess();
     } catch (_) {
