@@ -34,8 +34,8 @@ const Detail = () => {
     const subject = category === "tv" ? "this series" : "this movie";
     const url = window.location.href;
     const promo = `Watch ${subject} free on Scenic. Stream blockbusters and hidden gems instantly, no signup needed.`;
-    const messageBody = `${displayTitle}\n\n${promo}`;
-    const clipboardText = `${messageBody}\n\n${url}`;
+    const credit = `© ${new Date().getFullYear()} Scenic. Developed with ❤️ by Vanshaj Pahwa`;
+    const fullMessage = `${displayTitle}\n\n${promo}\n\n${credit}\n\n${url}`;
 
     const flashSuccess = () => {
       setShareSuccess(true);
@@ -44,10 +44,12 @@ const Detail = () => {
 
     if (navigator.share) {
       try {
+        // URL is embedded in `text` (not passed separately) so WhatsApp puts
+        // it on its own line instead of appending it after the body with a
+        // space. WhatsApp still auto-detects the URL and renders the preview.
         await navigator.share({
           title: `${displayTitle} - Scenic`,
-          text: messageBody,
-          url,
+          text: fullMessage,
         });
         flashSuccess();
         return;
@@ -57,7 +59,7 @@ const Detail = () => {
     }
 
     try {
-      await navigator.clipboard.writeText(clipboardText);
+      await navigator.clipboard.writeText(fullMessage);
       toast.success("Link copied to clipboard");
       flashSuccess();
     } catch (_) {
