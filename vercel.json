@@ -2,10 +2,5 @@
   "rewrites": [
     { "source": "/movie/:id(\\d+)", "destination": "/api/page?type=movie&id=:id" },
     { "source": "/tv/:id(\\d+)", "destination": "/api/page?type=tv&id=:id" }
-  ],
-  "functions": {
-    "api/page.js": {
-      "includeFiles": "build/**"
-    }
-  }
+  ]
 }

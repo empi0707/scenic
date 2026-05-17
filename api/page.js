@@ -1,22 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+export const config = { runtime: 'edge' };
 
-let htmlCache = null;
+let cachedHtml = null;
 
-function loadHtml() {
-  if (htmlCache) return htmlCache;
-  const candidates = [
-    path.join(process.cwd(), 'build', 'index.html'),
-    path.join(__dirname, '..', 'build', 'index.html'),
-    path.join(__dirname, '..', '..', 'build', 'index.html'),
-  ];
-  for (const p of candidates) {
-    try {
-      htmlCache = fs.readFileSync(p, 'utf-8');
-      return htmlCache;
-    } catch (_) {}
-  }
-  throw new Error('Could not locate build/index.html');
+async function loadHtml(origin) {
+  if (cachedHtml) return cachedHtml;
+  const res = await fetch(`${origin}/index.html`, { cf: { cacheTtl: 3600 } });
+  if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
+  cachedHtml = await res.text();
+  return cachedHtml;
 }
 
 function escapeHtml(str) {
@@ -28,38 +19,43 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-module.exports = async (req, res) => {
-  const { type, id } = req.query || {};
+export default async function handler(request) {
+  const url = new URL(request.url);
+  const type = url.searchParams.get('type');
+  const id = url.searchParams.get('id');
+  const origin = url.origin;
+
   let html;
   try {
-    html = loadHtml();
-  } catch (e) {
-    return res.status(500).send('Server error');
+    html = await loadHtml(origin);
+  } catch (_) {
+    return new Response('Server error', { status: 500 });
   }
 
-  if (!type || !id || !['movie', 'tv'].includes(type) || !/^\d+$/.test(String(id))) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(200).send(html);
+  const baseHeaders = {
+    'Content-Type': 'text/html; charset=utf-8',
+  };
+
+  if (!type || !id || !['movie', 'tv'].includes(type) || !/^\d+$/.test(id)) {
+    return new Response(html, { status: 200, headers: baseHeaders });
   }
 
   try {
     const apiKey = process.env.REACT_APP_API_KEY;
     if (!apiKey) throw new Error('Missing TMDB API key');
 
-    const tmdbUrl = `https://api.themoviedb.org/3/${type}/${id}?api_key=${encodeURIComponent(apiKey)}`;
-    const response = await fetch(tmdbUrl);
+    const tmdbRes = await fetch(
+      `https://api.themoviedb.org/3/${type}/${id}?api_key=${encodeURIComponent(apiKey)}`
+    );
 
-    if (response.ok) {
-      const data = await response.json();
+    if (tmdbRes.ok) {
+      const data = await tmdbRes.json();
       const title = data.title || data.name || 'Scenic';
       const releaseDate = data.release_date || data.first_air_date || '';
       const year = releaseDate.slice(0, 4);
       const posterPath = data.backdrop_path || data.poster_path;
       const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500${posterPath}` : '';
-
-      const host = req.headers['x-forwarded-host'] || req.headers.host;
-      const proto = req.headers['x-forwarded-proto'] || 'https';
-      const fullUrl = `${proto}://${host}/${type}/${id}`;
+      const fullUrl = `${origin}/${type}/${id}`;
 
       const displayTitle = year ? `${title} (${year}) - Scenic` : `${title} - Scenic`;
       const subject = type === 'movie' ? 'this movie' : 'this series';
@@ -94,12 +90,14 @@ module.exports = async (req, res) => {
       html = html.replace('</head>', `    ${ogBlock}\n  </head>`);
     }
 
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
-    return res.status(200).send(html);
-  } catch (e) {
-    console.error('OG injection error:', e);
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(200).send(html);
+    return new Response(html, {
+      status: 200,
+      headers: {
+        ...baseHeaders,
+        'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800',
+      },
+    });
+  } catch (_) {
+    return new Response(html, { status: 200, headers: baseHeaders });
   }
-};
+}
