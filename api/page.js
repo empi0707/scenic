@@ -54,7 +54,6 @@ module.exports = async (req, res) => {
       const title = data.title || data.name || 'Scenic';
       const releaseDate = data.release_date || data.first_air_date || '';
       const year = releaseDate.slice(0, 4);
-      const overview = (data.overview || '').trim();
       const posterPath = data.backdrop_path || data.poster_path;
       const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500${posterPath}` : '';
 
@@ -63,23 +62,10 @@ module.exports = async (req, res) => {
       const fullUrl = `${proto}://${host}/${type}/${id}`;
 
       const displayTitle = year ? `${title} (${year}) - Scenic` : `${title} - Scenic`;
+      const subject = type === 'movie' ? 'this movie' : 'this series';
+      const promo = `Stream ${subject} free on Scenic. Watch blockbusters and hidden gems instantly, no signup needed.`;
       const credit = `© ${new Date().getFullYear()} Scenic. Developed with ❤️ by Vanshaj Pahwa`;
-
-      // WhatsApp truncates descriptions around ~155 chars. Budget so the credit
-      // always survives — trim the overview to fit, never the credit.
-      const MAX_DESC = 155;
-      const SEP = ' ';
-      const budget = MAX_DESC - credit.length - SEP.length;
-      let body;
-      if (overview) {
-        body = overview.length > budget
-          ? overview.slice(0, Math.max(0, budget - 1)).trimEnd() + '…'
-          : overview;
-      } else {
-        const fallback = `Stream ${title} on Scenic.`;
-        body = fallback.length > budget ? fallback.slice(0, budget) : fallback;
-      }
-      const description = `${body}${SEP}${credit}`;
+      const description = `${promo} ${credit}`;
 
       const ogBlock = [
         `<title>${escapeHtml(displayTitle)}</title>`,

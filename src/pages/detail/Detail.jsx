@@ -31,11 +31,9 @@ const Detail = () => {
     const title = item.title || item.name;
     const year = (item.release_date || item.first_air_date || "").slice(0, 4);
     const displayTitle = year ? `${title} (${year})` : title;
-    const overview = (item.overview || "").trim();
+    const subject = category === "tv" ? "this series" : "this movie";
     const url = window.location.href;
-    const shareText = overview
-      ? `${displayTitle}\n\n${overview}\n\n${url}`
-      : `${displayTitle}\n\n${url}`;
+    const shareText = `${displayTitle}\n\nStream ${subject} free on Scenic. Watch blockbusters and hidden gems instantly, no signup needed.\n\n${url}`;
 
     const flashSuccess = () => {
       setShareSuccess(true);
