@@ -1,14 +1,16 @@
 @use "../../scss/" as *;
 
 .footer {
-    @include glass-light;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border: none;
-    border-top: 1px solid $border-subtle;
     box-shadow: none;
-    margin-top: $space-16;
+    margin-top: 0;
+    position: relative;
 
     &__content {
-        padding: $space-12 $space-8;
+        padding: $space-6 $space-8 $space-8;
         @include flex(flex-start, space-between);
 
         @include tablet {
@@ -20,7 +22,7 @@
 
         @include mobile {
             gap: $space-6;
-            padding: $space-8 0 $space-6 0;
+            padding: $space-4 0 $space-6 0;
         }
     }
 
@@ -138,7 +140,7 @@
     }
 
     &__bottom {
-        border-top: 1px solid $border-subtle;
+        border-top: none;
         padding: $space-4 0;
 
         .footer__credit {

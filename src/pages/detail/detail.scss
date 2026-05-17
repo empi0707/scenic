@@ -1,5 +1,22 @@
 @use "../../scss/" as *;
 
+// ─── DETAIL PAGE WRAPPER — cinematic gradient surface ──
+// Subtle dark gradient extends the banner's atmospheric tone through the
+// episodes and "More Like This" sections so the whole page reads as one
+// continuous dark surface, not flat $body-bg cut into sections.
+.detail-page {
+    position: relative;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(14, 14, 18, 1) 0%,
+            rgba(11, 11, 14, 1) 35%,
+            $body-bg 70%,
+            $body-bg 100%
+        );
+    min-height: 100vh;
+}
+
 // ─── ENTRANCE ANIMATIONS ─────────────────────────────
 @keyframes fadeUp {
     from {
@@ -46,10 +63,12 @@
     background-size: cover;
     background-repeat: no-repeat;
     animation: fadeIn 0.8s ease both;
-    padding-top: calc(#{$header-height} + 2rem);
-    padding-bottom: 3rem;
+    padding-top: calc(#{$header-height} + 4.5rem);
+    padding-bottom: 6rem;
 
-    // Cinematic vignette — heavy left + bottom for readability
+    // Cinematic vignette — heavy left + bottom + uniform dark wash so the
+    // backdrop image stays subdued and the whole banner reads as part of
+    // the same dark surface as the rest of the page.
     &::before {
         content: "";
         position: absolute;
@@ -58,35 +77,42 @@
             linear-gradient(
                 to right,
                 rgba(0, 0, 0, 0.95) 0%,
-                rgba(0, 0, 0, 0.7) 25%,
-                rgba(0, 0, 0, 0.2) 55%,
-                rgba(0, 0, 0, 0.05) 75%,
-                rgba(0, 0, 0, 0.3) 100%
+                rgba(0, 0, 0, 0.78) 25%,
+                rgba(0, 0, 0, 0.45) 55%,
+                rgba(0, 0, 0, 0.35) 75%,
+                rgba(0, 0, 0, 0.5) 100%
             ),
             linear-gradient(
                 to bottom,
-                rgba(0, 0, 0, 0.3) 0%,
-                transparent 30%
+                rgba(0, 0, 0, 0.45) 0%,
+                rgba(0, 0, 0, 0.15) 30%,
+                rgba(0, 0, 0, 0.1) 60%,
+                rgba(0, 0, 0, 0.25) 100%
             );
         z-index: 1;
     }
 
-    // Bottom fade into body
+    // Bottom fade into body — fully solid $body-bg in the lower portion
+    // so the banner's bottom edge is indistinguishable from the page below.
     &::after {
         content: "";
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 60%;
+        height: 70%;
+        z-index: 1;
         background: linear-gradient(
             to top,
             $body-bg 0%,
-            rgba(10, 10, 10, 0.9) 25%,
-            rgba(10, 10, 10, 0.5) 55%,
+            $body-bg 18%,
+            rgba(10, 10, 10, 0.92) 32%,
+            rgba(10, 10, 10, 0.74) 46%,
+            rgba(10, 10, 10, 0.5) 60%,
+            rgba(10, 10, 10, 0.28) 75%,
+            rgba(10, 10, 10, 0.12) 88%,
             transparent 100%
         );
-        z-index: 1;
     }
 
     @include mobile {

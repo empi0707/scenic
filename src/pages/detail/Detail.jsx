@@ -136,7 +136,7 @@ const Detail = () => {
   const title = item.title || item.name;
 
   return (
-    <>
+    <div className="detail-page">
       <div
         className="banner"
         style={{ backgroundImage: `url(${backgroundImage})` }}
@@ -253,7 +253,7 @@ const Detail = () => {
           <MovieList category={category} type="recommendations" id={item.id} data={item.recommendations?.results} />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

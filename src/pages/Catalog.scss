@@ -1,0 +1,12 @@
+@use "../scss/" as *;
+
+.catalog-page {
+    padding-top: calc(#{$header-height} + 4.5rem);
+    padding-bottom: 2rem;
+    min-height: 100vh;
+    background-color: $body-bg;
+
+    @include mobile {
+        padding-top: calc(#{$header-height} + 2rem);
+    }
+}
