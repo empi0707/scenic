@@ -79,6 +79,27 @@ const tmdbApi = {
     trending: (mediaType = 'all', timeWindow = 'week') => {
         const url = `trending/${mediaType}/${timeWindow}`;
         return axiosClient.get(url, { params: {} });
+    },
+    discoverByProvider: (mediaType, providerId, region = 'US', params = {}) => {
+        const url = `discover/${mediaType === 'tv' ? 'tv' : 'movie'}`;
+        return axiosClient.get(url, {
+            params: {
+                with_watch_providers: providerId,
+                watch_region: region,
+                sort_by: 'popularity.desc',
+                ...params,
+            },
+        });
+    },
+    getWatchProviders: (mediaType, region) => {
+        const url = `watch/providers/${mediaType === 'tv' ? 'tv' : 'movie'}`;
+        return axiosClient.get(url, {
+            params: region ? { watch_region: region } : {},
+        });
+    },
+    getWatchRegions: () => {
+        const url = 'watch/providers/regions';
+        return axiosClient.get(url, { params: {} });
     }
 }
 

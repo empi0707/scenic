@@ -5,6 +5,7 @@ import { OutlineButton } from "../../components/button/Button";
 import HeroSlide from "../../components/hero-slide/HeroSlide";
 import MovieList from "../../components/movie-list/MovieList";
 import TrendingRow from "../../components/trending-row/TrendingRow";
+import OnlyOnProvider from "../../components/only-on-provider/OnlyOnProvider";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
 import Input from "../../components/input/Input";
@@ -82,6 +83,12 @@ const Home = () => {
               <h2>Top 10 This Week</h2>
             </div>
             <TrendingRow mediaType="all" timeWindow="week" limit={10} />
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={200}>
+          <div className="section mb-3">
+            <OnlyOnProvider mediaType="tv" limit={12} />
           </div>
         </FadeIn>
 
