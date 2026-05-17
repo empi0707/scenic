@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
       const year = releaseDate.slice(0, 4);
       const overview = (data.overview || '').trim();
       const posterPath = data.backdrop_path || data.poster_path;
-      const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w780${posterPath}` : '';
+      const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500${posterPath}` : '';
 
       const host = req.headers['x-forwarded-host'] || req.headers.host;
       const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -64,9 +64,22 @@ module.exports = async (req, res) => {
 
       const displayTitle = year ? `${title} (${year}) - Scenic` : `${title} - Scenic`;
       const credit = `© ${new Date().getFullYear()} Scenic. Developed with ❤️ by Vanshaj Pahwa`;
-      const description = overview
-        ? `${overview}\n\n${credit}`
-        : `Stream ${title} on Scenic. ${credit}`;
+
+      // WhatsApp truncates descriptions around ~155 chars. Budget so the credit
+      // always survives — trim the overview to fit, never the credit.
+      const MAX_DESC = 155;
+      const SEP = ' ';
+      const budget = MAX_DESC - credit.length - SEP.length;
+      let body;
+      if (overview) {
+        body = overview.length > budget
+          ? overview.slice(0, Math.max(0, budget - 1)).trimEnd() + '…'
+          : overview;
+      } else {
+        const fallback = `Stream ${title} on Scenic.`;
+        body = fallback.length > budget ? fallback.slice(0, budget) : fallback;
+      }
+      const description = `${body}${SEP}${credit}`;
 
       const ogBlock = [
         `<title>${escapeHtml(displayTitle)}</title>`,
@@ -77,7 +90,10 @@ module.exports = async (req, res) => {
         `<meta property="og:description" content="${escapeHtml(description)}" />`,
         `<meta property="og:url" content="${escapeHtml(fullUrl)}" />`,
         posterUrl ? `<meta property="og:image" content="${escapeHtml(posterUrl)}" />` : '',
-        posterUrl ? `<meta property="og:image:width" content="780" />` : '',
+        posterUrl ? `<meta property="og:image:secure_url" content="${escapeHtml(posterUrl)}" />` : '',
+        posterUrl ? `<meta property="og:image:type" content="image/jpeg" />` : '',
+        posterUrl ? `<meta property="og:image:width" content="500" />` : '',
+        posterUrl ? `<meta property="og:image:height" content="${data.backdrop_path ? 281 : 750}" />` : '',
         posterUrl ? `<meta property="og:image:alt" content="${escapeHtml(title + ' poster')}" />` : '',
         `<meta name="twitter:card" content="summary_large_image" />`,
         `<meta name="twitter:title" content="${escapeHtml(displayTitle)}" />`,
