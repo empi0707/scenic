@@ -100,6 +100,11 @@ const tmdbApi = {
     getWatchRegions: () => {
         const url = 'watch/providers/regions';
         return axiosClient.get(url, { params: {} });
+    },
+    reviews: (mediaType, id, page = 1) => {
+        const type = mediaType === 'tv' ? 'tv' : 'movie';
+        const url = `${type}/${id}/reviews`;
+        return axiosClient.get(url, { params: { page } });
     }
 }
 

@@ -22,7 +22,12 @@ const MultiSearch = lazy(() => import('./components/MultiSearch/MultiSearch'));
 function App() {
     return (
         <MantineProvider theme={theme} defaultColorScheme="dark">
-            <BrowserRouter>
+            <BrowserRouter
+                future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
+                }}
+            >
                 <ScrollToTop />
                 <Header />
                 <Suspense fallback={<Loading />}>

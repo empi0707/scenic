@@ -1,0 +1,319 @@
+@use "../../scss/" as *;
+
+.reviews-empty {
+    color: $txt-muted;
+    font-size: 0.9rem;
+    padding: 1rem 0;
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.reviews-list__count {
+    padding: 0 0 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.reviews-list__external {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: $font-family;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 200ms ease;
+
+    svg {
+        width: 11px;
+        height: 11px;
+        transition: transform 200ms ease;
+    }
+
+    &:hover svg {
+        transform: translate(2px, -2px);
+    }
+
+    &--imdb {
+        color: rgba(245, 197, 24, 0.85); // IMDB yellow
+        &:hover { color: #f5c518; }
+    }
+
+    &--google {
+        color: rgba(165, 180, 252, 0.85); // soft indigo (matches app accent)
+        &:hover { color: #a5b4fc; }
+    }
+}
+
+.reviews-list__sep {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+.reviews-list__load-more {
+    display: flex;
+    justify-content: center;
+    padding: 1.2rem 0 0.4rem;
+}
+
+// ── Byline row ────────────────────────────────────────
+.review-byline {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 240ms ease, border-bottom-color 240ms ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.018);
+    }
+
+    &[data-open="true"] {
+        background: rgba(99, 102, 241, 0.045);
+        border-bottom-color: rgba(99, 102, 241, 0.18);
+    }
+
+    &__head {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(180px, auto) 1fr auto;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 0.95rem 0;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        text-align: left;
+        color: inherit;
+        font-family: inherit;
+
+        @include mobile {
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto auto;
+            gap: 0.35rem 0.75rem;
+            padding: 0.85rem 0;
+        }
+    }
+
+    &__meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+
+        @include mobile {
+            grid-column: 1 / -1;
+            gap: 0.5rem;
+        }
+    }
+
+    // Small circular avatar before the author name. Keeps the row tight.
+    &__avatar {
+        flex: 0 0 auto;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+
+        &--placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(
+                135deg,
+                rgba(99, 102, 241, 0.28),
+                rgba(168, 85, 247, 0.18)
+            );
+            color: rgba(255, 255, 255, 0.9);
+            font-family: $font-family;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        @include mobile {
+            width: 22px;
+            height: 22px;
+
+            &--placeholder {
+                font-size: 0.62rem;
+            }
+        }
+    }
+
+    // Uppercase, letter-spaced author — the byline anchor
+    &__author {
+        font-family: $font-family;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.92);
+
+        @include mobile {
+            font-size: 0.68rem;
+        }
+    }
+
+    &__rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.22rem;
+        padding: 0.12rem 0.45rem 0.14rem;
+        background: rgba(250, 204, 21, 0.08);
+        border: 1px solid rgba(250, 204, 21, 0.22);
+        border-radius: 3px;
+        font-family: $font-family;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: rgb(250, 204, 21);
+        line-height: 1;
+
+        svg {
+            width: 9px;
+            height: 9px;
+            display: block;
+        }
+    }
+
+    &__date {
+        font-family: $font-family;
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    // Italic pull-quote teaser — single line on desktop, clamps to 2 on mobile
+    &__quote {
+        font-family: $font-family;
+        font-style: italic;
+        font-size: 0.92rem;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.62);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+
+        @include mobile {
+            font-size: 0.84rem;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+    }
+
+    // Plus icon that rotates 45° to an X when open
+    &__icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.45);
+        transition: color 200ms ease,
+                    transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+
+        svg {
+            width: 14px;
+            height: 14px;
+            display: block;
+        }
+    }
+
+    &__head:hover &__icon {
+        color: #a5b4fc;
+    }
+
+    &[data-open="true"] &__icon {
+        color: #818cf8;
+        transform: rotate(45deg);
+    }
+
+    // ── Expanding body — grid-row trick for smooth height transition ──
+    &__body {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 320ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &[data-open="true"] &__body {
+        grid-template-rows: 1fr;
+    }
+
+    &__content {
+        overflow: hidden;
+        min-height: 0;
+
+        p {
+            max-width: 68ch;
+            font-family: $font-family;
+            font-size: 0.95rem;
+            line-height: 1.72;
+            color: rgba(255, 255, 255, 0.78);
+            white-space: pre-line;
+            margin: 0;
+
+            @include mobile {
+                font-size: 0.9rem;
+                line-height: 1.65;
+            }
+        }
+    }
+
+    &[data-open="true"] &__content {
+        padding: 0.6rem 1.25rem 1.5rem;
+
+        @include mobile {
+            padding: 0.5rem 0.85rem 1.25rem;
+        }
+    }
+
+    &__source {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 1rem;
+        font-family: $font-family;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        text-decoration: none;
+        transition: color 200ms ease;
+
+        svg {
+            width: 11px;
+            height: 11px;
+            transition: transform 200ms ease;
+        }
+
+        &:hover {
+            color: #a5b4fc;
+
+            svg {
+                transform: translate(2px, -2px);
+            }
+        }
+    }
+
+    &:last-child {
+        border-bottom: 0;
+    }
+}

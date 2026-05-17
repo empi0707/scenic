@@ -12,6 +12,7 @@ import Modal, { ModalContent } from "../../components/modal/Modal";
 import Loading from "../../components/loading/Loading";
 import { PlayIcon } from "../../assets/icons/PlayIcon";
 import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
+import Reviews from "../../components/reviews/Reviews";
 
 const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
@@ -95,7 +96,7 @@ const Detail = () => {
       }
       
       const response = await tmdbApi.detail(category, id, {
-        params: { append_to_response: "credits,recommendations,videos" },
+        params: { append_to_response: "credits,recommendations,videos,external_ids" },
       });
       setItem(response);
       window.scrollTo(0, 0);
@@ -245,6 +246,17 @@ const Detail = () => {
               onPlayerOpen={() => setShouldOpenPlayer(false)}
             />
           )}
+        </div>
+        <div className="section mb-3">
+          <div className="section__header mb-2">
+            <h2>Reviews</h2>
+          </div>
+          <Reviews
+            mediaType={category}
+            id={item.id}
+            title={title}
+            imdbId={item.imdb_id || item.external_ids?.imdb_id}
+          />
         </div>
         <div className="section mb-3">
           <div className="section__header mb-2">
