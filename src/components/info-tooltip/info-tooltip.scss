@@ -1,0 +1,133 @@
+@use "../../scss/" as *;
+
+.info-tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.45rem;
+    vertical-align: middle;
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+        color: $txt-muted;
+        transition: color 200ms ease, background 200ms ease;
+        -webkit-tap-highlight-color: transparent;
+
+        svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
+
+        &:hover,
+        &.is-open {
+            color: $white;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        @include mobile {
+            width: 18px;
+            height: 18px;
+
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+    }
+
+    &__popover {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 50%;
+        z-index: 50;
+
+        max-width: min(260px, calc(100vw - 2rem));
+        width: max-content;
+        padding: 0.6rem 0.8rem;
+
+        @include glass-medium;
+        border-radius: $border-radius;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+        font-size: 0.78rem;
+        font-weight: 400;
+        line-height: 1.45;
+        color: $txt-color;
+        letter-spacing: 0;
+        text-transform: none;
+        white-space: normal;
+
+        // Hidden by default; revealed on hover (desktop) or .is-open (click)
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-50%) translateY(-4px);
+        pointer-events: none;
+        transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
+                    visibility 180ms linear;
+
+        // Small caret pointing up to the icon
+        &::before {
+            content: "";
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 10px;
+            height: 10px;
+            background: inherit;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @include mobile {
+            // Pin to viewport edges if necessary
+            left: auto;
+            right: 0;
+            transform: translateY(-4px);
+            max-width: calc(100vw - 2rem);
+
+            &::before {
+                left: auto;
+                right: 7px;
+                transform: rotate(45deg);
+            }
+        }
+    }
+
+    // Reveal popover on HOVER (desktop)
+    @media (hover: hover) and (pointer: fine) {
+        &:hover &__popover {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+
+            @include mobile {
+                transform: translateY(0);
+            }
+        }
+    }
+
+    // Reveal popover on click (works on touch screens)
+    &.is-open &__popover {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateX(-50%) translateY(0);
+
+        @include mobile {
+            transform: translateY(0);
+        }
+    }
+}

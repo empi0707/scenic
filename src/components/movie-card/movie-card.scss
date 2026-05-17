@@ -51,6 +51,35 @@
         }
     }
 
+    // Media-type chip (top-left) — only shown for mixed-media lists where
+    // each item has an explicit `media_type`
+    &__media-badge {
+        position: absolute;
+        top: $space-2;
+        left: $space-2;
+        z-index: 5;
+        @include glass-medium;
+        padding: 0.2rem 0.5rem;
+        border-radius: $border-radius-sm;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $white;
+
+        &--tv {
+            background: rgba(99, 102, 241, 0.22);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #c7d2fe;
+        }
+
+        &--movie {
+            background: rgba(245, 197, 24, 0.15);
+            border-color: rgba(245, 197, 24, 0.3);
+            color: #fde68a;
+        }
+    }
+
     // Rating badge — top right
     &__info {
         position: absolute;

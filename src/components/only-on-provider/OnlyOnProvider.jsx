@@ -170,15 +170,24 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
     };
   }, []);
 
-  // Fetch providers (with logos + names) for the selected region + media type
+  // Fetch providers (with logos + names) for the selected region + media type.
+  // When mediaType is "all", fetch both movie and tv provider lists and union
+  // them — so the featured IDs match either side.
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await tmdbApi.getWatchProviders(mediaType, region);
-        const all = res.results || [];
+        const fetchTypes = mediaType === "all" ? ["movie", "tv"] : [mediaType];
+        const responses = await Promise.all(
+          fetchTypes.map((t) => tmdbApi.getWatchProviders(t, region))
+        );
+        const map = new Map();
+        responses.forEach((res) => {
+          (res.results || []).forEach((p) => {
+            if (!map.has(p.provider_id)) map.set(p.provider_id, p);
+          });
+        });
         const featured = getFeaturedIds(region);
-        const map = new Map(all.map((p) => [p.provider_id, p]));
         const list = featured
           .map((id) => map.get(id))
           .filter(Boolean)
@@ -213,23 +222,44 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
     [providers, providerId]
   );
 
-  // Fetch titles for selected provider/region. Falls back to US if the
-  // chosen region returns nothing for that provider.
+  // Fetch titles for selected provider/region. When mediaType is "all",
+  // fetch both movies and TV, tag each with media_type, sort by popularity.
+  // Falls back to US if the region returns nothing.
   useEffect(() => {
     if (!providerId) return;
     let cancelled = false;
+
+    const fetchFor = async (region) => {
+      if (mediaType === "all") {
+        const [mRes, tRes] = await Promise.all([
+          tmdbApi.discoverByProvider("movie", providerId, region),
+          tmdbApi.discoverByProvider("tv", providerId, region),
+        ]);
+        const movies = (mRes.results || []).map((m) => ({
+          ...m,
+          media_type: "movie",
+        }));
+        const tv = (tRes.results || []).map((t) => ({
+          ...t,
+          media_type: "tv",
+        }));
+        return [...movies, ...tv].sort(
+          (a, b) => (b.popularity || 0) - (a.popularity || 0)
+        );
+      }
+      const res = await tmdbApi.discoverByProvider(mediaType, providerId, region);
+      return (res.results || []).map((i) => ({
+        ...i,
+        media_type: mediaType === "tv" ? "tv" : "movie",
+      }));
+    };
+
     const load = async () => {
       setIsLoadingItems(true);
       try {
-        let res = await tmdbApi.discoverByProvider(
-          mediaType,
-          providerId,
-          region
-        );
-        let results = res.results || [];
+        let results = await fetchFor(region);
         if (results.length === 0 && region !== "US") {
-          res = await tmdbApi.discoverByProvider(mediaType, providerId, "US");
-          results = res.results || [];
+          results = await fetchFor("US");
         }
         const filtered = results
           .filter((i) => i.backdrop_path || i.poster_path)
@@ -259,8 +289,12 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const linkFor = (item) =>
-    `/${mediaType === "tv" ? "tv" : "movie"}/${item.id}`;
+  // Per-item routing: use the item's media_type when present, fall back to
+  // the row's mediaType prop (movie/tv).
+  const linkFor = (item) => {
+    const type = item.media_type || (mediaType === "tv" ? "tv" : "movie");
+    return `/${type === "tv" ? "tv" : "movie"}/${item.id}`;
+  };
 
   return (
     <div className="only-on-provider">
@@ -459,6 +493,13 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                     <Button>
                       <i className="bx bx-play"></i>
                     </Button>
+                    {item.media_type && (
+                      <span
+                        className={`only-on-provider__media-badge only-on-provider__media-badge--${item.media_type}`}
+                      >
+                        {item.media_type === "tv" ? "Series" : "Movie"}
+                      </span>
+                    )}
                     {item.vote_average > 0 && (
                       <span className="only-on-provider__rating">
                         <i className="bx bxs-star"></i>
@@ -468,11 +509,11 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                   </div>
                   <div className="only-on-provider__meta">
                     <h3>{title}</h3>
-                    <div className="only-on-provider__meta-sub">
-                      {year && <span>{year}</span>}
-                      <span className="only-on-provider__sep">·</span>
-                      <span>{mediaType === "tv" ? "TV Show" : "Movie"}</span>
-                    </div>
+                    {year && (
+                      <div className="only-on-provider__meta-sub">
+                        <span>{year}</span>
+                      </div>
+                    )}
                   </div>
                 </Link>
               </SwiperSlide>

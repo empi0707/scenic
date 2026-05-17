@@ -99,16 +99,22 @@ const TrendingRow = ({
                   <Button>
                     <i className="bx bx-play"></i>
                   </Button>
-                  {showRank && (
-                    <span className="trending-slide__rank" aria-hidden="true">
-                      <span className="trending-slide__rank-number">{rank}</span>
-                    </span>
-                  )}
                   <span
                     className={`trending-slide__badge trending-slide__badge--${item.media_type}`}
                   >
                     {item.media_type === "tv" ? "Series" : "Movie"}
                   </span>
+                  {item.vote_average > 0 && (
+                    <span className="trending-slide__rating">
+                      <i className="bx bxs-star"></i>
+                      {item.vote_average.toFixed(1)}
+                    </span>
+                  )}
+                  {showRank && (
+                    <span className="trending-slide__rank" aria-hidden="true">
+                      <span className="trending-slide__rank-number">{rank}</span>
+                    </span>
+                  )}
                 </div>
                 <div className="trending-slide__title">
                   <h3>{item.title || item.name}</h3>

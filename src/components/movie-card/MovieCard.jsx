@@ -11,9 +11,15 @@ import apiConfig from '../../api/apiConfig';
 
 const MovieCard = props => {
 
-    const item  = props.item;
+    const item = props.item;
 
-    const link = '/' + category[props.category] + '/' + item.id;
+    // Prefer per-item media_type when present (used by mixed lists like
+    // Hidden Gems, Trending All). Fall back to the row's category prop.
+    const resolvedCategory = item.media_type
+        ? (item.media_type === 'tv' ? category.tv : category.movie)
+        : category[props.category];
+
+    const link = '/' + resolvedCategory + '/' + item.id;
 
     const bg = apiConfig.w500Image(item.poster_path || item.backdrop_path);
 
@@ -23,6 +29,11 @@ const MovieCard = props => {
                 <Button>
                     <i className="bx bx-play"></i>
                 </Button>
+                {item.media_type && (
+                    <span className={`movie-card__media-badge movie-card__media-badge--${item.media_type}`}>
+                        {item.media_type === 'tv' ? 'Series' : 'Movie'}
+                    </span>
+                )}
                 <div className="movie-card__info">
                     <div className="movie-card__rating">
                         <i className="bx bxs-star"></i>

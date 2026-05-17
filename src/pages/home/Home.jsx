@@ -6,6 +6,8 @@ import HeroSlide from "../../components/hero-slide/HeroSlide";
 import MovieList from "../../components/movie-list/MovieList";
 import TrendingRow from "../../components/trending-row/TrendingRow";
 import OnlyOnProvider from "../../components/only-on-provider/OnlyOnProvider";
+import HiddenGems from "../../components/hidden-gems/HiddenGems";
+import InfoTooltip from "../../components/info-tooltip/InfoTooltip";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
 import Input from "../../components/input/Input";
@@ -88,7 +90,23 @@ const Home = () => {
 
         <FadeIn delay={200}>
           <div className="section mb-3">
-            <OnlyOnProvider mediaType="tv" limit={12} />
+            <OnlyOnProvider mediaType="all" limit={24} />
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={225}>
+          <div className="section mb-3">
+            <div className="section__header mb-2">
+              <h2>
+                Hidden Gems
+                <InfoTooltip label="What are Hidden Gems?">
+                  Highly rated movies and shows that most people haven't
+                  seen yet. We pick titles rated above 7.5 out of 10,
+                  with 80 to 800 reviews.
+                </InfoTooltip>
+              </h2>
+            </div>
+            <HiddenGems limit={24} />
           </div>
         </FadeIn>
 
