@@ -7,6 +7,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
+import Button from "../button/Button";
 import "./only-on-provider.scss";
 
 const SWIPER_BREAKPOINTS = {
@@ -455,6 +456,9 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                     className="only-on-provider__card-image"
                     style={{ backgroundImage: `url(${poster})` }}
                   >
+                    <Button>
+                      <i className="bx bx-play"></i>
+                    </Button>
                     {item.vote_average > 0 && (
                       <span className="only-on-provider__rating">
                         <i className="bx bxs-star"></i>
