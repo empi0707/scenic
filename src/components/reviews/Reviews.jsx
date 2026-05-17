@@ -142,7 +142,6 @@ const Reviews = ({ mediaType, id, title, imdbId }) => {
   const [reviews, setReviews] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalResults, setTotalResults] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [openId, setOpenId] = useState(null);
@@ -157,7 +156,6 @@ const Reviews = ({ mediaType, id, title, imdbId }) => {
         setReviews(res.results || []);
         setPage(1);
         setTotalPages(res.total_pages || 0);
-        setTotalResults(res.total_results || 0);
         setOpenId(null);
       } catch (e) {
         console.error("Reviews fetch failed:", e);
