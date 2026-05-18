@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import Loading from "../../components/loading/Loading";
+import MovieCard from "../../components/movie-card/MovieCard";
 import "./person.scss";
 
 const getInitials = (name) => {
@@ -101,6 +102,14 @@ const Person = () => {
 
   return (
     <div className="person-page">
+      {profileImg && (
+        <div
+          className="person-page__backdrop"
+          style={{ backgroundImage: `url(${profileImg})` }}
+          aria-hidden="true"
+        />
+      )}
+
       <div className="container person-back-wrap">
         <button
           type="button"
@@ -121,30 +130,31 @@ const Person = () => {
           <span>Back</span>
         </button>
       </div>
-      <div className="person-header">
-        <div className="container person-header__wrap">
-          <div className="person-header__photo">
+
+      <div className="container person-layout">
+        <aside className="person-aside">
+          <div className="person-aside__photo">
             {profileImg ? (
               <div
-                className="person-header__photo-img"
+                className="person-aside__photo-img"
                 style={{ backgroundImage: `url(${profileImg})` }}
               ></div>
             ) : (
-              <div className="person-header__photo-img person-header__photo-img--placeholder">
+              <div className="person-aside__photo-img person-aside__photo-img--placeholder">
                 <span>{getInitials(person.name)}</span>
               </div>
             )}
           </div>
 
-          <div className="person-header__info">
-            <h1 className="person-header__name stagger-1">{person.name}</h1>
+          <div className="person-aside__head">
             {person.known_for_department && (
-              <p className="person-header__role stagger-2">
+              <p className="person-aside__role stagger-1">
                 {person.known_for_department}
               </p>
             )}
+            <h1 className="person-aside__name stagger-2">{person.name}</h1>
 
-            <div className="person-header__meta stagger-3">
+            <div className="person-aside__meta stagger-3">
               {person.birthday && (
                 <span>
                   Born {formatDate(person.birthday)}
@@ -164,29 +174,27 @@ const Person = () => {
                 </>
               )}
             </div>
-
-            {bio && (
-              <div className="person-header__bio stagger-4">
-                <p>{visibleBio}</p>
-                {isBioLong && (
-                  <button
-                    type="button"
-                    className="bio-toggle"
-                    onClick={() => setBioExpanded((v) => !v)}
-                  >
-                    {bioExpanded ? "Show less" : "Read more"}
-                  </button>
-                )}
-              </div>
-            )}
           </div>
-        </div>
-      </div>
 
-      <div className="container">
-        <div className="section mb-3">
-          <div className="section__header mb-2 filmography-header">
-            <h2>Filmography</h2>
+          {bio && (
+            <div className="person-aside__bio stagger-4">
+              <p>{visibleBio}</p>
+              {isBioLong && (
+                <button
+                  type="button"
+                  className="bio-toggle"
+                  onClick={() => setBioExpanded((v) => !v)}
+                >
+                  {bioExpanded ? "Show less" : "Read more"}
+                </button>
+              )}
+            </div>
+          )}
+        </aside>
+
+        <section className="person-main">
+          <div className="section__header filmography-header">
+            <h2 className="filmography-header__title">Filmography</h2>
             {credits.length > 0 && (() => {
               const movies = credits.filter((c) => c.media_type === "movie").length;
               const series = credits.filter((c) => c.media_type === "tv").length;
@@ -208,62 +216,17 @@ const Person = () => {
 
           {credits.length > 0 ? (
             <div className="filmography-grid">
-              {credits.map((c) => {
-                const dateStr = c.release_date || c.first_air_date;
-                const year = dateStr ? new Date(dateStr).getFullYear() : null;
-                const poster = c.poster_path
-                  ? apiConfig.w500Image(c.poster_path)
-                  : null;
-                return (
-                  <Link
-                    key={`${c.media_type}-${c.id}`}
-                    to={`/${c.media_type}/${c.id}`}
-                    className="filmography-card"
-                  >
-                    <div
-                      className={`filmography-card__poster${
-                        poster ? "" : " filmography-card__poster--empty"
-                      }`}
-                      style={
-                        poster ? { backgroundImage: `url(${poster})` } : undefined
-                      }
-                    >
-                      {!poster && (
-                        <span className="filmography-card__no-poster">
-                          {c.title || c.name}
-                        </span>
-                      )}
-                      <span
-                        className={`filmography-card__badge filmography-card__badge--${c.media_type}`}
-                      >
-                        {c.media_type === "tv" ? "Series" : "Movie"}
-                      </span>
-                      {c.vote_average > 0 && (
-                        <span className="filmography-card__rating">
-                          <i className="bx bxs-star"></i>
-                          {c.vote_average.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="filmography-card__meta">
-                      <h3>{c.title || c.name}</h3>
-                      <div className="filmography-card__sub">
-                        {year && <span>{year}</span>}
-                        {c.character && (
-                          <span className="filmography-card__character">
-                            as {c.character}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {credits.map((c) => (
+                <MovieCard
+                  key={`${c.media_type}-${c.id}`}
+                  item={c}
+                />
+              ))}
             </div>
           ) : (
             <p className="filmography-empty">No filmography available</p>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

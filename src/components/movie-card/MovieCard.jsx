@@ -22,11 +22,20 @@ const MovieCard = props => {
 
     const link = '/' + resolvedCategory + '/' + item.id;
 
-    const bg = apiConfig.w500Image(item.poster_path || item.backdrop_path);
+    const posterPath = item.poster_path || item.backdrop_path;
+    const bg = posterPath ? apiConfig.w500Image(posterPath) : null;
 
     return (
         <Link to={link} className="movie-card-link">
-            <div className="movie-card" style={{backgroundImage: `url(${bg})`}}>
+            <div
+                className={`movie-card${bg ? '' : ' movie-card--no-poster'}`}
+                style={bg ? { backgroundImage: `url(${bg})` } : undefined}
+            >
+                {!bg && (
+                    <span className="movie-card__placeholder">
+                        {item.title || item.name}
+                    </span>
+                )}
                 <Button>
                     <i className="bx bx-play"></i>
                 </Button>

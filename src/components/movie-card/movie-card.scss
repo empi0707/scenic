@@ -19,6 +19,41 @@
     transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1),
                 box-shadow 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
+    // Placeholder when no poster/backdrop image is available — soft
+    // indigo→purple gradient with the title centered, so cards never
+    // sit as flat dark boxes.
+    &--no-poster {
+        background: linear-gradient(
+            135deg,
+            rgba(99, 102, 241, 0.22) 0%,
+            rgba(168, 85, 247, 0.12) 60%,
+            rgba(0, 0, 0, 0.5) 100%
+        );
+    }
+
+    &__placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 86%;
+        text-align: center;
+        font-family: $font-family;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.3;
+        color: rgba(255, 255, 255, 0.78);
+        letter-spacing: -0.01em;
+        padding: 0 0.5rem;
+        z-index: 2;
+        pointer-events: none;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
     // Subtle inner border for depth
     &::before {
         content: "";
