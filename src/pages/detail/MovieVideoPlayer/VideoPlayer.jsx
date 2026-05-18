@@ -2,13 +2,31 @@ import { useState, useEffect, useCallback } from "react";
 import "./VideoPlayer.scss";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
 
+const serverKey = (id) => `scenic:movie-server:${id}`;
+
+const readSavedServer = (id) => {
+  if (!id || typeof window === "undefined") return 0;
+  try {
+    const raw = localStorage.getItem(serverKey(id));
+    const n = raw == null ? 0 : parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+};
+
 const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
-  const [selectedServer, setSelectedServer] = useState(0);
+  const [selectedServer, setSelectedServer] = useState(() => readSavedServer(id));
   const [serverUrl, setServerUrl] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleServerClick = (index) => {
     setSelectedServer(index);
+    try {
+      if (id) localStorage.setItem(serverKey(id), String(index));
+    } catch {
+      /* ignore */
+    }
     switch (index) {
       case 0:
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER1}${id}`);
@@ -46,8 +64,13 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
   };
 
   const handlePlayButtonClick = useCallback(() => {
-    setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER1}${id}`);
-    setSelectedServer(0);
+    // Resume on the same server the user last picked for this title.
+    const idx = readSavedServer(id);
+    const serverVar =
+      process.env[`REACT_APP_MOVIE_SERVER${idx + 1}`] ||
+      process.env.REACT_APP_MOVIE_SERVER1;
+    setServerUrl(`${serverVar}${id}`);
+    setSelectedServer(idx);
     setIsModalOpen(true);
   }, [id]);
 

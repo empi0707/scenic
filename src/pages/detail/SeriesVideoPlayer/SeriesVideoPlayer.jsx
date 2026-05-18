@@ -1,11 +1,26 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./SeriesVideoPlayer.scss";
 import apiConfig from "../../../api/apiConfig";
 import tmdbApi from "../../../api/tmdbApi";
 import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
+import { watchedEpisodes } from "../../../utils/watchedEpisodes";
 
-const SeriesVideoPlayer = ({ id, series }) => {
+const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const SeriesVideoPlayer = ({
+  id,
+  series,
+  initialSeason,
+  initialEpisode,
+  autoPlay = false,
+  onAutoPlayConsumed,
+}) => {
   const [selectedServer, setSelectedServer] = useState(0);
   const [serverUrl, setServerUrl] = useState("");
   const [selectedSeason, setSelectedSeason] = useState(null);
@@ -14,8 +29,20 @@ const SeriesVideoPlayer = ({ id, series }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [watchedSet, setWatchedSet] = useState(
+    () => (id ? watchedEpisodes.getSeriesWatched(id) : new Set())
+  );
   const dropdownRef = React.useRef(null);
   const menuRef = React.useRef(null);
+
+  // Keep local watched state in sync with the util so external mutations
+  // (e.g. clearing or another tab) reflect here without a remount.
+  useEffect(() => {
+    if (!id) return undefined;
+    const refresh = () => setWatchedSet(watchedEpisodes.getSeriesWatched(id));
+    refresh();
+    return watchedEpisodes.subscribe(refresh);
+  }, [id]);
 
 
   useEffect(() => {
@@ -38,20 +65,48 @@ const SeriesVideoPlayer = ({ id, series }) => {
     };
   }, []);
 
+  // Track whether we've already triggered the autoplay handoff so it
+  // fires exactly once per arrival from Continue Watching.
+  const autoPlayFiredRef = useRef(false);
+
   // Auto-select the first non-zero season or restore from localStorage
   useEffect(() => {
     if (series?.seasons?.length > 0 && id) {
       const storageKey = `series_${id}_state`;
+
+      // Override from URL when Continue Watching hands off a specific
+      // season/episode — these take precedence over any saved state.
+      if (Number.isFinite(initialSeason)) {
+        setSelectedSeason(initialSeason);
+        if (Number.isFinite(initialEpisode)) {
+          setSelectedEpisode(initialEpisode);
+        }
+        // Still try to restore the server from saved state so we resume
+        // on the same provider the user last used.
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+          if (saved && saved.seriesId === id && Number.isFinite(saved.server)) {
+            setSelectedServer(saved.server);
+          }
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
+
       const savedState = localStorage.getItem(storageKey);
-      
+
       if (savedState) {
         try {
-          const { season, episode, seriesId } = JSON.parse(savedState);
-          
+          const { season, episode, server, seriesId } = JSON.parse(savedState);
+
           // Verify that the saved state is for the current series
           if (seriesId === id) {
             setSelectedSeason(season);
             setSelectedEpisode(episode);
+            if (Number.isFinite(server) && server >= 0) {
+              setSelectedServer(server);
+            }
           } else {
             // Saved state is for a different series, reset to first season
             const first = series.seasons.find((s) => s.season_number !== 0);
@@ -69,7 +124,23 @@ const SeriesVideoPlayer = ({ id, series }) => {
         if (first) setSelectedSeason(first.season_number);
       }
     }
-  }, [series, id]);
+  }, [series, id, initialSeason, initialEpisode]);
+
+  // Autoplay handoff from Continue Watching: open the player once the
+  // selected season + episode have settled. Fires at most once.
+  useEffect(() => {
+    if (
+      !autoPlay ||
+      autoPlayFiredRef.current ||
+      selectedSeason == null ||
+      selectedEpisode == null
+    ) {
+      return;
+    }
+    autoPlayFiredRef.current = true;
+    setIsModalOpen(true);
+    if (onAutoPlayConsumed) onAutoPlayConsumed();
+  }, [autoPlay, selectedSeason, selectedEpisode, onAutoPlayConsumed]);
 
   const handleServerClick = (index) => {
     setSelectedServer(index);
@@ -126,13 +197,37 @@ const SeriesVideoPlayer = ({ id, series }) => {
     fetchEpisodes(season);
   };
 
-  const handleEpisodeClick = (episode_number) => {
+  const handleEpisodeClick = (episode_number, episodeName = "", stillPath = null) => {
     setSelectedEpisode(episode_number);
-    // Immediately set the server URL when episode is clicked
-    const url = `${process.env.REACT_APP_TV_SERVER1}${id}/${selectedSeason}/${episode_number}`;
-    setServerUrl(url);
-    setSelectedServer(0);
     setIsModalOpen(true);
+    // The serverUrl effect below will compute the URL for the current
+    // selectedServer once selectedEpisode updates, so we don't need to
+    // hard-code server 0 here.
+    // Auto-mark as watched on open. User can still toggle off via the
+    // explicit check button if they only sampled it.
+    if (id) {
+      watchedEpisodes.markWatched(id, selectedSeason, episode_number, {
+        episodeName,
+        stillPath,
+      });
+      watchedEpisodes.trackOpen(
+        id,
+        selectedSeason,
+        episode_number,
+        episodeName,
+        stillPath
+      );
+    }
+  };
+
+  // Toggle from the small check chip without triggering play
+  const handleToggleWatched = (e, episode_number, episodeName = "", stillPath = null) => {
+    e.stopPropagation();
+    if (!id) return;
+    watchedEpisodes.toggle(id, selectedSeason, episode_number, {
+      episodeName,
+      stillPath,
+    });
   };
 
   const handlePreviousEpisode = () => {
@@ -190,18 +285,19 @@ const SeriesVideoPlayer = ({ id, series }) => {
     if (selectedSeason) fetchEpisodes(selectedSeason);
   }, [selectedSeason, fetchEpisodes]);
 
-  // Save selected series, season and episode to localStorage
+  // Save selected series, season, episode and server to localStorage
   useEffect(() => {
     if (selectedSeason !== null && id) {
       const storageKey = `series_${id}_state`;
       const state = {
         seriesId: id,
         season: selectedSeason,
-        episode: selectedEpisode
+        episode: selectedEpisode,
+        server: selectedServer,
       };
       localStorage.setItem(storageKey, JSON.stringify(state));
     }
-  }, [selectedSeason, selectedEpisode, id]);
+  }, [selectedSeason, selectedEpisode, selectedServer, id]);
 
   return (
     <React.Fragment>
@@ -306,63 +402,107 @@ const SeriesVideoPlayer = ({ id, series }) => {
             {/* EPISODE LIST */}
             {!loadingEpisodes && episodes.length > 0 && (
               <div className="episode-container">
-                <h3>Episodes</h3>
+                <div className="episode-container__head">
+                  <h3>Episodes</h3>
+                  <span className="episode-progress">
+                    {episodes.filter((e) =>
+                      watchedSet.has(`S${selectedSeason}E${e.episode_number}`)
+                    ).length}
+                    /{episodes.length} watched
+                  </span>
+                </div>
                 <div className="episode-list">
-                  {episodes.map((episode) => (
-                    <div
-                      key={episode.id}
-                      onClick={() => handleEpisodeClick(episode.episode_number)}
-                      className={`episode-card ${selectedEpisode === episode.episode_number ? "selected" : ""}`}
-                    >
-                      <div className="episode-image-container">
-                        {episode.still_path ? (
-                          <>
-                            <img
-                              src={apiConfig.w500Image(episode.still_path)}
-                              alt={episode.name}
-                              className="episode-image"
-                            />
-                            <div className="episode-overlay">
-                              <div className="play-button">
-                                <i className="bx bx-play"></i>
+                  {episodes.map((episode) => {
+                    const isWatched = watchedSet.has(
+                      `S${selectedSeason}E${episode.episode_number}`
+                    );
+                    return (
+                      <div
+                        key={episode.id}
+                        onClick={() =>
+                          handleEpisodeClick(
+                            episode.episode_number,
+                            episode.name,
+                            episode.still_path
+                          )
+                        }
+                        className={`episode-card${
+                          selectedEpisode === episode.episode_number ? " selected" : ""
+                        }${isWatched ? " watched" : ""}`}
+                      >
+                        <div className="episode-image-container">
+                          {episode.still_path ? (
+                            <>
+                              <img
+                                src={apiConfig.w500Image(episode.still_path)}
+                                alt={episode.name}
+                                className="episode-image"
+                              />
+                              <div className="episode-overlay">
+                                <div className="play-button">
+                                  <i className="bx bx-play"></i>
+                                </div>
                               </div>
+                            </>
+                          ) : (
+                            <div className="episode-placeholder">
+                              <i className="bx bx-play-circle"></i>
                             </div>
-                          </>
-                        ) : (
-                          <div className="episode-placeholder">
-                            <i className="bx bx-play-circle"></i>
+                          )}
+                          <div className="episode-number">
+                            {episode.episode_number}
                           </div>
-                        )}
-                        <div className="episode-number">
-                          {episode.episode_number}
+                          <button
+                            type="button"
+                            className={`episode-watch-toggle${
+                              isWatched ? " is-watched" : ""
+                            }`}
+                            onClick={(e) =>
+                              handleToggleWatched(
+                                e,
+                                episode.episode_number,
+                                episode.name,
+                                episode.still_path
+                              )
+                            }
+                            aria-pressed={isWatched}
+                            aria-label={
+                              isWatched ? "Mark as unwatched" : "Mark as watched"
+                            }
+                            title={
+                              isWatched ? "Watched - click to unmark" : "Mark as watched"
+                            }
+                          >
+                            <CheckIcon />
+                          </button>
+                        </div>
+
+                        <div className="episode-content">
+                          <div>
+                            <h4 className="episode-title">
+                              Episode {episode.episode_number}: {episode.name}
+                            </h4>
+                            <p className="episode-overview">
+                              {episode.overview || "No description available."}
+                            </p>
+                          </div>
+
+                          <div className="episode-meta">
+                            {episode.air_date && (
+                              <span className="episode-date">
+                                {new Date(episode.air_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {episode.runtime && (
+                              <span className="episode-runtime">
+                                {episode.runtime}min
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-
-                      <div className="episode-content">
-                        <div>
-                          <h4 className="episode-title">
-                            Episode {episode.episode_number}: {episode.name}
-                          </h4>
-                          <p className="episode-overview">
-                            {episode.overview || "No description available."}
-                          </p>
-                        </div>
-
-                        <div className="episode-meta">
-                          {episode.air_date && (
-                            <span className="episode-date">
-                              {new Date(episode.air_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {episode.runtime && (
-                            <span className="episode-runtime">
-                              {episode.runtime}min
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

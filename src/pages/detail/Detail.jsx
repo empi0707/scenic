@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
@@ -20,9 +20,20 @@ const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlay
 
 const Detail = () => {
   const { category, id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const videoPlayerRef = useRef(null);
+
+  // Parse autoplay intent from the URL — Continue Watching links pass
+  // `?play=1`, and for series `?s=2&e=5&play=1` to jump straight to
+  // the right episode.
+  const search = new URLSearchParams(location.search);
+  const wantsAutoPlay = search.get("play") === "1";
+  const initialSeason = parseInt(search.get("s") || "", 10);
+  const initialEpisode = parseInt(search.get("e") || "", 10);
+  const autoPlayConsumedRef = useRef(false);
 
   const [modalActive, setModalActive] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState("");
@@ -120,16 +131,43 @@ const Detail = () => {
   // every time the page is opened so the row reflects recent activity.
   useEffect(() => {
     if (!item) return;
+    const isTv = category === "tv";
+    // For series, sum the episode_count across real seasons (skip 0/specials)
+    // so the Continue Watching card can render a progress bar.
+    const totalEpisodes = isTv
+      ? (item.seasons || [])
+          .filter((s) => s.season_number !== 0)
+          .reduce((sum, s) => sum + (s.episode_count || 0), 0)
+      : null;
+
     continueWatching.track({
       id: item.id,
-      mediaType: category === "tv" ? "tv" : "movie",
+      mediaType: isTv ? "tv" : "movie",
       title: item.title || item.name || "",
       posterPath: item.poster_path || null,
       backdropPath: item.backdrop_path || null,
       voteAverage: item.vote_average ?? null,
       releaseDate: item.release_date || item.first_air_date || null,
+      totalEpisodes,
     });
   }, [item, category]);
+
+  // Autoplay handoff from Continue Watching. Movies open the player
+  // straight away once the item loads; series need the episode list to
+  // render first, which SeriesVideoPlayer handles via its own autoPlay
+  // prop. We strip the query params after firing so a refresh doesn't
+  // re-trigger playback.
+  useEffect(() => {
+    if (!item || !wantsAutoPlay || autoPlayConsumedRef.current) return;
+    const isTv = category === "tv";
+    if (!isTv) {
+      setShouldOpenPlayer(true);
+      autoPlayConsumedRef.current = true;
+      navigate(location.pathname, { replace: true });
+    }
+    // For TV we leave the URL params in place — SeriesVideoPlayer reads
+    // them on mount and clears the consumed flag itself once it acts.
+  }, [item, wantsAutoPlay, category, location.pathname, navigate]);
 
   const handlePlayButtonClick = () => {
     setShouldOpenPlayer(true);
@@ -262,6 +300,20 @@ const Detail = () => {
                 title={title}
                 series={item}
                 onEpisodeClick={handlePlayButtonClick}
+                initialSeason={
+                  wantsAutoPlay && Number.isFinite(initialSeason)
+                    ? initialSeason
+                    : undefined
+                }
+                initialEpisode={
+                  wantsAutoPlay && Number.isFinite(initialEpisode)
+                    ? initialEpisode
+                    : undefined
+                }
+                autoPlay={wantsAutoPlay}
+                onAutoPlayConsumed={() =>
+                  navigate(location.pathname, { replace: true })
+                }
               />
             </Suspense>
           ) : (

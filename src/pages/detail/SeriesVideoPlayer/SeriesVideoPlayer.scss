@@ -284,6 +284,31 @@
     margin-top: 1rem;
     overflow-y: auto;
 
+    &__head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+
+      h3 {
+        margin: 0;
+      }
+    }
+
+    .episode-progress {
+      font-family: $font-family;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.55);
+      padding: 0.25rem 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
     h3 {
       margin-bottom: 1rem;
     }
@@ -482,6 +507,94 @@
         .episode-overview {
           color: $txt-color;
         }
+      }
+    }
+
+    // ── Watched-episode toggle (small chip top-right of still) ───
+    // Hidden on rest, fades in on card hover, stays visible once watched.
+    .episode-watch-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(8, 8, 12, 0.7);
+      backdrop-filter: blur(12px) saturate(160%);
+      -webkit-backdrop-filter: blur(12px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 200ms ease, transform 200ms ease,
+                  background 200ms ease, border-color 200ms ease,
+                  color 200ms ease;
+      -webkit-tap-highlight-color: transparent;
+
+      svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+      }
+
+      &:hover {
+        background: rgba(8, 8, 12, 0.85);
+        border-color: rgba(255, 255, 255, 0.32);
+        color: $white;
+      }
+
+      &.is-watched {
+        opacity: 1;
+        transform: scale(1);
+        background: rgba(99, 102, 241, 0.92);
+        border-color: rgba(165, 180, 252, 0.55);
+        color: $white;
+        box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
+
+        &:hover {
+          background: rgba(99, 102, 241, 1);
+        }
+      }
+    }
+
+    // Touch devices — toggle always visible (faint when unwatched)
+    @media (hover: none) {
+      .episode-watch-toggle {
+        opacity: 0.55;
+        transform: scale(1);
+      }
+    }
+
+    // Desktop hover reveal for unwatched chips
+    .episode-card:hover .episode-watch-toggle:not(.is-watched) {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    // ── Watched-state appearance for the whole card ─────────────
+    // Subtle dim on the still + soft check tint on the number badge,
+    // so the row scans for what's left to watch without shouting.
+    .episode-card.watched {
+      .episode-image {
+        filter: brightness(0.55) saturate(0.85);
+      }
+
+      .episode-number {
+        border-left-color: rgba(165, 180, 252, 0.85);
+      }
+
+      .episode-title {
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      .episode-overview {
+        color: rgba(255, 255, 255, 0.4);
       }
     }
   }

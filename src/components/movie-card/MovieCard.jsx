@@ -49,9 +49,15 @@ const MovieCard = props => {
             </div>
             <div className="movie-card__title">
                 <h3>{item.title || item.name}</h3>
-                <p className="movie-card__year">
-                    {new Date(item.release_date || item.first_air_date).getFullYear() || 'TBA'}
-                </p>
+                {props.subtitleOverride ? (
+                    <p className="movie-card__year movie-card__year--accent">
+                        {props.subtitleOverride}
+                    </p>
+                ) : (
+                    <p className="movie-card__year">
+                        {new Date(item.release_date || item.first_air_date).getFullYear() || 'TBA'}
+                    </p>
+                )}
             </div>
         </Link>
     );
