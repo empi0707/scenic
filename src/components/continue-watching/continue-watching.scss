@@ -1,0 +1,52 @@
+@use "../../scss/" as *;
+
+// Inherits .movie-list carousel styling (nav buttons, pagination) so it
+// blends with the other home-page rows.
+.continue-watching {
+    // intentionally empty
+}
+
+// Small ghost text button beside the section heading. Muted by default,
+// warms to a soft red on hover to telegraph the destructive intent.
+.continue-watching__clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.7rem;
+    background: transparent;
+    border: 0;
+    border-radius: $border-radius-sm;
+    font-family: $font-family;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: color 200ms ease, background 200ms ease;
+    -webkit-tap-highlight-color: transparent;
+
+    svg {
+        width: 13px;
+        height: 13px;
+        display: block;
+    }
+
+    &:hover {
+        color: #f87171;
+        background: rgba(248, 113, 113, 0.08);
+    }
+
+    &:active {
+        background: rgba(248, 113, 113, 0.14);
+    }
+
+    @include mobile {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+
+        svg {
+            width: 12px;
+            height: 12px;
+        }
+    }
+}

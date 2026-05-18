@@ -13,6 +13,8 @@ import Loading from "../../components/loading/Loading";
 import { PlayIcon } from "../../assets/icons/PlayIcon";
 import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
 import Reviews from "../../components/reviews/Reviews";
+import BookmarkButton from "../../components/bookmark-button/BookmarkButton";
+import { continueWatching } from "../../utils/continueWatching";
 
 const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
@@ -114,6 +116,21 @@ const Detail = () => {
     // eslint-disable-next-line
   }, [category, id]);
 
+  // Record this title in Continue Watching once we have the data. Fires
+  // every time the page is opened so the row reflects recent activity.
+  useEffect(() => {
+    if (!item) return;
+    continueWatching.track({
+      id: item.id,
+      mediaType: category === "tv" ? "tv" : "movie",
+      title: item.title || item.name || "",
+      posterPath: item.poster_path || null,
+      backdropPath: item.backdrop_path || null,
+      voteAverage: item.vote_average ?? null,
+      releaseDate: item.release_date || item.first_air_date || null,
+    });
+  }, [item, category]);
+
   const handlePlayButtonClick = () => {
     setShouldOpenPlayer(true);
   };
@@ -204,6 +221,7 @@ const Detail = () => {
                 </Button>
               )}
               <OutlineButton onClick={handleWatchTrailer} className='trailer-btn'>Watch Trailer</OutlineButton>
+              <BookmarkButton item={item} mediaType={category} variant="action" />
               <button
                 type="button"
                 onClick={handleShare}

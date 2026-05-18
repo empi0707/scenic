@@ -7,7 +7,10 @@ import MovieList from "../../components/movie-list/MovieList";
 import TrendingRow from "../../components/trending-row/TrendingRow";
 import OnlyOnProvider from "../../components/only-on-provider/OnlyOnProvider";
 import HiddenGems from "../../components/hidden-gems/HiddenGems";
+import ContinueWatching from "../../components/continue-watching/ContinueWatching";
 import InfoTooltip from "../../components/info-tooltip/InfoTooltip";
+import ConfirmDialog from "../../components/confirm-dialog/ConfirmDialog";
+import { continueWatching } from "../../utils/continueWatching";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
 import Input from "../../components/input/Input";
@@ -16,7 +19,23 @@ import "./Home.scss";
 const Home = () => {
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword] = useDebounce(keyword, 500);
+  const [hasContinue, setHasContinue] = useState(
+    () => continueWatching.getAll().length > 0
+  );
+  const [clearOpen, setClearOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const sync = () => setHasContinue(continueWatching.getAll().length > 0);
+    sync();
+    return continueWatching.subscribe(sync);
+  }, []);
+
+  const handleClearContinue = () => setClearOpen(true);
+  const confirmClear = () => {
+    continueWatching.clear();
+    setClearOpen(false);
+  };
 
   const goToSearch = useCallback((searchTerm) => {
     if (searchTerm && searchTerm.trim().length > 0) {
@@ -47,6 +66,16 @@ const Home = () => {
 
   return (
     <div className="home-page">
+      <ConfirmDialog
+        open={clearOpen}
+        title="Clear Continue Watching?"
+        message="This removes every title from your Continue Watching row. Your saved My List items stay untouched."
+        confirmLabel="Clear"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmClear}
+        onCancel={() => setClearOpen(false)}
+      />
       <HeroSlide />
       <div className="container">
         <FadeIn>
@@ -64,6 +93,38 @@ const Home = () => {
             </div>
           </div>
         </FadeIn>
+
+        {hasContinue && (
+          <FadeIn delay={120}>
+            <div className="section mb-3">
+              <div className="section__header mb-2">
+                <h2>Continue Watching</h2>
+                <button
+                  type="button"
+                  className="continue-watching__clear"
+                  onClick={handleClearContinue}
+                  aria-label="Clear Continue Watching"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  </svg>
+                  Clear
+                </button>
+              </div>
+              <ContinueWatching />
+            </div>
+          </FadeIn>
+        )}
 
         <FadeIn delay={150}>
           <div className="section mb-3">

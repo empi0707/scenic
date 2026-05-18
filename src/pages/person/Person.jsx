@@ -187,11 +187,23 @@ const Person = () => {
         <div className="section mb-3">
           <div className="section__header mb-2 filmography-header">
             <h2>Filmography</h2>
-            {credits.length > 0 && (
-              <span className="filmography-count">
-                {credits.length} title{credits.length === 1 ? "" : "s"}
-              </span>
-            )}
+            {credits.length > 0 && (() => {
+              const movies = credits.filter((c) => c.media_type === "movie").length;
+              const series = credits.filter((c) => c.media_type === "tv").length;
+              const parts = [];
+              if (movies > 0) parts.push(`${movies} ${movies === 1 ? "Movie" : "Movies"}`);
+              if (series > 0) parts.push(`${series} ${series === 1 ? "Series" : "Series"}`);
+              return (
+                <span className="filmography-count">
+                  {parts.map((p, i) => (
+                    <React.Fragment key={p}>
+                      {i > 0 && <span className="filmography-count__sep">·</span>}
+                      {p}
+                    </React.Fragment>
+                  ))}
+                </span>
+              );
+            })()}
           </div>
 
           {credits.length > 0 ? (

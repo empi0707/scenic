@@ -5,6 +5,7 @@ import './movie-card.scss';
 import { Link } from 'react-router-dom';
 
 import Button from '../button/Button';
+import BookmarkButton from '../bookmark-button/BookmarkButton';
 
 import { category } from '../../api/tmdbApi';
 import apiConfig from '../../api/apiConfig';
@@ -40,6 +41,11 @@ const MovieCard = props => {
                         <span>{item.vote_average?.toFixed(1) || 'N/A'}</span>
                     </div>
                 </div>
+                <BookmarkButton
+                    item={item}
+                    mediaType={resolvedCategory}
+                    variant="card"
+                />
             </div>
             <div className="movie-card__title">
                 <h3>{item.title || item.name}</h3>

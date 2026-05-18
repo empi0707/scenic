@@ -18,6 +18,7 @@ const Catalog = lazy(() => import('./pages/Catalog'));
 const Detail = lazy(() => import('./pages/detail/Detail'));
 const Person = lazy(() => import('./pages/person/Person'));
 const MultiSearch = lazy(() => import('./components/MultiSearch/MultiSearch'));
+const MyList = lazy(() => import('./pages/my-list/MyList'));
 
 function App() {
     return (
@@ -33,6 +34,7 @@ function App() {
                 <Suspense fallback={<Loading />}>
                     <Routes>
                         <Route path='/person/:id' element={<Person />} />
+                        <Route path='/my-list' element={<MyList />} />
                         <Route path='/:category/search/:keyword' element={<Catalog />} />
                         <Route path='/:category/type/:type' element={<Catalog />} />
                         <Route path='/:category/:id' element={<Detail />} />

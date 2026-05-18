@@ -133,23 +133,27 @@
             @include glass-heavy;
             border: none;
             border-top: 1px solid $glass-heavy-border;
-            padding: 0 16px;
+            padding: 0 6px;
             z-index: 100;
             align-items: center;
             justify-content: space-around;
 
             li {
-                padding: 8px 12px;
+                padding: 6px 4px;
                 font-family: $font-family;
-                font-size: 13px;
+                font-size: 12.5px;
                 font-weight: 400;
-                letter-spacing: 0.02em;
+                letter-spacing: 0.01em;
                 color: $txt-muted;
                 transition: color $transition-normal;
                 text-align: center;
+                white-space: nowrap;
+                flex: 1;
+                min-width: 0;
 
                 a {
-                    padding: 8px;
+                    display: block;
+                    padding: 6px 4px;
                 }
 
                 &.active {
@@ -159,6 +163,15 @@
 
                 &:hover {
                     color: $txt-secondary;
+                }
+            }
+
+            @media (max-width: 360px) {
+                padding: 0 2px;
+
+                li {
+                    font-size: 11.5px;
+                    letter-spacing: 0;
                 }
             }
         }

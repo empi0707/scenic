@@ -266,9 +266,16 @@
 }
 
 .filmography-count {
-    font-size: 0.8rem;
-    color: $txt-muted;
-    font-weight: 400;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.58);
+
+    &__sep {
+        display: inline-block;
+        padding: 0 0.65rem;
+        color: rgba(255, 255, 255, 0.28);
+        user-select: none;
+    }
 }
 
 .filmography-empty {
