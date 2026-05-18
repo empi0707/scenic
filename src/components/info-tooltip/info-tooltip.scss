@@ -91,15 +91,17 @@
         }
 
         @include mobile {
-            // Pin to viewport edges if necessary
-            left: auto;
-            right: 0;
+            // Pin to the icon's left edge so the popover extends inward
+            // (rightward) from the icon. The previous right-pin caused
+            // overflow when the icon sat near the left edge of the page.
+            left: 0;
+            right: auto;
             transform: translateY(-4px);
             max-width: calc(100vw - 2rem);
 
             &::before {
-                left: auto;
-                right: 7px;
+                left: 7px;
+                right: auto;
                 transform: rotate(45deg);
             }
         }

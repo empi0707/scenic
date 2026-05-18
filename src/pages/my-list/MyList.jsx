@@ -75,9 +75,9 @@ const MyList = () => {
   return (
     <div className="my-list-page">
       <div className="container">
-        <header className="my-list__header">
+        <header className="section__header my-list__header">
           <div className="my-list__title">
-            <h1>My List</h1>
+            <h2>My List</h2>
             <InfoTooltip label="About My List">
               Your list is saved on this browser only. Since Scenic doesn't ask
               you to sign up, anything you add here won't appear on other

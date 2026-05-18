@@ -1,8 +1,9 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { watchlist } from "../../utils/watchlist";
 import "./header.scss";
 
-const headerNav = [
+const baseNav = [
   {
     display: "Home",
     path: "/",
@@ -15,16 +16,29 @@ const headerNav = [
     display: "TV Series",
     path: "/tv",
   },
-  {
-    display: "My List",
-    path: "/my-list",
-  },
 ];
+
+const myListEntry = {
+  display: "My List",
+  path: "/my-list",
+};
 
 const Header = () => {
   const { pathname } = useLocation();
   const headerRef = useRef(null);
 
+  // Only surface the My List tab once the user has actually saved
+  // something — keeps the nav clean for first-time visitors.
+  const [hasWatchlist, setHasWatchlist] = useState(
+    () => watchlist.getAll().length > 0
+  );
+  useEffect(() => {
+    const sync = () => setHasWatchlist(watchlist.getAll().length > 0);
+    sync();
+    return watchlist.subscribe(sync);
+  }, []);
+
+  const headerNav = hasWatchlist ? [...baseNav, myListEntry] : baseNav;
   const active = headerNav.findIndex((e) => e.path === pathname);
 
   useEffect(() => {
