@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TextInput, Text, ActionIcon } from '@mantine/core';
 import { motion } from 'framer-motion';
@@ -13,6 +13,9 @@ import "./MultiSearch.scss";
 const MultiSearch = () => {
   const { keyword } = useParams();
   const [searchResults, setSearchResults] = useState([]);
+  // The input is the single source of truth. It is seeded from the URL once
+  // (for shareable links) and is never written back to from the URL, so live
+  // typing can't be interrupted mid-word.
   const [searchInput, setSearchInput] = useState(keyword || "");
   const [debouncedSearchTerm] = useDebounce(searchInput, 500);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,48 +23,46 @@ const MultiSearch = () => {
 
   const navigate = useNavigate();
 
-  const handleSearch = useCallback((value) => {
-    if (value.trim().length > 0) {
-      navigate(`/search/${value}`);
+  useEffect(() => {
+    const term = debouncedSearchTerm.trim();
+
+    if (term.length === 0) {
+      setSearchResults([]);
       setError(null);
+      return;
     }
-  }, [navigate]);
 
-  useEffect(() => {
-    if (debouncedSearchTerm.trim().length > 0) {
-      handleSearch(debouncedSearchTerm);
-    } else if (debouncedSearchTerm === "" && searchInput === "") {
-      // If user cleared the search, show all movies
-      handleSearch("");
-    }
-  }, [debouncedSearchTerm, searchInput, handleSearch]);
+    // Keep the URL in sync for shareable/bookmarkable links. `replace` avoids
+    // polluting history, and we never read this value back into the input.
+    navigate(`/search/${encodeURIComponent(term)}`, { replace: true });
 
-  const getSearchResults = useCallback(async () => {
-    if (!keyword) return;
-    setIsLoading(true);
-    try {
-      const params = {
-        query: keyword,
-      };
-      const response = await tmdbApi.search(category.multi, { params });
-      setSearchResults(response.results);
-      setError(null);
-    } catch (error) {
-      console.error("Error searching:", error);
-      setError("Failed to search. Please try again.");
-      toast.error("Search failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [keyword]);
+    let cancelled = false;
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const response = await tmdbApi.search(category.multi, {
+          params: { query: term },
+        });
+        if (!cancelled) {
+          setSearchResults(response.results);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error searching:", err);
+          setError("Failed to search. Please try again.");
+          toast.error("Search failed. Please try again.");
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    run();
 
-  useEffect(() => {
-    getSearchResults();
-  }, [getSearchResults]);
-
-  useEffect(() => {
-    setSearchInput(keyword || "");
-  }, [keyword]);
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearchTerm, navigate]);
 
   return (
     <div className="search-page">
@@ -105,6 +106,7 @@ const MultiSearch = () => {
                   color="gray"
                   onClick={() => {
                     setSearchInput("");
+                    navigate("/");
                   }}
                   className="clear-button"
                 >
@@ -116,7 +118,9 @@ const MultiSearch = () => {
         </div>
       </motion.div>
       <div className="container">
-        <h2>Search Results for "{keyword}"</h2>
+        {debouncedSearchTerm.trim().length > 0 && (
+          <h2>Search Results for "{debouncedSearchTerm}"</h2>
+        )}
         {isLoading ? (
           <Loading size="large" />
         ) : error ? (

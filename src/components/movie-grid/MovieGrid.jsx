@@ -373,11 +373,11 @@ const MovieSearch = (props) => {
 
   const goToSearch = useCallback((searchTerm) => {
     if (searchTerm && searchTerm.trim().length > 0) {
-      navigate(`/${category[props.category]}/search/${searchTerm}`);
+      navigate(`/${category[props.category]}/search/${searchTerm}`, { replace: true });
     } else {
       // If empty search, only navigate if we're currently on a search page
       if (location.pathname.includes('/search/')) {
-        navigate(`/${category[props.category]}`);
+        navigate(`/${category[props.category]}`, { replace: true });
       }
       // Otherwise, stay on the current page (don't redirect from type pages)
     }

@@ -63,6 +63,29 @@
     font-weight: 400;
   }
 
+  .container {
+    h2 {
+      margin: 2rem 0;
+      font-size: 1.3rem;
+      color: #999;
+      font-weight: 400;
+    }
+  }
+
+  // Self-contained so the grid renders even when MovieGrid (and its
+  // stylesheet) was never loaded - e.g. landing directly on /search/:keyword.
+  .movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 3rem;
+
+    @include tablet {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+  }
+
+  .error-message,
   .error-container {
     text-align: center;
     padding: 2rem;
