@@ -30,6 +30,7 @@ const GlassSelect = ({
   placeholder = "Select",
   ariaLabel,
   clearable = true,
+  className = "",
 }) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null);
@@ -161,7 +162,7 @@ const GlassSelect = ({
   };
 
   return (
-    <div className="glass-select">
+    <div className={`glass-select ${className}`.trim()}>
       <button
         type="button"
         ref={triggerRef}

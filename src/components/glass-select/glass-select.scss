@@ -4,6 +4,15 @@
   position: relative;
   display: inline-flex;
 
+  // Compact variant for inline toolbars (e.g. "Sort by:").
+  &--sm &__trigger {
+    min-width: 8.5rem;
+    max-width: 8.5rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    border-radius: $border-radius;
+  }
+
   &__trigger {
     display: flex;
     align-items: center;

@@ -12,6 +12,29 @@ import useSuggestionNav from "../../hooks/useSuggestionNav";
 import GlassSelect from "../glass-select/GlassSelect";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 
+const SORT_OPTIONS = [
+  { value: "popularity", label: "Popularity" },
+  { value: "rating", label: "Top Rated" },
+  { value: "newest", label: "Newest" },
+];
+
+// Maps a sort choice to TMDB Discover params. "Top Rated" gates on a minimum
+// vote count so a single 10/10 vote doesn't top the list; "Newest" uses the
+// release/air date field for the media type.
+const sortParamsFor = (cat, sort) => {
+  if (sort === "rating") {
+    return { sort_by: "vote_average.desc", "vote_count.gte": 200 };
+  }
+  if (sort === "newest") {
+    // Cap to today so "Newest" means newest *released*, not announced/future.
+    const today = new Date().toISOString().slice(0, 10);
+    return cat === category.tv
+      ? { sort_by: "first_air_date.desc", "first_air_date.lte": today }
+      : { sort_by: "primary_release_date.desc", "primary_release_date.lte": today };
+  }
+  return { sort_by: "popularity.desc" };
+};
+
 const MovieGrid = (props) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -20,6 +43,7 @@ const MovieGrid = (props) => {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedSort, setSelectedSort] = useState("popularity");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -119,7 +143,7 @@ const MovieGrid = (props) => {
             include_adult: false,
             include_video: false,
             language: "en-US",
-            sort_by: "popularity.desc",
+            ...sortParamsFor(props.category, selectedSort),
           };
           
           // Only add genre if it's valid for current category
@@ -146,6 +170,19 @@ const MovieGrid = (props) => {
           const currentPath = location.pathname;
           navigate(currentPath, { replace: true });
         }
+      } else if (selectedSort !== "popularity") {
+        // Sort-only mode (no genre/country) - use Discover so we can sort
+        const param = {
+          page: 1,
+          include_adult: false,
+          include_video: false,
+          language: "en-US",
+          ...sortParamsFor(props.category, selectedSort),
+        };
+        response =
+          props.category === category.movie
+            ? await tmdbApi.getMoviesByGenre(param)
+            : await tmdbApi.getTvByGenre(param);
       } else {
         // Default mode - popular content
         switch (props.category) {
@@ -172,7 +209,7 @@ const MovieGrid = (props) => {
       getList();
     }
     // eslint-disable-next-line
-  }, [props.category, props.type, keyword, selectedGenre, selectedCountry, genresLoaded]);
+  }, [props.category, props.type, keyword, selectedGenre, selectedCountry, selectedSort, genresLoaded]);
 
   const loadMore = async () => {
     setIsLoadingMore(true);
@@ -205,7 +242,7 @@ const MovieGrid = (props) => {
             include_adult: false,
             include_video: false,
             language: "en-US",
-            sort_by: "popularity.desc",
+            ...sortParamsFor(props.category, selectedSort),
           };
           
           // Only add genre if it's valid for current category
@@ -227,6 +264,19 @@ const MovieGrid = (props) => {
               response = await tmdbApi.getTvList(tvType.popular, { params });
           }
         }
+      } else if (selectedSort !== "popularity") {
+        // Sort-only mode (no genre/country) - use Discover so we can sort
+        const param = {
+          page: page + 1,
+          include_adult: false,
+          include_video: false,
+          language: "en-US",
+          ...sortParamsFor(props.category, selectedSort),
+        };
+        response =
+          props.category === category.movie
+            ? await tmdbApi.getMoviesByGenre(param)
+            : await tmdbApi.getTvByGenre(param);
       } else {
         // Default mode - popular content
         switch (props.category) {
@@ -287,6 +337,22 @@ const MovieGrid = (props) => {
           />
         </div>
       </div>
+      {keyword === undefined && !props.type && (
+        <div className="grid-toolbar">
+          <div className="grid-toolbar__sort">
+            <i className="bx bx-sort-alt-2" />
+            <span className="grid-toolbar__label">Sort by:</span>
+            <GlassSelect
+              className="glass-select--sm"
+              ariaLabel="Sort by"
+              clearable={false}
+              options={SORT_OPTIONS}
+              value={selectedSort}
+              onChange={(val) => setSelectedSort(val || "popularity")}
+            />
+          </div>
+        </div>
+      )}
       <div className="movie-grid">
         {items.map((item, i) => (
           (item.poster_path || item.backdrop_path) && <MovieCard category={props.category} item={item} key={i} />

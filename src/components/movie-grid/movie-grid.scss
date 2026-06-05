@@ -15,6 +15,30 @@
     }
 }
 
+// Results toolbar above the grid - holds the compact "Sort by:" control.
+.grid-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: $space-3;
+
+    &__sort {
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+        color: $txt-muted;
+        font-size: 0.8rem;
+
+        i {
+            font-size: 1rem;
+        }
+    }
+
+    &__label {
+        white-space: nowrap;
+    }
+}
+
 .movie-search-wrap {
     position: relative;
     z-index: 100;
