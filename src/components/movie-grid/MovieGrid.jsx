@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
-import { useDebounce } from "use-debounce";
 import "./movie-grid.scss";
 import MovieCard from "../movie-card/MovieCard";
 import { OutlineButton } from "../button/Button";
 import Input from "../input/Input";
 import Loading from "../loading/Loading";
+import SearchSuggestions from "../search-suggestions/SearchSuggestions";
+import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 import Select from "react-select";
 
@@ -369,54 +370,88 @@ const MovieSearch = (props) => {
   const location = useLocation();
 
   const [keyword, setKeyword] = useState(props.keyword ? props.keyword : "");
-  const [debouncedKeyword] = useDebounce(keyword, 500);
+  const [showSuggest, setShowSuggest] = useState(false);
+  const { suggestions, loading: suggestLoading } = useSearchSuggestions(keyword);
+  const searchRef = useRef(null);
 
-  const goToSearch = useCallback((searchTerm) => {
-    if (searchTerm && searchTerm.trim().length > 0) {
-      navigate(`/${category[props.category]}/search/${searchTerm}`, { replace: true });
-    } else {
-      // If empty search, only navigate if we're currently on a search page
-      if (location.pathname.includes('/search/')) {
-        navigate(`/${category[props.category]}`, { replace: true });
-      }
-      // Otherwise, stay on the current page (don't redirect from type pages)
-    }
-  }, [props.category, navigate, location.pathname]);
-
-  // Auto-search with debouncing
+  // Close the suggestions dropdown when clicking/tapping outside the search box.
   useEffect(() => {
-    if (debouncedKeyword.trim().length > 0) {
-      goToSearch(debouncedKeyword);
-    } else if (debouncedKeyword === "" && keyword === "" && location.pathname.includes('/search/')) {
-      // Only redirect to category page if we're currently on a search page
-      goToSearch("");
-    }
-  }, [debouncedKeyword, keyword, goToSearch, location.pathname]);
-
-  // Keep Enter key functionality
-  useEffect(() => {
-    const enterEvent = (e) => {
-      e.preventDefault();
-      if (e.keyCode === 13) {
-        goToSearch(keyword);
+    if (!showSuggest) return undefined;
+    const onDocPointerDown = (e) => {
+      const insideBox = searchRef.current && searchRef.current.contains(e.target);
+      const insideDropdown = e.target.closest && e.target.closest(".search-suggestions");
+      if (!insideBox && !insideDropdown) {
+        setShowSuggest(false);
       }
     };
-    document.addEventListener("keyup", enterEvent);
+    document.addEventListener("mousedown", onDocPointerDown);
+    document.addEventListener("touchstart", onDocPointerDown);
     return () => {
-      document.removeEventListener("keyup", enterEvent);
+      document.removeEventListener("mousedown", onDocPointerDown);
+      document.removeEventListener("touchstart", onDocPointerDown);
     };
-  }, [keyword, goToSearch]);
+  }, [showSuggest]);
+
+  // Search runs only on submit (search icon click or keyboard Enter/Done),
+  // never per-keystroke - so the on-screen keyboard keeps focus while typing.
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setShowSuggest(false);
+    const term = keyword.trim();
+    if (term.length > 0) {
+      navigate(`/${category[props.category]}/search/${encodeURIComponent(term)}`);
+    } else if (location.pathname.includes('/search/')) {
+      // Cleared the search box on a search page - go back to the category.
+      navigate(`/${category[props.category]}`);
+    }
+  };
 
   return (
-    <div className="movie-search">
-      <i className="bx bx-search search-icon"></i>
-      <Input
-        type="text"
-        placeholder={`Search ${category[props.category] === "tv" ? "Series" : "Movies"
-          }`}
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-      />
+    <div className="movie-search-wrap">
+      <form
+        className="movie-search"
+        onSubmit={handleSearchSubmit}
+        role="search"
+        ref={searchRef}
+      >
+        <Input
+          type="search"
+          enterKeyHint="search"
+          placeholder={`Search ${category[props.category] === "tv" ? "Series" : "Movies"
+            }`}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onFocus={() => setShowSuggest(true)}
+        />
+        {keyword && (
+          <button
+            type="button"
+            className="clear-btn"
+            aria-label="Clear search"
+            onClick={() => {
+              setKeyword("");
+              if (location.pathname.includes('/search/')) {
+                navigate(`/${category[props.category]}`);
+              }
+            }}
+          >
+            <i className="bx bx-x"></i>
+          </button>
+        )}
+        <button type="submit" className="search-btn" aria-label="Search">
+          <i className="bx bx-search"></i>
+        </button>
+        {showSuggest && (
+          <SearchSuggestions
+            items={suggestions}
+            loading={suggestLoading}
+            query={keyword}
+            anchorRef={searchRef}
+            onSelect={() => setShowSuggest(false)}
+            onSeeAll={handleSearchSubmit}
+          />
+        )}
+      </form>
     </div>
   );
 };

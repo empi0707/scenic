@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDebounce } from "use-debounce";
 import { OutlineButton } from "../../components/button/Button";
 import HeroSlide from "../../components/hero-slide/HeroSlide";
 import MovieList from "../../components/movie-list/MovieList";
@@ -14,11 +13,15 @@ import { continueWatching } from "../../utils/continueWatching";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
 import Input from "../../components/input/Input";
+import SearchSuggestions from "../../components/search-suggestions/SearchSuggestions";
+import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import "./Home.scss";
 
 const Home = () => {
   const [keyword, setKeyword] = useState("");
-  const [debouncedKeyword] = useDebounce(keyword, 500);
+  const [showSuggest, setShowSuggest] = useState(false);
+  const { suggestions, loading: suggestLoading } = useSearchSuggestions(keyword);
+  const searchRef = useRef(null);
   const [hasContinue, setHasContinue] = useState(
     () => continueWatching.getAll().length > 0
   );
@@ -31,38 +34,40 @@ const Home = () => {
     return continueWatching.subscribe(sync);
   }, []);
 
+  // Close the suggestions dropdown when clicking/tapping outside the search box.
+  useEffect(() => {
+    if (!showSuggest) return undefined;
+    const onDocPointerDown = (e) => {
+      const insideBox = searchRef.current && searchRef.current.contains(e.target);
+      const insideDropdown = e.target.closest && e.target.closest(".search-suggestions");
+      if (!insideBox && !insideDropdown) {
+        setShowSuggest(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocPointerDown);
+    document.addEventListener("touchstart", onDocPointerDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocPointerDown);
+      document.removeEventListener("touchstart", onDocPointerDown);
+    };
+  }, [showSuggest]);
+
   const handleClearContinue = () => setClearOpen(true);
   const confirmClear = () => {
     continueWatching.clear();
     setClearOpen(false);
   };
 
-  const goToSearch = useCallback((searchTerm) => {
-    if (searchTerm && searchTerm.trim().length > 0) {
-      navigate(`/search/${searchTerm}`);
+  // Search runs only on submit (search icon click or keyboard Enter/Done),
+  // never per-keystroke - so the on-screen keyboard keeps focus while typing.
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setShowSuggest(false);
+    const term = keyword.trim();
+    if (term.length > 0) {
+      navigate(`/search/${encodeURIComponent(term)}`);
     }
-  }, [navigate]);
-
-  // Auto-search with debouncing
-  useEffect(() => {
-    if (debouncedKeyword.trim().length > 0) {
-      goToSearch(debouncedKeyword);
-    }
-  }, [debouncedKeyword, goToSearch]);
-
-  // Keep Enter key functionality
-  useEffect(() => {
-    const enterEvent = (e) => {
-      e.preventDefault();
-      if (e.keyCode === 13) {
-        goToSearch(keyword);
-      }
-    };
-    document.addEventListener("keyup", enterEvent);
-    return () => {
-      document.removeEventListener("keyup", enterEvent);
-    };
-  }, [keyword, goToSearch]);
+  };
 
   return (
     <div className="home-page">
@@ -81,15 +86,44 @@ const Home = () => {
         <FadeIn>
           <div className="section mb-3">
             <div className="search-container">
-              <div className="movie-search">
-                <i className="bx bx-search search-icon"></i>
+              <form
+                className="movie-search"
+                onSubmit={handleSearchSubmit}
+                role="search"
+                ref={searchRef}
+              >
                 <Input
-                  type="text"
+                  type="search"
+                  enterKeyHint="search"
                   placeholder="Search Movies/Series"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
+                  onFocus={() => setShowSuggest(true)}
                 />
-              </div>
+                {keyword && (
+                  <button
+                    type="button"
+                    className="clear-btn"
+                    aria-label="Clear search"
+                    onClick={() => setKeyword("")}
+                  >
+                    <i className="bx bx-x"></i>
+                  </button>
+                )}
+                <button type="submit" className="search-btn" aria-label="Search">
+                  <i className="bx bx-search"></i>
+                </button>
+                {showSuggest && (
+                  <SearchSuggestions
+                    items={suggestions}
+                    loading={suggestLoading}
+                    query={keyword}
+                    anchorRef={searchRef}
+                    onSelect={() => setShowSuggest(false)}
+                    onSeeAll={handleSearchSubmit}
+                  />
+                )}
+              </form>
             </div>
           </div>
         </FadeIn>

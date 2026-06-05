@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TextInput, Text, ActionIcon } from '@mantine/core';
+import { Text } from '@mantine/core';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { useDebounce } from 'use-debounce';
 import MovieCard from "../movie-card/MovieCard";
 import Loading from "../loading/Loading";
+import SearchSuggestions from "../search-suggestions/SearchSuggestions";
+import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import tmdbApi from "../../api/tmdbApi";
 import { category } from "../../api/tmdbApi";
 import "./MultiSearch.scss";
@@ -13,56 +14,82 @@ import "./MultiSearch.scss";
 const MultiSearch = () => {
   const { keyword } = useParams();
   const [searchResults, setSearchResults] = useState([]);
-  // The input is the single source of truth. It is seeded from the URL once
-  // (for shareable links) and is never written back to from the URL, so live
-  // typing can't be interrupted mid-word.
   const [searchInput, setSearchInput] = useState(keyword || "");
-  const [debouncedSearchTerm] = useDebounce(searchInput, 500);
+  // The query that results are actually shown for (only updated on submit).
+  const [submittedTerm, setSubmittedTerm] = useState(keyword || "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showSuggest, setShowSuggest] = useState(false);
+  const { suggestions, loading: suggestLoading } = useSearchSuggestions(searchInput);
+  const searchRef = useRef(null);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const term = debouncedSearchTerm.trim();
+  // Search runs ONLY when the user submits - clicking the search icon or
+  // pressing Enter/Done/Search on the keyboard. No per-keystroke search, so
+  // the on-screen keyboard (TV / mobile) keeps focus while typing.
+  const runSearch = useCallback(async (rawTerm) => {
+    const term = rawTerm.trim();
 
     if (term.length === 0) {
       setSearchResults([]);
+      setSubmittedTerm("");
       setError(null);
       return;
     }
 
-    // Keep the URL in sync for shareable/bookmarkable links. `replace` avoids
-    // polluting history, and we never read this value back into the input.
+    setSubmittedTerm(term);
     navigate(`/search/${encodeURIComponent(term)}`, { replace: true });
 
-    let cancelled = false;
-    const run = async () => {
-      setIsLoading(true);
-      try {
-        const response = await tmdbApi.search(category.multi, {
-          params: { query: term },
-        });
-        if (!cancelled) {
-          setSearchResults(response.results);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error searching:", err);
-          setError("Failed to search. Please try again.");
-          toast.error("Search failed. Please try again.");
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const response = await tmdbApi.search(category.multi, {
+        params: { query: term },
+      });
+      setSearchResults(response.results);
+      setError(null);
+    } catch (err) {
+      console.error("Error searching:", err);
+      setError("Failed to search. Please try again.");
+      toast.error("Search failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate]);
+
+  // Run once on mount if we arrived with a keyword in the URL (shared link).
+  const didInitialSearch = useRef(false);
+  useEffect(() => {
+    if (didInitialSearch.current) return;
+    didInitialSearch.current = true;
+    if (keyword) {
+      runSearch(keyword);
+    }
+  }, [keyword, runSearch]);
+
+  // Close the suggestions dropdown when clicking/tapping outside the search box.
+  useEffect(() => {
+    if (!showSuggest) return undefined;
+    const onDocPointerDown = (e) => {
+      const insideBox = searchRef.current && searchRef.current.contains(e.target);
+      const insideDropdown = e.target.closest && e.target.closest(".search-suggestions");
+      if (!insideBox && !insideDropdown) {
+        setShowSuggest(false);
       }
     };
-    run();
-
+    document.addEventListener("mousedown", onDocPointerDown);
+    document.addEventListener("touchstart", onDocPointerDown);
     return () => {
-      cancelled = true;
+      document.removeEventListener("mousedown", onDocPointerDown);
+      document.removeEventListener("touchstart", onDocPointerDown);
     };
-  }, [debouncedSearchTerm, navigate]);
+  }, [showSuggest]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setShowSuggest(false);
+    runSearch(searchInput);
+  };
 
   return (
     <div className="search-page">
@@ -72,54 +99,57 @@ const MultiSearch = () => {
         transition={{ duration: 0.3 }}
         className="search-container"
       >
-        <div className="movie-search">
-          <TextInput
-            type="text"
+        <form
+          className="movie-search"
+          onSubmit={handleSubmit}
+          role="search"
+          ref={searchRef}
+        >
+          <input
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
+            className="search-input"
             placeholder="Search Movies, TV Shows, and More..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            size="lg"
-            className="search-input"
-            leftSection={
-              isLoading ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="search-icon"
-                >
-                  <i className="bx bx-loader-alt bx-spin" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="search-icon"
-                >
-                  <i className="bx bx-search" />
-                </motion.div>
-              )
-            }
-            rightSection={
-              searchInput && (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  onClick={() => {
-                    setSearchInput("");
-                    navigate("/");
-                  }}
-                  className="clear-button"
-                >
-                  <i className="bx bx-x" />
-                </ActionIcon>
-              )
-            }
+            onFocus={() => setShowSuggest(true)}
           />
-        </div>
+          {searchInput && (
+            <button
+              type="button"
+              className="clear-btn"
+              aria-label="Clear search"
+              onClick={() => {
+                setSearchInput("");
+                navigate("/");
+              }}
+            >
+              <i className="bx bx-x" />
+            </button>
+          )}
+          <button type="submit" className="search-btn" aria-label="Search">
+            {isLoading ? (
+              <i className="bx bx-loader-alt bx-spin" />
+            ) : (
+              <i className="bx bx-search" />
+            )}
+          </button>
+          {showSuggest && (
+            <SearchSuggestions
+              items={suggestions}
+              loading={suggestLoading}
+              query={searchInput}
+              anchorRef={searchRef}
+              onSelect={() => setShowSuggest(false)}
+              onSeeAll={handleSubmit}
+            />
+          )}
+        </form>
       </motion.div>
       <div className="container">
-        {debouncedSearchTerm.trim().length > 0 && (
-          <h2>Search Results for "{debouncedSearchTerm}"</h2>
+        {submittedTerm.trim().length > 0 && (
+          <h2>Search Results for "{submittedTerm}"</h2>
         )}
         {isLoading ? (
           <Loading size="large" />

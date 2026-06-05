@@ -5,52 +5,98 @@
   padding: 2rem 0;
 
   .search-container {
+    position: relative;
+    z-index: 100;
     margin-bottom: 2rem;
   }
 
   .movie-search {
+    position: relative;
+    display: flex;
+    align-items: center;
     max-width: 700px;
     margin: 0 auto;
+    height: 3.5rem;
+    padding: 0 0.5rem 0 0;
+    @include glass-light;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+
+    &:focus-within {
+      @include glass-medium;
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    }
 
     .search-input {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      padding: 0 1rem 0 1.5rem;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      color: #e5e5e5;
 
-      input {
-        height: 3.5rem;
-        font-size: 1rem;
-        padding-left: 3rem;
-        padding-right: 3rem;
-        @include glass-light;
-        border-radius: 6px;
-        color: #e5e5e5;
-        transition: all 0.3s ease;
-
-        &:focus {
-          @include glass-medium;
-          border-color: rgba(99, 102, 241, 0.4);
-          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-        }
-      }
-
-      .search-icon {
-        font-size: 1.1rem;
+      &::placeholder {
         color: #666;
-        opacity: 0.7;
-        margin-left: 0.5rem;
       }
 
-      .clear-button {
-        opacity: 0.5;
-        transition: opacity 0.2s ease;
+      // Keep the field flush with the glass container (override global input styles).
+      &:focus,
+      &:hover {
+        border: none;
+        outline: none;
+        background: transparent;
+        box-shadow: none;
+      }
 
-        &:hover {
-          opacity: 1;
-          background: none;
-        }
+      // Hide the browser's native search clear "x" - we render our own.
+      &::-webkit-search-cancel-button,
+      &::-webkit-search-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+        display: none;
+      }
+    }
 
-        i {
-          font-size: 1.1rem;
-        }
+    .clear-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      margin: 0;
+      padding: 0 0.75rem;
+      cursor: pointer;
+      font-size: 1.25rem;
+      color: #666;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #e5e5e5;
+      }
+    }
+
+    .search-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      background: $accent-color;
+      border: none;
+      border-radius: $border-radius-sm;
+      color: $white;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: $accent-hover;
       }
     }
   }

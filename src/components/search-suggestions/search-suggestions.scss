@@ -1,0 +1,261 @@
+@use "../../scss/" as *;
+
+.search-suggestions {
+  // Positioned inline (fixed) by the component; portaled to <body>.
+  z-index: 12000;
+  padding: 10px;
+  border-radius: $border-radius-lg;
+  max-height: 360px;
+  overflow-y: auto;
+
+  // Match the season dropdown's glass-morphism treatment.
+  @include glass-medium;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  animation: search-suggestions-in 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top center;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-4;
+    color: $txt-secondary;
+    font-size: 0.85rem;
+
+    i {
+      font-size: 1.05rem;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__row {
+    opacity: 0;
+    animation: search-suggestions-row 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: calc(var(--row) * 28ms);
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: $border-radius-lg;
+    text-decoration: none;
+    color: $txt-color;
+    position: relative;
+    transition: background 0.15s ease;
+
+    // Indigo accent rail that slides in on hover / D-pad focus.
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      border-radius: 3px;
+      background: $accent-color;
+      transition: height 0.18s ease;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      outline: none;
+
+      &::before {
+        height: 60%;
+      }
+
+      .search-suggestions__chevron {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .search-suggestions__thumb img {
+        transform: scale(1.06);
+      }
+    }
+  }
+
+  &__thumb {
+    flex-shrink: 0;
+    width: 45px;
+    height: 65px;
+    border-radius: $border-radius;
+    overflow: hidden;
+    background: $surface-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $txt-muted;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.25s ease;
+    }
+
+    i {
+      font-size: 1.2rem;
+    }
+  }
+
+  &__meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: $txt-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // The portion of the title matching the typed query.
+  &__hl {
+    background: rgba(99, 102, 241, 0.22);
+    color: #c7d2fe;
+    border-radius: 3px;
+    padding: 0 1px;
+    font-weight: 700;
+  }
+
+  &__sub {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: $txt-secondary;
+  }
+
+  &__type {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+
+    &--tv {
+      color: #a5b4fc;
+    }
+
+    &--movie {
+      color: $txt-secondary;
+    }
+
+    &--person {
+      color: #fcd34d;
+    }
+  }
+
+  &__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: $txt-muted;
+  }
+
+  &__rating {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $txt-color;
+
+    i {
+      color: $warning-color;
+      font-size: 0.95rem;
+    }
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    font-size: 1.3rem;
+    color: $txt-muted;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  &__seeall {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    width: 100%;
+    margin-top: 6px;
+    padding: 11px 10px;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0 0 $border-radius $border-radius;
+    background: transparent;
+    color: $txt-secondary;
+    font-size: 0.85rem;
+    font-family: $font-body;
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+
+    strong {
+      color: $txt-color;
+      font-weight: 600;
+    }
+
+    i {
+      font-size: 1rem;
+      color: $accent-color;
+    }
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      color: $txt-color;
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+@keyframes search-suggestions-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes search-suggestions-row {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

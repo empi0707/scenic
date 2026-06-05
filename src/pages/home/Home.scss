@@ -9,10 +9,20 @@
 }
 
 .search-container {
+    position: relative;
+    z-index: 100;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     margin: $space-6 0 $space-8 0;
     padding: 0 $space-4;
+
+    .search-hint {
+        margin: $space-3 0 0 0;
+        font-size: 0.7rem;
+        color: $txt-muted;
+        text-align: center;
+    }
 }
 
 .movie-search {
@@ -32,21 +42,55 @@
         background: $surface-elevated;
     }
 
-    .search-icon {
-        padding: 0 $space-4;
-        font-size: 1.1rem;
+    .clear-btn {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        margin: 0;
+        padding: 0 $space-3;
+        cursor: pointer;
+        font-size: 1.25rem;
         color: $txt-muted;
-        pointer-events: none;
+        transition: color $transition-normal;
+
+        &:hover {
+            color: #e5e5e5;
+        }
+    }
+
+    .search-btn {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-left: $space-2;
+        background: $accent-color;
+        border: none;
+        border-radius: $border-radius-sm;
+        color: $white;
+        font-size: 1.15rem;
+        cursor: pointer;
+        transition: background $transition-normal;
+
+        &:hover {
+            background: $accent-hover;
+        }
 
         @include mobile {
-            padding: 0 $space-3;
+            width: 2.5rem;
+            height: 2.5rem;
         }
     }
 
     input {
         flex: 1;
-        padding: $space-4 $space-4;
-        padding-left: 0;
+        min-width: 0;
+        padding: $space-4 $space-3 $space-4 $space-5;
         background: transparent;
         border: none;
         border-radius: 0;
