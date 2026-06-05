@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
 import tmdbApi, { category } from "../api/tmdbApi";
+import parseSmartQuery from "../utils/parseSmartQuery";
 
 // Lightweight autocomplete: debounced multi-search that only fetches a short
 // list of suggestions. It never navigates or changes the input, so the
@@ -22,11 +23,25 @@ export default function useSearchSuggestions(query, { limit = 7 } = {}) {
     let cancelled = false;
     setLoading(true);
 
-    tmdbApi
-      .search(category.multi, { params: { query: term } })
-      .then((res) => {
+    // Mirror the full-search routing: language/genre phrases preview Discover
+    // results; everything else previews title matches.
+    const parsed = parseSmartQuery(term);
+    const request =
+      parsed.kind === "discover"
+        ? tmdbApi
+            .discover(parsed.mediaType, parsed.params)
+            .then((res) => ({ res, discoverType: parsed.mediaType }))
+        : tmdbApi
+            .search(category.multi, { params: { query: term } })
+            .then((res) => ({ res, discoverType: null }));
+
+    request
+      .then(({ res, discoverType }) => {
         if (cancelled) return;
-        const items = (res.results || [])
+        const raw = (res.results || []).map((it) =>
+          discoverType ? { ...it, media_type: discoverType } : it
+        );
+        const items = raw
           .filter(
             (it) =>
               it.media_type === "movie" ||

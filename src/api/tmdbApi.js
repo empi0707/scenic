@@ -56,6 +56,10 @@ const tmdbApi = {
         const url = `genre/${category[cate]}/list`;
         return axiosClient.get(url, { params: {} });
     },
+    discover: (mediaType, params) => {
+        const url = `discover/${mediaType === 'tv' ? 'tv' : 'movie'}`;
+        return axiosClient.get(url, { params });
+    },
     getMoviesByGenre: (params) => {
         const url = 'discover/movie';
         return axiosClient.get(url, { params });

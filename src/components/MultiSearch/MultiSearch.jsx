@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import MovieCard from "../movie-card/MovieCard";
 import Loading from "../loading/Loading";
+import { OutlineButton } from "../button/Button";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
+import parseSmartQuery from "../../utils/parseSmartQuery";
 import tmdbApi from "../../api/tmdbApi";
 import { category } from "../../api/tmdbApi";
 import "./MultiSearch.scss";
@@ -19,12 +21,37 @@ const MultiSearch = () => {
   // The query that results are actually shown for (only updated on submit).
   const [submittedTerm, setSubmittedTerm] = useState(keyword || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(null);
   const [showSuggest, setShowSuggest] = useState(false);
   const { suggestions, loading: suggestLoading } = useSearchSuggestions(searchInput);
   const searchRef = useRef(null);
 
   const navigate = useNavigate();
+
+  // Fetches one page for a term. "punjabi movies", "hindi comedy", "korean
+  // series" etc. are routed to the Discover API with language/genre filters;
+  // plain titles use search. TMDB Discover paginates up to 500 pages.
+  const fetchPage = useCallback(async (term, pageNum) => {
+    const parsed = parseSmartQuery(term);
+    if (parsed.kind === "discover") {
+      const response = await tmdbApi.discover(parsed.mediaType, {
+        ...parsed.params,
+        page: pageNum,
+      });
+      const results = (response.results || []).map((item) => ({
+        ...item,
+        media_type: parsed.mediaType,
+      }));
+      return { results, totalPages: response.total_pages || 1 };
+    }
+    const response = await tmdbApi.search(category.multi, {
+      params: { query: term, page: pageNum },
+    });
+    return { results: response.results || [], totalPages: response.total_pages || 1 };
+  }, []);
 
   // Search runs ONLY when the user submits - clicking the search icon or
   // pressing Enter/Done/Search on the keyboard. No per-keystroke search, so
@@ -35,6 +62,8 @@ const MultiSearch = () => {
     if (term.length === 0) {
       setSearchResults([]);
       setSubmittedTerm("");
+      setPage(1);
+      setTotalPages(0);
       setError(null);
       return;
     }
@@ -43,11 +72,11 @@ const MultiSearch = () => {
     navigate(`/search/${encodeURIComponent(term)}`, { replace: true });
 
     setIsLoading(true);
+    setPage(1);
     try {
-      const response = await tmdbApi.search(category.multi, {
-        params: { query: term },
-      });
-      setSearchResults(response.results);
+      const { results, totalPages: pages } = await fetchPage(term, 1);
+      setSearchResults(results);
+      setTotalPages(pages);
       setError(null);
     } catch (err) {
       console.error("Error searching:", err);
@@ -56,7 +85,30 @@ const MultiSearch = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, fetchPage]);
+
+  // TMDB caps Discover/search pagination at 500 pages.
+  const canLoadMore = page < Math.min(totalPages, 500);
+
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !canLoadMore) return;
+    const nextPage = page + 1;
+    setIsLoadingMore(true);
+    try {
+      const { results } = await fetchPage(submittedTerm, nextPage);
+      setSearchResults((prev) => {
+        const seen = new Set(prev.map((it) => `${it.media_type}-${it.id}`));
+        const fresh = results.filter((it) => !seen.has(`${it.media_type}-${it.id}`));
+        return [...prev, ...fresh];
+      });
+      setPage(nextPage);
+    } catch (err) {
+      console.error("Error loading more:", err);
+      toast.error("Couldn't load more results.");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, canLoadMore, page, submittedTerm, fetchPage]);
 
   // Run once on mount if we arrived with a keyword in the URL (shared link).
   const didInitialSearch = useRef(false);
@@ -170,13 +222,31 @@ const MultiSearch = () => {
             </Text>
           </div>
         ) : (
-          <div className="movie-grid">
-            {searchResults
-              .filter((item) => item.backdrop_path || item.poster_path)
-              .map((item, i) => (
-                <MovieCard category={item.media_type} item={item} key={i} />
-              ))}
-          </div>
+          <>
+            <div className="movie-grid">
+              {searchResults
+                .filter((item) => item.backdrop_path || item.poster_path)
+                .map((item, i) => (
+                  <MovieCard
+                    category={item.media_type}
+                    item={item}
+                    key={`${item.media_type}-${item.id}-${i}`}
+                  />
+                ))}
+            </div>
+            {canLoadMore && (
+              <div className="load-more">
+                <OutlineButton className="small" onClick={loadMore} disabled={isLoadingMore}>
+                  {isLoadingMore ? "Loading…" : "Load more"}
+                </OutlineButton>
+              </div>
+            )}
+            {isLoadingMore && (
+              <div className="load-more-spinner">
+                <Loading size="small" />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
