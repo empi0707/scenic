@@ -1,6 +1,6 @@
 # Scenic
 
-A movie and TV series discovery app built with React. Browse trending content, search across movies and shows, watch trailers, and stream from multiple servers.
+A movie and TV series discovery app built with React. Browse trending content, search by title, voice, or natural language, watch trailers, track what you're watching, and stream from multiple servers.
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![SCSS](https://img.shields.io/badge/SCSS-Modules-CC6699?logo=sass&logoColor=white)
@@ -9,13 +9,22 @@ A movie and TV series discovery app built with React. Browse trending content, s
 
 **Features**
 
+- **Smart Search:** Natural-language queries - "punjabi movies", "hindi comedy", "korean series", "2019 horror" - route to TMDB Discover with language, genre, and year filters; plain titles fall back to full-text search
+- **Autocomplete Suggestions:** As-you-type dropdown with poster thumbnails, highlighted matches, and type/year/rating, fully keyboard and TV-remote navigable
+- **Voice Search:** Speak your query via the Web Speech API; the mic button only appears where the browser supports it
 - **Multi-Server Streaming:** Watch movies and TV episodes from 10+ configurable servers with a built-in server selector
 - **TV Series Player:** Season and episode selector with previous/next navigation and auto-saved progress via localStorage
-- **Hero Carousel:** Auto-playing showcase of top 5 trending movies with poster art and quick actions
-- **Global Search:** Debounced multi-search across movies and TV shows with instant results
-- **Genre & Country Filters:** Filter content by genre or production country on catalog pages
+- **Continue Watching:** Recently opened titles resume on the home page, including the exact "S2 E5" you left off on
+- **My List:** Bookmark anything to a personal watchlist that persists locally and syncs instantly across the app
+- **Streaming-Provider Browser:** Discover what's "Streaming on" Netflix, Prime, and more in your region, with auto-detected location and a searchable region/provider picker
+- **Hidden Gems:** Surfaces highly rated titles (7.5+ with a modest review count) that most people haven't found yet
+- **Trending Rows:** Trending Today and a ranked Top 10 This Week across movies and TV
+- **Hero Carousel:** Auto-playing showcase of top trending movies with poster art and quick actions
+- **Genre & Country Filters:** Glass dropdowns with type-ahead and keyboard/remote navigation on catalog pages
 - **Trailer Playback:** Watch YouTube trailers directly in-app through a modal player
-- **Detailed Info Pages:** Backdrop art, cast lists, ratings, genres, runtime, and related recommendations
+- **Detailed Info Pages:** Backdrop art, cast with dedicated person pages, ratings, genres, runtime, reviews, and related recommendations
+- **Share:** Native share sheet with copy-link fallback, plus rich social preview cards (Open Graph / Twitter) rendered server-side
+- **Keyboard & Remote Friendly:** Arrow/D-pad navigation, focus management, and submit-on-Enter throughout - usable on a TV browser
 - **Responsive Design:** Optimized layouts for mobile (with bottom nav), tablet, and desktop
 
 **Tech Stack**
@@ -27,6 +36,8 @@ A movie and TV series discovery app built with React. Browse trending content, s
 | **Animations** | Framer Motion, Swiper.js, CSS transitions |
 | **API** | TMDB (The Movie Database) |
 | **HTTP** | Axios with interceptors |
+| **Browser APIs** | Web Speech (voice search), localStorage (watchlist, history, progress) |
+| **Deployment** | Vercel edge functions (TMDB key proxy + social meta) |
 | **Icons** | Boxicons, Font Awesome |
 | **Utilities** | use-debounce, query-string, react-hot-toast |
 
@@ -69,7 +80,9 @@ Open [http://localhost:3000](http://localhost:3000).
 | `/tv/type/:type` | TV by type (popular, top_rated, on_the_air) |
 | `/movie/:id` | Movie detail + player |
 | `/tv/:id` | TV series detail + episode player |
-| `/search/:keyword` | Search results |
+| `/person/:id` | Cast/crew member with filmography |
+| `/my-list` | Saved watchlist |
+| `/search/:keyword` | Search results (title, voice, or natural language) |
 
 **Contributing**
 
