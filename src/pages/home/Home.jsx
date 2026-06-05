@@ -7,6 +7,7 @@ import TrendingRow from "../../components/trending-row/TrendingRow";
 import OnlyOnProvider from "../../components/only-on-provider/OnlyOnProvider";
 import HiddenGems from "../../components/hidden-gems/HiddenGems";
 import ContinueWatching from "../../components/continue-watching/ContinueWatching";
+import BecauseYouWatched from "../../components/because-you-watched/BecauseYouWatched";
 import InfoTooltip from "../../components/info-tooltip/InfoTooltip";
 import ConfirmDialog from "../../components/confirm-dialog/ConfirmDialog";
 import { continueWatching } from "../../utils/continueWatching";
@@ -177,6 +178,10 @@ const Home = () => {
             </div>
           </FadeIn>
         )}
+
+        <FadeIn delay={130}>
+          <BecauseYouWatched />
+        </FadeIn>
 
         <FadeIn delay={150}>
           <div className="section mb-3">

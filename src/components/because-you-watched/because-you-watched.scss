@@ -1,0 +1,10 @@
+@use "../../scss/" as *;
+
+// The source title in the "Because you watched X" heading - an indigo accent
+// underline matching the provider dropdown's brand-colored underline.
+.because-title {
+  text-decoration: underline;
+  text-decoration-color: $accent-color;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
