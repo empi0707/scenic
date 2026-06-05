@@ -9,6 +9,7 @@ import { OutlineButton } from "../button/Button";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
+import useSuggestionNav from "../../hooks/useSuggestionNav";
 import parseSmartQuery from "../../utils/parseSmartQuery";
 import tmdbApi from "../../api/tmdbApi";
 import { category } from "../../api/tmdbApi";
@@ -27,6 +28,11 @@ const MultiSearch = () => {
   const [error, setError] = useState(null);
   const [showSuggest, setShowSuggest] = useState(false);
   const { suggestions, loading: suggestLoading } = useSearchSuggestions(searchInput);
+  const { activeIndex, onKeyDown: onSuggestKeyDown } = useSuggestionNav({
+    items: suggestions,
+    visible: showSuggest,
+    onClose: () => setShowSuggest(false),
+  });
   const searchRef = useRef(null);
 
   const navigate = useNavigate();
@@ -167,6 +173,7 @@ const MultiSearch = () => {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onFocus={() => setShowSuggest(true)}
+            onKeyDown={onSuggestKeyDown}
           />
           {searchInput && (
             <button
@@ -202,6 +209,7 @@ const MultiSearch = () => {
               items={suggestions}
               loading={suggestLoading}
               query={searchInput}
+              activeIndex={activeIndex}
               anchorRef={searchRef}
               onSelect={() => setShowSuggest(false)}
               onSeeAll={handleSubmit}

@@ -5,6 +5,7 @@ import tmdbApi from "../../../api/tmdbApi";
 import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
 import { watchedEpisodes } from "../../../utils/watchedEpisodes";
+import useListboxKeyboard from "../../../hooks/useListboxKeyboard";
 
 const CheckIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
@@ -197,6 +198,42 @@ const SeriesVideoPlayer = ({
     fetchEpisodes(season);
   };
 
+  // Keyboard / D-pad navigation for the custom season dropdown.
+  const seasonOptions = (series?.seasons || []).filter(
+    (s) => s.season_number !== 0
+  );
+  const seasonSelectedIndex = seasonOptions.findIndex(
+    (s) => s.season_number === selectedSeason
+  );
+  const activeSeasonRef = useRef(null);
+  const {
+    highlighted: seasonHighlight,
+    setHighlighted: setSeasonHighlight,
+    onKeyDown: onSeasonKeyDown,
+  } = useListboxKeyboard({
+    isOpen: dropdownOpen,
+    itemCount: seasonOptions.length,
+    selectedIndex: seasonSelectedIndex,
+    onOpen: () => setDropdownOpen(true),
+    onClose: () => setDropdownOpen(false),
+    onChoose: (i) => {
+      handleSeasonChange({ value: seasonOptions[i].season_number });
+      setDropdownOpen(false);
+    },
+  });
+
+  useEffect(() => {
+    if (dropdownOpen && activeSeasonRef.current) {
+      activeSeasonRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [seasonHighlight, dropdownOpen]);
+
+  // Focus the trigger when the menu opens, so arrow keys reach it even on
+  // browsers (e.g. TV) that don't focus on click.
+  useEffect(() => {
+    if (dropdownOpen && dropdownRef.current) dropdownRef.current.focus();
+  }, [dropdownOpen]);
+
   const handleEpisodeClick = (episode_number, episodeName = "", stillPath = null) => {
     setSelectedEpisode(episode_number);
     setIsModalOpen(true);
@@ -326,6 +363,11 @@ const SeriesVideoPlayer = ({
                 ref={dropdownRef}
                 className="season-dropdown-selected compact"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
+                onKeyDown={onSeasonKeyDown}
+                tabIndex={0}
+                role="button"
+                aria-haspopup="listbox"
+                aria-expanded={dropdownOpen}
               >
                 <span className="label">Season {selectedSeason}</span>
 
@@ -366,33 +408,37 @@ const SeriesVideoPlayer = ({
 
               {/* Dropdown Menu */}
               {dropdownOpen && (
-                <div className="season-dropdown-menu" ref={menuRef}>
-                  {series.seasons
-                    .filter((s) => s.season_number !== 0)
-                    .map((season) => (
-                      <div
-                        key={season.id}
-                        className="season-option"
-                        onClick={() => {
-                          handleSeasonChange({ value: season.season_number });
-                          setDropdownOpen(false);
-                        }}
-                      >
-                        <img
-                          src={apiConfig.w500Image(season.poster_path)}
-                          alt={season.name}
-                        />
+                <div className="season-dropdown-menu" ref={menuRef} role="listbox">
+                  {seasonOptions.map((season, index) => (
+                    <div
+                      key={season.id}
+                      ref={index === seasonHighlight ? activeSeasonRef : null}
+                      role="option"
+                      aria-selected={season.season_number === selectedSeason}
+                      className={`season-option${
+                        index === seasonHighlight ? " is-active" : ""
+                      }`}
+                      onMouseEnter={() => setSeasonHighlight(index)}
+                      onClick={() => {
+                        handleSeasonChange({ value: season.season_number });
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <img
+                        src={apiConfig.w500Image(season.poster_path)}
+                        alt={season.name}
+                      />
 
-                        <div className="info">
-                          <h4>Season {season.season_number}</h4>
-                          <p>{season.episode_count} episodes</p>
-                        </div>
-
-                        <span className="year">
-                          {season.air_date?.split("-")[0] || ""}
-                        </span>
+                      <div className="info">
+                        <h4>Season {season.season_number}</h4>
+                        <p>{season.episode_count} episodes</p>
                       </div>
-                    ))}
+
+                      <span className="year">
+                        {season.air_date?.split("-")[0] || ""}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

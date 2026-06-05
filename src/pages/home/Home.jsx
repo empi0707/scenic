@@ -16,12 +16,18 @@ import Input from "../../components/input/Input";
 import MicButton from "../../components/mic-button/MicButton";
 import SearchSuggestions from "../../components/search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
+import useSuggestionNav from "../../hooks/useSuggestionNav";
 import "./Home.scss";
 
 const Home = () => {
   const [keyword, setKeyword] = useState("");
   const [showSuggest, setShowSuggest] = useState(false);
   const { suggestions, loading: suggestLoading } = useSearchSuggestions(keyword);
+  const { activeIndex, onKeyDown: onSuggestKeyDown } = useSuggestionNav({
+    items: suggestions,
+    visible: showSuggest,
+    onClose: () => setShowSuggest(false),
+  });
   const searchRef = useRef(null);
   const [hasContinue, setHasContinue] = useState(
     () => continueWatching.getAll().length > 0
@@ -100,6 +106,7 @@ const Home = () => {
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   onFocus={() => setShowSuggest(true)}
+                  onKeyDown={onSuggestKeyDown}
                 />
                 {keyword && (
                   <button
@@ -128,6 +135,7 @@ const Home = () => {
                     items={suggestions}
                     loading={suggestLoading}
                     query={keyword}
+                    activeIndex={activeIndex}
                     anchorRef={searchRef}
                     onSelect={() => setShowSuggest(false)}
                     onSeeAll={handleSearchSubmit}

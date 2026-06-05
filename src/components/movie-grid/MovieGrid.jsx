@@ -8,8 +8,9 @@ import Loading from "../loading/Loading";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
+import useSuggestionNav from "../../hooks/useSuggestionNav";
+import GlassSelect from "../glass-select/GlassSelect";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
-import Select from "react-select";
 
 const MovieGrid = (props) => {
   const [items, setItems] = useState([]);
@@ -245,69 +246,6 @@ const MovieGrid = (props) => {
     }
   };
 
-  // Custom styles for the Select component - matching season dropdown
-  const customSelectStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: "#141414",
-      border: state.isFocused ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.08)",
-      borderRadius: "6px",
-      color: "#e5e5e5",
-      minWidth: '12rem',
-      maxWidth: '12rem',
-      boxShadow: state.isFocused ? "0 0 0 2px rgba(255,255,255,0.06)" : "none",
-      "&:hover": {
-        borderColor: "rgba(255,255,255,0.15)"
-      }
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: "#e5e5e5",
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: "#1c1c1c",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: "6px",
-      maxWidth: '12rem',
-      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
-      zIndex: 9999
-    }),
-    menuPortal: (provided) => ({
-      ...provided,
-      zIndex: 9999,
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? "#e5e5e5"
-        : state.isFocused
-          ? "rgba(255,255,255,0.06)"
-          : "transparent",
-      color: state.isSelected ? "#0a0a0a" : "#e5e5e5",
-      cursor: 'pointer',
-      "&:hover": {
-        backgroundColor: "rgba(255,255,255,0.06)",
-      },
-      maxWidth: '12rem'
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: "#666666",
-    }),
-    input: (provided) => ({
-      ...provided,
-      color: "#e5e5e5",
-    }),
-    dropdownIndicator: (provided) => ({
-      ...provided,
-      color: "#666666",
-      "&:hover": {
-        color: "#e5e5e5"
-      }
-    }),
-  };
-
   if (isLoading) {
     return <Loading size="large" />;
   }
@@ -318,26 +256,34 @@ const MovieGrid = (props) => {
         <div style={{ display: "flex", justifyContent: "center" }}>
           <MovieSearch category={props.category} keyword={keyword} />
         </div>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
-          <Select
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem', flexWrap: 'wrap' }}>
+          {/* Custom glass dropdowns - remote/keyboard navigable, no typing
+              needed, so they stay usable on the TV browser. */}
+          <GlassSelect
+            ariaLabel="Filter by genre"
+            placeholder="All genres"
             options={genres}
-            onChange={handleGenreChange}
-            value={selectedGenre}
-            placeholder="Select a genre"
-            isSearchable={true}
-            isClearable={true}
-            styles={customSelectStyles}
-            menuPortalTarget={document.body}
+            value={selectedGenre ? selectedGenre.value : null}
+            onChange={(val) => {
+              const opt =
+                val != null
+                  ? genres.find((g) => String(g.value) === String(val))
+                  : null;
+              handleGenreChange(opt || null);
+            }}
           />
-          <Select
+          <GlassSelect
+            ariaLabel="Filter by country"
+            placeholder="All countries"
             options={countries}
-            onChange={(country) => setSelectedCountry(country)}
-            value={selectedCountry}
-            placeholder="Select a country"
-            isSearchable={true}
-            isClearable={true}
-            styles={customSelectStyles}
-            menuPortalTarget={document.body}
+            value={selectedCountry ? selectedCountry.value : null}
+            onChange={(val) => {
+              const opt =
+                val != null
+                  ? countries.find((c) => String(c.value) === String(val))
+                  : null;
+              setSelectedCountry(opt || null);
+            }}
           />
         </div>
       </div>
@@ -373,6 +319,11 @@ const MovieSearch = (props) => {
   const [keyword, setKeyword] = useState(props.keyword ? props.keyword : "");
   const [showSuggest, setShowSuggest] = useState(false);
   const { suggestions, loading: suggestLoading } = useSearchSuggestions(keyword);
+  const { activeIndex, onKeyDown: onSuggestKeyDown } = useSuggestionNav({
+    items: suggestions,
+    visible: showSuggest,
+    onClose: () => setShowSuggest(false),
+  });
   const searchRef = useRef(null);
 
   // Close the suggestions dropdown when clicking/tapping outside the search box.
@@ -423,6 +374,7 @@ const MovieSearch = (props) => {
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           onFocus={() => setShowSuggest(true)}
+          onKeyDown={onSuggestKeyDown}
         />
         {keyword && (
           <button
@@ -458,6 +410,7 @@ const MovieSearch = (props) => {
             items={suggestions}
             loading={suggestLoading}
             query={keyword}
+            activeIndex={activeIndex}
             anchorRef={searchRef}
             onSelect={() => setShowSuggest(false)}
             onSeeAll={handleSearchSubmit}

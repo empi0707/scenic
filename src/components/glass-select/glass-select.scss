@@ -1,0 +1,155 @@
+@use "../../scss/" as *;
+
+.glass-select {
+  position: relative;
+  display: inline-flex;
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    min-width: 12rem;
+    max-width: 12rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: $border-radius-lg;
+    color: $txt-color;
+    font-family: $font-body;
+    font-size: 0.9rem;
+    cursor: pointer;
+    // Glass-morphism control, matching the season / provider dropdowns.
+    @include glass-light;
+    backdrop-filter: blur(20px) saturate(150%);
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: rgba(99, 102, 241, 0.5);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+    }
+
+    &.is-open {
+      @include glass-medium;
+    }
+  }
+
+  &__value {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    &.is-placeholder {
+      color: $txt-muted;
+    }
+  }
+
+  &__actions {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: $txt-muted;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+      color: #e5e5e5;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: $txt-secondary;
+    transition: transform 0.2s ease;
+  }
+
+  &__trigger.is-open &__chevron {
+    transform: rotate(180deg);
+  }
+}
+
+// Portaled menu - mirrors the season dropdown / search-suggestions glass.
+.glass-select__menu {
+  z-index: 12000;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  border-radius: $border-radius-lg;
+  max-height: 320px;
+  overflow-y: auto;
+  @include glass-medium;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: glass-select-in 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+  }
+
+  .glass-select__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    padding: 9px 10px;
+    border-radius: $border-radius;
+    color: $txt-color;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.12s ease;
+
+    &:hover,
+    &.is-active {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &[aria-selected="true"] {
+      color: #c7d2fe;
+    }
+
+    &--clear {
+      color: $txt-muted;
+    }
+  }
+
+  .glass-select__option-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .glass-select__check {
+    flex-shrink: 0;
+    color: $accent-color;
+    font-size: 1.05rem;
+  }
+}
+
+@keyframes glass-select-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

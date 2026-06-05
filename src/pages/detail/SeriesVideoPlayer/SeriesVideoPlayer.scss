@@ -58,6 +58,12 @@
     border-color: rgba(255, 255, 255, 0.15);
   }
 
+  &:focus-visible {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  }
+
   .label {
     color: $txt-color;
   }
@@ -113,7 +119,8 @@
 
   transition: background 0.15s ease;
 
-  &:hover {
+  &:hover,
+  &.is-active {
     background: rgba(255, 255, 255, 0.08);
   }
 

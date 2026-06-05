@@ -1,14 +1,9 @@
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState, useLayoutEffect, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import apiConfig from "../../api/apiConfig";
+import { linkFor } from "../../utils/suggestionLink";
 import "./search-suggestions.scss";
-
-const linkFor = (item) => {
-  if (item.media_type === "person") return `/person/${item.id}`;
-  const type = item.media_type === "tv" ? "tv" : "movie";
-  return `/${type}/${item.id}`;
-};
 
 const labelFor = (item) => item.title || item.name || "";
 
@@ -52,12 +47,21 @@ const SearchSuggestions = ({
   items = [],
   loading = false,
   query = "",
+  activeIndex = -1,
   onSelect,
   onSeeAll,
   anchorRef,
 }) => {
   const [pos, setPos] = useState(null);
+  const activeRef = useRef(null);
   const visibleCount = loading && items.length === 0 ? 1 : items.length;
+
+  // Keep the keyboard-highlighted row in view as it moves.
+  useEffect(() => {
+    if (activeRef.current) {
+      activeRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [activeIndex]);
 
   // Position the portaled dropdown under the search box and keep it pinned
   // there on scroll/resize. Rendering into document.body escapes every page
@@ -109,11 +113,15 @@ const SearchSuggestions = ({
                 key={`${item.media_type}-${item.id}`}
                 style={{ "--row": index }}
                 className="search-suggestions__row"
+                ref={index === activeIndex ? activeRef : null}
               >
                 <Link
                   to={linkFor(item)}
-                  className="search-suggestions__item"
+                  className={`search-suggestions__item${
+                    index === activeIndex ? " is-active" : ""
+                  }`}
                   role="option"
+                  aria-selected={index === activeIndex}
                   onClick={onSelect}
                 >
                   <span className="search-suggestions__thumb">

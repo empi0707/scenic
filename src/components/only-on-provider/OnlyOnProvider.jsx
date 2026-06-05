@@ -8,6 +8,7 @@ import "swiper/css/pagination";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import Button from "../button/Button";
+import useListboxKeyboard from "../../hooks/useListboxKeyboard";
 import "./only-on-provider.scss";
 
 const SWIPER_BREAKPOINTS = {
@@ -296,6 +297,100 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
     return `/${type === "tv" ? "tv" : "movie"}/${item.id}`;
   };
 
+  // Keyboard / D-pad navigation for the custom provider & region dropdowns.
+  const providerTriggerRef = useRef(null);
+  const regionTriggerRef = useRef(null);
+  const activeProviderRef = useRef(null);
+  const {
+    highlighted: providerHighlight,
+    setHighlighted: setProviderHighlight,
+    onKeyDown: onProviderKeyDown,
+  } = useListboxKeyboard({
+    isOpen: openProvider,
+    itemCount: providers.length,
+    selectedIndex: providers.findIndex((p) => p.id === providerId),
+    onOpen: () => {
+      setOpenProvider(true);
+      setOpenRegion(false);
+    },
+    onClose: () => setOpenProvider(false),
+    onChoose: (i) => {
+      setProviderId(providers[i].id);
+      setOpenProvider(false);
+    },
+  });
+
+  const activeRegionRef = useRef(null);
+  const {
+    highlighted: regionHighlight,
+    setHighlighted: setRegionHighlight,
+    onKeyDown: onRegionKeyDown,
+  } = useListboxKeyboard({
+    isOpen: openRegion,
+    itemCount: filteredRegions.length,
+    selectedIndex: filteredRegions.findIndex((r) => r.iso_3166_1 === region),
+    onOpen: () => {
+      setOpenRegion(true);
+      setOpenProvider(false);
+    },
+    onClose: () => setOpenRegion(false),
+    onChoose: (i) => {
+      setRegion(filteredRegions[i].iso_3166_1);
+      setOpenRegion(false);
+    },
+  });
+
+  // Move keyboard focus onto the trigger when a menu opens, so arrow keys
+  // reach its onKeyDown even on browsers (e.g. TV) that don't focus on click.
+  useEffect(() => {
+    if (openProvider && providerTriggerRef.current) {
+      providerTriggerRef.current.focus();
+    }
+  }, [openProvider]);
+  useEffect(() => {
+    if (openRegion && regionTriggerRef.current) {
+      regionTriggerRef.current.focus();
+    }
+  }, [openRegion]);
+
+  // Reset the region highlight to the top as the search filter narrows.
+  useEffect(() => {
+    setRegionHighlight(0);
+  }, [regionSearch, setRegionHighlight]);
+
+  // Keep the highlighted option in view while arrowing.
+  useEffect(() => {
+    if (openProvider && activeProviderRef.current) {
+      activeProviderRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [providerHighlight, openProvider]);
+  useEffect(() => {
+    if (openRegion && activeRegionRef.current) {
+      activeRegionRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [regionHighlight, openRegion]);
+
+  // Arrow / Enter / Esc inside the region search box (typing still works).
+  const onRegionSearchKeyDown = (e) => {
+    const n = filteredRegions.length;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setRegionHighlight((h) => (n ? (h + 1) % n : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setRegionHighlight((h) => (n ? (h - 1 + n) % n : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (regionHighlight >= 0 && filteredRegions[regionHighlight]) {
+        setRegion(filteredRegions[regionHighlight].iso_3166_1);
+        setOpenRegion(false);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpenRegion(false);
+    }
+  };
+
   return (
     <div className="only-on-provider">
       <div className="section__header mb-2 only-on-provider__header">
@@ -308,6 +403,7 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
           <span className="only-on-provider__trigger-wrap" ref={providerRef}>
             <button
               type="button"
+              ref={providerTriggerRef}
               className={`only-on-provider__trigger${
                 openProvider ? " is-open" : ""
               }`}
@@ -315,6 +411,7 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                 setOpenProvider((v) => !v);
                 setOpenRegion(false);
               }}
+              onKeyDown={onProviderKeyDown}
               style={{ "--provider-color": provider?.color || "#6366f1" }}
               aria-haspopup="listbox"
               aria-expanded={openProvider}
@@ -329,15 +426,21 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
 
             {openProvider && providers.length > 0 && (
               <ul className="only-on-provider__menu" role="listbox">
-                {providers.map((p) => {
+                {providers.map((p, index) => {
                   const selected = p.id === providerId;
                   return (
-                    <li key={p.id} role="option" aria-selected={selected}>
+                    <li
+                      key={p.id}
+                      role="option"
+                      aria-selected={selected}
+                      ref={index === providerHighlight ? activeProviderRef : null}
+                    >
                       <button
                         type="button"
                         className={`only-on-provider__option${
                           selected ? " is-selected" : ""
-                        }`}
+                        }${index === providerHighlight ? " is-active" : ""}`}
+                        onMouseEnter={() => setProviderHighlight(index)}
                         onClick={() => {
                           setProviderId(p.id);
                           setOpenProvider(false);
@@ -371,6 +474,7 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
           <span className="only-on-provider__trigger-wrap" ref={regionRef}>
             <button
               type="button"
+              ref={regionTriggerRef}
               className={`only-on-provider__trigger only-on-provider__trigger--region${
                 openRegion ? " is-open" : ""
               }`}
@@ -378,6 +482,7 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                 setOpenRegion((v) => !v);
                 setOpenProvider(false);
               }}
+              onKeyDown={onRegionKeyDown}
               aria-haspopup="listbox"
               aria-expanded={openRegion}
             >
@@ -406,6 +511,7 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                     value={regionSearch}
                     onChange={(e) => setRegionSearch(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
+                    onKeyDown={onRegionSearchKeyDown}
                   />
                 </div>
                 <ul
@@ -417,19 +523,21 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
                       No matches
                     </li>
                   ) : (
-                    filteredRegions.map((r) => {
+                    filteredRegions.map((r, index) => {
                       const selected = r.iso_3166_1 === region;
                       return (
                         <li
                           key={r.iso_3166_1}
                           role="option"
                           aria-selected={selected}
+                          ref={index === regionHighlight ? activeRegionRef : null}
                         >
                           <button
                             type="button"
                             className={`only-on-provider__option${
                               selected ? " is-selected" : ""
-                            }`}
+                            }${index === regionHighlight ? " is-active" : ""}`}
+                            onMouseEnter={() => setRegionHighlight(index)}
                             onClick={() => {
                               setRegion(r.iso_3166_1);
                               setOpenRegion(false);
