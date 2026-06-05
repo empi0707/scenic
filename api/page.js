@@ -41,7 +41,7 @@ export default async function handler(request) {
   }
 
   try {
-    const apiKey = process.env.REACT_APP_API_KEY;
+    const apiKey = process.env.TMDB_API_KEY || process.env.REACT_APP_API_KEY;
     if (!apiKey) throw new Error('Missing TMDB API key');
 
     const tmdbRes = await fetch(
