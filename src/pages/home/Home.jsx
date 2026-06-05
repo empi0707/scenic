@@ -13,6 +13,7 @@ import { continueWatching } from "../../utils/continueWatching";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
 import Input from "../../components/input/Input";
+import MicButton from "../../components/mic-button/MicButton";
 import SearchSuggestions from "../../components/search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import "./Home.scss";
@@ -110,6 +111,15 @@ const Home = () => {
                     <i className="bx bx-x"></i>
                   </button>
                 )}
+                <MicButton
+                  onTranscript={(t) => setKeyword(t)}
+                  onFinal={(t) => {
+                    const term = t.trim();
+                    setKeyword(term);
+                    setShowSuggest(false);
+                    if (term) navigate(`/search/${encodeURIComponent(term)}`);
+                  }}
+                />
                 <button type="submit" className="search-btn" aria-label="Search">
                   <i className="bx bx-search"></i>
                 </button>

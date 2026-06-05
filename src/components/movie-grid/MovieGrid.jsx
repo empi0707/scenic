@@ -5,6 +5,7 @@ import MovieCard from "../movie-card/MovieCard";
 import { OutlineButton } from "../button/Button";
 import Input from "../input/Input";
 import Loading from "../loading/Loading";
+import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
@@ -438,6 +439,17 @@ const MovieSearch = (props) => {
             <i className="bx bx-x"></i>
           </button>
         )}
+        <MicButton
+          onTranscript={(t) => setKeyword(t)}
+          onFinal={(t) => {
+            const term = t.trim();
+            setKeyword(term);
+            setShowSuggest(false);
+            if (term) {
+              navigate(`/${category[props.category]}/search/${encodeURIComponent(term)}`);
+            }
+          }}
+        />
         <button type="submit" className="search-btn" aria-label="Search">
           <i className="bx bx-search"></i>
         </button>

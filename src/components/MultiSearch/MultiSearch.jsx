@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import MovieCard from "../movie-card/MovieCard";
 import Loading from "../loading/Loading";
+import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import tmdbApi from "../../api/tmdbApi";
@@ -128,6 +129,15 @@ const MultiSearch = () => {
               <i className="bx bx-x" />
             </button>
           )}
+          <MicButton
+            onTranscript={(t) => setSearchInput(t)}
+            onFinal={(t) => {
+              const term = t.trim();
+              setSearchInput(term);
+              setShowSuggest(false);
+              runSearch(term);
+            }}
+          />
           <button type="submit" className="search-btn" aria-label="Search">
             {isLoading ? (
               <i className="bx bx-loader-alt bx-spin" />
