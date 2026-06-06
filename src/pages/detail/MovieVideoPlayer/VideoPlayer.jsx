@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import "./VideoPlayer.scss";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
+import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 
 const serverKey = (id) => `scenic:movie-server:${id}`;
 
@@ -19,6 +20,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
   const [selectedServer, setSelectedServer] = useState(() => readSavedServer(id));
   const [serverUrl, setServerUrl] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const downloadAvailable = useDownloadAvailability("movie", id);
 
   const handleServerClick = (index) => {
     setSelectedServer(index);
@@ -99,6 +101,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       selectedServer={selectedServer}
       hasPrevious={false}
       hasNext={false}
+      download={{ mediaType: "movie", id, title, available: downloadAvailable }}
     />
   );
 };

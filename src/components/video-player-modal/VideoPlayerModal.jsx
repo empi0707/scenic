@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./VideoPlayerModal.scss";
 import { servers } from "../../constants/constants";
+import DownloadButton from "../download-button/DownloadButton";
 
 const VideoPlayerModal = ({
   isOpen,
@@ -14,6 +15,7 @@ const VideoPlayerModal = ({
   onNext,
   hasPrevious,
   hasNext,
+  download,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -62,6 +64,17 @@ const VideoPlayerModal = ({
           </div>
 
           <div className="video-modal-controls">
+            {download && download.id && (
+              <DownloadButton
+                mediaType={download.mediaType}
+                id={download.id}
+                title={download.title}
+                season={download.season}
+                episode={download.episode}
+                available={download.available}
+                onDownloaded={onClose}
+              />
+            )}
             <span className="server-hint">Video not loading? Try changing server →</span>
             <div className="server-dropdown">
               <button

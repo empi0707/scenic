@@ -1,0 +1,95 @@
+@use "../../scss/" as *;
+
+.download-control {
+  position: relative;
+  display: inline-flex;
+}
+
+// Matches the Detail page's Save / Share icon buttons (44px glass square).
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: all $transition-normal;
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  i {
+    font-size: 1.2rem;
+    display: block;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.26);
+    color: $white;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  @include mobile {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.download-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 9rem;
+  padding: 6px;
+  border-radius: $border-radius-lg;
+  @include glass-medium;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: $border-radius;
+    background: transparent;
+    color: $txt-color;
+    font-family: $font-body;
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    i {
+      font-size: 1rem;
+      color: $accent-color;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}

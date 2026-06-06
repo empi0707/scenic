@@ -6,6 +6,7 @@ import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
 import { watchedEpisodes } from "../../../utils/watchedEpisodes";
 import useListboxKeyboard from "../../../hooks/useListboxKeyboard";
+import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 
 const CheckIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
@@ -35,6 +36,12 @@ const SeriesVideoPlayer = ({
   );
   const dropdownRef = React.useRef(null);
   const menuRef = React.useRef(null);
+  const downloadAvailable = useDownloadAvailability(
+    "tv",
+    id,
+    selectedSeason,
+    selectedEpisode
+  );
 
   // Keep local watched state in sync with the util so external mutations
   // (e.g. clearing or another tab) reflect here without a remount.
@@ -355,6 +362,14 @@ const SeriesVideoPlayer = ({
         onNext={handleNextEpisode}
         hasPrevious={hasPreviousEpisode()}
         hasNext={hasNextEpisode()}
+        download={{
+          mediaType: "tv",
+          id,
+          title: series?.name || series?.original_name,
+          season: selectedSeason,
+          episode: selectedEpisode,
+          available: downloadAvailable,
+        }}
       />
 
       <div>
