@@ -1,0 +1,428 @@
+@use "../../scss/" as *;
+
+.collection-page {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  background-color: $body-bg;
+}
+
+// Shared horizontal container so the back button, hero text, "Watch Order"
+// heading and list rows all share one left edge.
+%collection-inset {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+
+  @include tablet {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  @include mobile {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
+// Back-bar aligns the floating button to the shared left edge.
+.collection-back-bar {
+  @extend %collection-inset;
+  position: absolute;
+  z-index: 4;
+  top: calc(#{$header-height} + 0.85rem);
+  left: 0;
+  right: 0;
+  pointer-events: none;
+
+  // The mobile header is a fixed 56px (not rem-scaled), so anchor below that
+  // px value - $header-height shrinks with the 60% mobile root and would tuck
+  // the button under the header.
+  @include mobile {
+    top: calc(56px + 0.6rem);
+  }
+}
+
+.collection-back {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.55rem;
+  border-radius: $border-radius-full;
+  @include glass-medium;
+  color: $txt-color;
+  font-family: $font-body;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+
+  i {
+    font-size: 1.25rem;
+  }
+
+  &:hover {
+    background: $surface-hover;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(-2px);
+  }
+
+  @include mobile {
+    padding: 0.35rem 0.7rem 0.35rem 0.45rem;
+    font-size: 0.8rem;
+  }
+}
+
+// Page body (heading + list) shares the same inset as the hero text.
+.collection-body {
+  @extend %collection-inset;
+}
+
+.collection-hero {
+  position: relative;
+  min-height: 62vh;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  padding-top: calc(#{$header-height} + 3.5rem);
+  padding-bottom: 2.5rem;
+  background-size: cover;
+  background-position: center 18%;
+  background-repeat: no-repeat;
+  animation: collection-fade 0.8s ease both;
+
+  // Cinematic vignette - heavy left + uniform dark wash (mirrors the Detail
+  // banner) so the backdrop stays subdued and the name reads cleanly. The
+  // indigo glow keeps it on-brand.
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.92) 0%,
+        rgba(0, 0, 0, 0.72) 28%,
+        rgba(0, 0, 0, 0.4) 58%,
+        rgba(0, 0, 0, 0.35) 78%,
+        rgba(0, 0, 0, 0.5) 100%
+      ),
+      radial-gradient(
+        120% 90% at 0% 100%,
+        rgba(99, 102, 241, 0.16) 0%,
+        transparent 50%
+      );
+  }
+
+  // Bottom fade into the page - solid $body-bg in the lower portion so the
+  // image melts into the grid below with no visible edge.
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 72%;
+    z-index: 1;
+    background: linear-gradient(
+      to top,
+      $body-bg 0%,
+      $body-bg 16%,
+      rgba(10, 10, 10, 0.92) 32%,
+      rgba(10, 10, 10, 0.72) 48%,
+      rgba(10, 10, 10, 0.46) 62%,
+      rgba(10, 10, 10, 0.24) 78%,
+      rgba(10, 10, 10, 0.1) 90%,
+      transparent 100%
+    );
+  }
+
+  // Shares the page inset; `margin-top: auto` pins it to the bottom.
+  &__content {
+    @extend %collection-inset;
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    margin-bottom: 0;
+  }
+
+  &__eyebrow {
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: $accent-secondary;
+  }
+
+  &__title {
+    margin: 0;
+    max-width: 18ch;
+    font-family: $font-family;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: $white;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+    font-size: 0.9rem;
+    color: $txt-secondary;
+  }
+
+  &__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: $txt-muted;
+  }
+
+  &__overview {
+    margin: 1.1rem 0 0;
+    max-width: 60ch;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: $txt-secondary;
+  }
+
+  @include mobile {
+    min-height: 52vh;
+    padding-top: calc(#{$header-height} + 1.5rem);
+    padding-bottom: 1.5rem;
+    background-position: center 22%;
+
+    &::after {
+      height: 80%;
+    }
+
+    &__overview {
+      font-size: 0.88rem;
+    }
+  }
+}
+
+@keyframes collection-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Matches the Movies / TV Series page title.
+.collection-section-head {
+  margin: 0 0 1.6rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: $white;
+
+  @include mobile {
+    font-size: 1.25rem;
+    margin-bottom: 1.2rem;
+  }
+}
+
+.collection-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__item {
+    opacity: 0;
+    animation: collection-rise 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: calc(var(--row) * 60ms);
+
+    & + & {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+  }
+}
+
+.collection-row {
+  display: grid;
+  grid-template-columns: auto 120px 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  // Pull out by the padding so the index sits on the shared left edge while
+  // the hover highlight still has breathing room.
+  margin: 0 -0.85rem;
+  padding: 1rem 0.85rem;
+  border-radius: $border-radius-lg;
+  text-decoration: none;
+  color: $txt-color;
+  transition: background 0.22s ease, transform 0.22s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px);
+
+    .collection-row__index {
+      color: $accent-color;
+      opacity: 1;
+    }
+
+    .collection-row__poster img {
+      transform: scale(1.04);
+    }
+
+    .collection-row__go {
+      color: $accent-color;
+      transform: translateX(3px);
+      opacity: 1;
+    }
+  }
+
+  &__index {
+    width: 2.4rem;
+    text-align: left;
+    font-family: $font-family;
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: $txt-color;
+    opacity: 0.25;
+    transition: color 0.22s ease, opacity 0.22s ease;
+  }
+
+  &__poster {
+    width: 120px;
+    height: 180px;
+    border-radius: $border-radius;
+    overflow: hidden;
+    background: $surface-bg;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &__poster-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0.4rem;
+    font-size: 0.7rem;
+    color: $txt-muted;
+    text-align: center;
+  }
+
+  &__info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: $white;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: $txt-secondary;
+  }
+
+  &__sep {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: $txt-muted;
+  }
+
+  &__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    i {
+      color: $warning-color;
+      font-size: 0.85rem;
+    }
+  }
+
+  &__overview {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: $txt-secondary;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__go {
+    flex-shrink: 0;
+    color: $txt-muted;
+    opacity: 0.6;
+    transition: color 0.22s ease, transform 0.22s ease, opacity 0.22s ease;
+
+    i {
+      font-size: 1.5rem;
+    }
+  }
+
+  @include mobile {
+    grid-template-columns: auto 92px 1fr;
+    gap: 0.85rem;
+    margin: 0 -0.5rem;
+    padding: 0.85rem 0.5rem;
+
+    &__index {
+      width: 1.5rem;
+      font-size: 1.3rem;
+    }
+
+    &__poster {
+      width: 92px;
+      height: 138px;
+    }
+
+    &__title {
+      font-size: 1rem;
+    }
+
+    &__overview {
+      -webkit-line-clamp: 2;
+      font-size: 0.8rem;
+    }
+
+    &__go {
+      display: none;
+    }
+  }
+}
+
+@keyframes collection-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

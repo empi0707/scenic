@@ -14,6 +14,7 @@ import { PlayIcon } from "../../assets/icons/PlayIcon";
 import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
 import Reviews from "../../components/reviews/Reviews";
 import BookmarkButton from "../../components/bookmark-button/BookmarkButton";
+import CollectionTag from "../../components/collection-tag/CollectionTag";
 import { continueWatching } from "../../utils/continueWatching";
 
 const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
@@ -251,6 +252,11 @@ const Detail = () => {
                 </span>
               ))}
             </div>
+            {item.belongs_to_collection && (
+              <div className="collection-tag-row stagger-3">
+                <CollectionTag collection={item.belongs_to_collection} />
+              </div>
+            )}
             <p className="overview stagger-4">{item.overview}</p>
             <div className="buttons stagger-5">
               {!item.seasons && (

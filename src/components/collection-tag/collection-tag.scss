@@ -1,0 +1,107 @@
+@use "../../scss/" as *;
+
+.collection-tag-row {
+  margin: 1.1rem 0 1.25rem;
+}
+
+.collection-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  padding: 0.5rem 0.55rem 0.5rem 0.7rem;
+  border-radius: $border-radius-full;
+  text-decoration: none;
+  color: $txt-color;
+  @include glass-light;
+  transition: border-color 0.25s ease, background 0.25s ease,
+    transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(99, 102, 241, 0.45);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(99, 102, 241, 0.15);
+
+    .collection-tag__icon {
+      color: $accent-color;
+    }
+
+    .collection-tag__cta {
+      background: $accent-color;
+      color: $white;
+
+      svg {
+        transform: translateX(2px);
+      }
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: $accent-secondary;
+    transition: color 0.25s ease;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__text {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  &__prefix {
+    color: $txt-muted;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-weight: 600;
+    color: $white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__cta {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: $border-radius-full;
+    background: rgba(99, 102, 241, 0.16);
+    color: #c7d2fe;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: background 0.25s ease, color 0.25s ease;
+
+    svg {
+      width: 13px;
+      height: 13px;
+      transition: transform 0.25s ease;
+    }
+  }
+
+  // On small screens drop the prefix; keep name + the View all pill.
+  @include mobile {
+    gap: 0.45rem;
+
+    .collection-tag__prefix {
+      display: none;
+    }
+
+    .collection-tag__cta span {
+      display: none;
+    }
+  }
+}
