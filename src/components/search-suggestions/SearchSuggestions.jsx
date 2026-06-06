@@ -51,6 +51,7 @@ const SearchSuggestions = ({
   onSelect,
   onSeeAll,
   anchorRef,
+  inline = false,
 }) => {
   const [pos, setPos] = useState(null);
   const activeRef = useRef(null);
@@ -67,6 +68,7 @@ const SearchSuggestions = ({
   // there on scroll/resize. Rendering into document.body escapes every page
   // stacking context, so the card grid can never paint over it.
   useLayoutEffect(() => {
+    if (inline) return undefined;
     const anchor = anchorRef && anchorRef.current;
     if (!anchor) return undefined;
     const update = () => {
@@ -80,23 +82,22 @@ const SearchSuggestions = ({
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [anchorRef, visibleCount]);
+  }, [anchorRef, visibleCount, inline]);
 
   const hasQuery = query.trim().length >= 2;
   if (!hasQuery) return null;
   if (!loading && items.length === 0) return null;
-  if (!pos) return null;
+  if (!inline && !pos) return null;
 
   const dropdown = (
     <div
-      className="search-suggestions"
+      className={`search-suggestions${inline ? " search-suggestions--inline" : ""}`}
       role="listbox"
-      style={{
-        position: "fixed",
-        top: pos.top,
-        left: pos.left,
-        width: pos.width,
-      }}
+      style={
+        inline
+          ? undefined
+          : { position: "fixed", top: pos.top, left: pos.left, width: pos.width }
+      }
     >
       {loading && items.length === 0 ? (
         <div className="search-suggestions__status">
@@ -178,7 +179,7 @@ const SearchSuggestions = ({
     </div>
   );
 
-  return createPortal(dropdown, document.body);
+  return inline ? dropdown : createPortal(dropdown, document.body);
 };
 
 export default SearchSuggestions;

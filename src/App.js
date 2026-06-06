@@ -44,6 +44,7 @@ function App() {
                         <Route path='/:category/:id' element={<Detail />} />
                         <Route path='/:category' element={<Catalog />} />
                         <Route path='/' element={<Home />} />
+                        <Route path="/search" element={<MultiSearch />} />
                         <Route path="/search/:keyword" element={<MultiSearch />} />
                     </Routes>
                 </Suspense>

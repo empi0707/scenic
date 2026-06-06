@@ -1,14 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
 import "./movie-grid.scss";
 import MovieCard from "../movie-card/MovieCard";
 import { OutlineButton } from "../button/Button";
-import Input from "../input/Input";
 import Loading from "../loading/Loading";
-import MicButton from "../mic-button/MicButton";
-import SearchSuggestions from "../search-suggestions/SearchSuggestions";
-import useSearchSuggestions from "../../hooks/useSearchSuggestions";
-import useSuggestionNav from "../../hooks/useSuggestionNav";
 import GlassSelect from "../glass-select/GlassSelect";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 import { DEFAULT_SORT, SORT_OPTIONS, sortParamsFor } from "../../utils/sort";
@@ -281,10 +276,7 @@ const MovieGrid = (props) => {
   return (
     <>
       <div className="section mb-3">
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <MovieSearch category={props.category} keyword={keyword} />
-        </div>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           {/* Custom glass dropdowns - remote/keyboard navigable, no typing
               needed, so they stay usable on the TV browser. */}
           <GlassSelect
@@ -353,115 +345,6 @@ const MovieGrid = (props) => {
         </div>
       )}
     </>
-  );
-};
-
-const MovieSearch = (props) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [keyword, setKeyword] = useState(props.keyword ? props.keyword : "");
-  const [showSuggest, setShowSuggest] = useState(false);
-  const { suggestions, loading: suggestLoading } = useSearchSuggestions(keyword);
-  const { activeIndex, onKeyDown: onSuggestKeyDown } = useSuggestionNav({
-    items: suggestions,
-    visible: showSuggest,
-    onClose: () => setShowSuggest(false),
-  });
-  const searchRef = useRef(null);
-
-  // Close the suggestions dropdown when clicking/tapping outside the search box.
-  useEffect(() => {
-    if (!showSuggest) return undefined;
-    const onDocPointerDown = (e) => {
-      const insideBox = searchRef.current && searchRef.current.contains(e.target);
-      const insideDropdown = e.target.closest && e.target.closest(".search-suggestions");
-      if (!insideBox && !insideDropdown) {
-        setShowSuggest(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocPointerDown);
-    document.addEventListener("touchstart", onDocPointerDown);
-    return () => {
-      document.removeEventListener("mousedown", onDocPointerDown);
-      document.removeEventListener("touchstart", onDocPointerDown);
-    };
-  }, [showSuggest]);
-
-  // Search runs only on submit (search icon click or keyboard Enter/Done),
-  // never per-keystroke - so the on-screen keyboard keeps focus while typing.
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setShowSuggest(false);
-    const term = keyword.trim();
-    if (term.length > 0) {
-      navigate(`/${category[props.category]}/search/${encodeURIComponent(term)}`);
-    } else if (location.pathname.includes('/search/')) {
-      // Cleared the search box on a search page - go back to the category.
-      navigate(`/${category[props.category]}`);
-    }
-  };
-
-  return (
-    <div className="movie-search-wrap">
-      <form
-        className="movie-search"
-        onSubmit={handleSearchSubmit}
-        role="search"
-        ref={searchRef}
-      >
-        <Input
-          type="search"
-          enterKeyHint="search"
-          placeholder={`Search ${category[props.category] === "tv" ? "Series" : "Movies"
-            }`}
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onFocus={() => setShowSuggest(true)}
-          onKeyDown={onSuggestKeyDown}
-        />
-        {keyword && (
-          <button
-            type="button"
-            className="clear-btn"
-            aria-label="Clear search"
-            onClick={() => {
-              setKeyword("");
-              if (location.pathname.includes('/search/')) {
-                navigate(`/${category[props.category]}`);
-              }
-            }}
-          >
-            <i className="bx bx-x"></i>
-          </button>
-        )}
-        <MicButton
-          onTranscript={(t) => setKeyword(t)}
-          onFinal={(t) => {
-            const term = t.trim();
-            setKeyword(term);
-            setShowSuggest(false);
-            if (term) {
-              navigate(`/${category[props.category]}/search/${encodeURIComponent(term)}`);
-            }
-          }}
-        />
-        <button type="submit" className="search-btn" aria-label="Search">
-          <i className="bx bx-search"></i>
-        </button>
-        {showSuggest && (
-          <SearchSuggestions
-            items={suggestions}
-            loading={suggestLoading}
-            query={keyword}
-            activeIndex={activeIndex}
-            anchorRef={searchRef}
-            onSelect={() => setShowSuggest(false)}
-            onSeeAll={handleSearchSubmit}
-          />
-        )}
-      </form>
-    </div>
   );
 };
 

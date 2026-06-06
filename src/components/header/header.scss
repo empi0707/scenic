@@ -62,7 +62,7 @@
         padding: 0 $space-8;
 
         @include mobile {
-            justify-content: center;
+            justify-content: space-between;
             padding: 0 $space-4;
         }
     }
@@ -175,5 +175,44 @@
                 }
             }
         }
+    }
+}
+
+// Desktop search trigger (last item in the nav).
+.header__search-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color $transition-normal, transform $transition-normal;
+
+    &:hover {
+        color: $accent-secondary;
+        transform: scale(1.08);
+    }
+}
+
+// Mobile search trigger - icon on the right of the top header.
+.header__search-mobile {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.4rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    @include mobile {
+        display: inline-flex;
     }
 }

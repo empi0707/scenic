@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { OutlineButton } from "../../components/button/Button";
 import HeroSlide from "../../components/hero-slide/HeroSlide";
 import MovieList from "../../components/movie-list/MovieList";
@@ -13,28 +13,13 @@ import ConfirmDialog from "../../components/confirm-dialog/ConfirmDialog";
 import { continueWatching } from "../../utils/continueWatching";
 import FadeIn from "../../components/fade-in/FadeIn";
 import { category, movieType, tvType } from "../../api/tmdbApi";
-import Input from "../../components/input/Input";
-import MicButton from "../../components/mic-button/MicButton";
-import SearchSuggestions from "../../components/search-suggestions/SearchSuggestions";
-import useSearchSuggestions from "../../hooks/useSearchSuggestions";
-import useSuggestionNav from "../../hooks/useSuggestionNav";
 import "./Home.scss";
 
 const Home = () => {
-  const [keyword, setKeyword] = useState("");
-  const [showSuggest, setShowSuggest] = useState(false);
-  const { suggestions, loading: suggestLoading } = useSearchSuggestions(keyword);
-  const { activeIndex, onKeyDown: onSuggestKeyDown } = useSuggestionNav({
-    items: suggestions,
-    visible: showSuggest,
-    onClose: () => setShowSuggest(false),
-  });
-  const searchRef = useRef(null);
   const [hasContinue, setHasContinue] = useState(
     () => continueWatching.getAll().length > 0
   );
   const [clearOpen, setClearOpen] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const sync = () => setHasContinue(continueWatching.getAll().length > 0);
@@ -42,39 +27,10 @@ const Home = () => {
     return continueWatching.subscribe(sync);
   }, []);
 
-  // Close the suggestions dropdown when clicking/tapping outside the search box.
-  useEffect(() => {
-    if (!showSuggest) return undefined;
-    const onDocPointerDown = (e) => {
-      const insideBox = searchRef.current && searchRef.current.contains(e.target);
-      const insideDropdown = e.target.closest && e.target.closest(".search-suggestions");
-      if (!insideBox && !insideDropdown) {
-        setShowSuggest(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocPointerDown);
-    document.addEventListener("touchstart", onDocPointerDown);
-    return () => {
-      document.removeEventListener("mousedown", onDocPointerDown);
-      document.removeEventListener("touchstart", onDocPointerDown);
-    };
-  }, [showSuggest]);
-
   const handleClearContinue = () => setClearOpen(true);
   const confirmClear = () => {
     continueWatching.clear();
     setClearOpen(false);
-  };
-
-  // Search runs only on submit (search icon click or keyboard Enter/Done),
-  // never per-keystroke - so the on-screen keyboard keeps focus while typing.
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setShowSuggest(false);
-    const term = keyword.trim();
-    if (term.length > 0) {
-      navigate(`/search/${encodeURIComponent(term)}`);
-    }
   };
 
   return (
@@ -91,62 +47,6 @@ const Home = () => {
       />
       <HeroSlide />
       <div className="container">
-        <FadeIn>
-          <div className="section mb-3">
-            <div className="search-container">
-              <form
-                className="movie-search"
-                onSubmit={handleSearchSubmit}
-                role="search"
-                ref={searchRef}
-              >
-                <Input
-                  type="search"
-                  enterKeyHint="search"
-                  placeholder="Search movies, series & people"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  onFocus={() => setShowSuggest(true)}
-                  onKeyDown={onSuggestKeyDown}
-                />
-                {keyword && (
-                  <button
-                    type="button"
-                    className="clear-btn"
-                    aria-label="Clear search"
-                    onClick={() => setKeyword("")}
-                  >
-                    <i className="bx bx-x"></i>
-                  </button>
-                )}
-                <MicButton
-                  onTranscript={(t) => setKeyword(t)}
-                  onFinal={(t) => {
-                    const term = t.trim();
-                    setKeyword(term);
-                    setShowSuggest(false);
-                    if (term) navigate(`/search/${encodeURIComponent(term)}`);
-                  }}
-                />
-                <button type="submit" className="search-btn" aria-label="Search">
-                  <i className="bx bx-search"></i>
-                </button>
-                {showSuggest && (
-                  <SearchSuggestions
-                    items={suggestions}
-                    loading={suggestLoading}
-                    query={keyword}
-                    activeIndex={activeIndex}
-                    anchorRef={searchRef}
-                    onSelect={() => setShowSuggest(false)}
-                    onSeeAll={handleSearchSubmit}
-                  />
-                )}
-              </form>
-            </div>
-          </div>
-        </FadeIn>
-
         {hasContinue && (
           <FadeIn delay={120}>
             <div className="section mb-3">

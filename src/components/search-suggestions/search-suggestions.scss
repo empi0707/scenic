@@ -8,6 +8,12 @@
   max-height: 360px;
   overflow-y: auto;
 
+  // In-panel variant (global search overlay): flows in the layout, full width.
+  &--inline {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
   // Match the season dropdown's glass-morphism treatment.
   @include glass-medium;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);

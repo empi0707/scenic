@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { watchlist } from "../../utils/watchlist";
+import GlobalSearch from "../global-search/GlobalSearch";
 import "./header.scss";
 
 const baseNav = [
@@ -45,6 +46,24 @@ const Header = () => {
   const headerNav = hasWatchlist ? [...baseNav, myListEntry] : baseNav;
   const active = headerNav.findIndex((e) => e.path === pathname);
 
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // "/" opens search (unless the user is already typing in a field).
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = document.activeElement;
+      const tag = el && el.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (el && el.isContentEditable)) {
+        return;
+      }
+      e.preventDefault();
+      setSearchOpen(true);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   useEffect(() => {
     const shrinkHeader = () => {
       if (
@@ -75,10 +94,29 @@ const Header = () => {
                 <Link to={e.path}>{e.display}</Link>
               </li>
             ))}
+            <li className="header__search">
+              <button
+                type="button"
+                className="header__search-btn"
+                onClick={() => setSearchOpen(true)}
+                aria-label="Search"
+                title="Search (press /)"
+              >
+                <i className="bx bx-search" />
+              </button>
+            </li>
           </ul>
+          <button
+            type="button"
+            className="header__search-mobile"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search"
+          >
+            <i className="bx bx-search" />
+          </button>
         </div>
       </div>
-      
+
       {/* Mobile bottom navigation */}
       <ul className="header__mobile-nav">
         {headerNav.map((e, i) => (
@@ -87,6 +125,8 @@ const Header = () => {
           </li>
         ))}
       </ul>
+
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 };
