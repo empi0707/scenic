@@ -68,6 +68,20 @@ const tmdbApi = {
         const url = 'discover/tv';
         return axiosClient.get(url, { params });
     },
+    // Anime = Japanese-language Animation series. Extra params (sort_by, page,
+    // vote_count.gte, ...) override the defaults below.
+    getAnime: (params = {}) => {
+        const url = 'discover/tv';
+        return axiosClient.get(url, {
+            params: {
+                with_genres: 16,
+                with_original_language: 'ja',
+                include_adult: false,
+                sort_by: 'popularity.desc',
+                ...params,
+            },
+        });
+    },
     getCountryList: () => {
         const url = 'configuration/countries';
         return axiosClient.get(url, { params: {} });

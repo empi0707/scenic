@@ -20,6 +20,7 @@ const Person = lazy(() => import('./pages/person/Person'));
 const MultiSearch = lazy(() => import('./components/MultiSearch/MultiSearch'));
 const MyList = lazy(() => import('./pages/my-list/MyList'));
 const Collection = lazy(() => import('./pages/collection/Collection'));
+const Anime = lazy(() => import('./pages/anime/Anime'));
 
 function App() {
     return (
@@ -36,6 +37,7 @@ function App() {
                     <Routes>
                         <Route path='/person/:id' element={<Person />} />
                         <Route path='/collection/:id' element={<Collection />} />
+                        <Route path='/anime' element={<Anime />} />
                         <Route path='/my-list' element={<MyList />} />
                         <Route path='/:category/search/:keyword' element={<Catalog />} />
                         <Route path='/:category/type/:type' element={<Catalog />} />

@@ -16,6 +16,10 @@ const baseNav = [
     display: "TV Series",
     path: "/tv",
   },
+  {
+    display: "Anime",
+    path: "/anime",
+  },
 ];
 
 const myListEntry = {

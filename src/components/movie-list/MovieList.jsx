@@ -24,7 +24,13 @@ const MovieList = ({ category: cat, type, id, data }) => {
       let response;
       const params = {};
 
-      if (type !== "recommendations") {
+      if (type === "anime" || type === "anime_top") {
+        response = await tmdbApi.getAnime(
+          type === "anime_top"
+            ? { sort_by: "vote_average.desc", "vote_count.gte": 200 }
+            : { sort_by: "popularity.desc" }
+        );
+      } else if (type !== "recommendations") {
         response =
           cat === category.movie
             ? await tmdbApi.getMoviesList(type, { params })

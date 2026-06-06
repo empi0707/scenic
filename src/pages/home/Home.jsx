@@ -275,6 +275,30 @@ const Home = () => {
             <MovieList category={category.tv} type={tvType.top_rated} />
           </div>
         </FadeIn>
+
+        <FadeIn delay={600}>
+          <div className="section mb-3">
+            <div className="section__header mb-2">
+              <h2>Popular Anime</h2>
+              <Link to="/anime">
+                <OutlineButton className="small">View more</OutlineButton>
+              </Link>
+            </div>
+            <MovieList category={category.tv} type="anime" />
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={700}>
+          <div className="section mb-3">
+            <div className="section__header mb-2">
+              <h2>Top Rated Anime</h2>
+              <Link to="/anime">
+                <OutlineButton className="small">View more</OutlineButton>
+              </Link>
+            </div>
+            <MovieList category={category.tv} type="anime_top" />
+          </div>
+        </FadeIn>
       </div>
     </div>
   );

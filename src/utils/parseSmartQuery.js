@@ -126,6 +126,16 @@ export default function parseSmartQuery(raw) {
     }
   });
 
+  // "anime" is special: Japanese animation, and mostly series. Default the
+  // media type to TV and the language to Japanese so the query returns actual
+  // anime rather than all animation. Always consume the word so a phrase like
+  // "action anime" doesn't fall back to a literal title search.
+  if (hasWord(q, "anime")) {
+    if (!mediaType) mediaType = "tv";
+    if (!language) language = "ja";
+    consumed.push("anime");
+  }
+
   // Genre (resolve against the chosen media type, defaulting to movie)
   const genreType = mediaType || "movie";
   let genreId = null;
