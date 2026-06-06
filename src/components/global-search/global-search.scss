@@ -160,19 +160,6 @@
     }
   }
 
-  // The hints card sits flush in the overlay - drop its own card chrome.
-  .smart-hints {
-    margin-top: 1.85rem;
-    background: transparent;
-    border: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    padding: 0.25rem 0 0;
-
-    @include mobile {
-      margin-top: 24px;
-    }
-  }
 }
 
 @keyframes global-search-fade {

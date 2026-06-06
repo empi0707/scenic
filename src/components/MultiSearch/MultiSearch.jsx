@@ -8,7 +8,6 @@ import Loading from "../loading/Loading";
 import { OutlineButton } from "../button/Button";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
-import SmartSearchHints from "../smart-search-hints/SmartSearchHints";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import useSuggestionNav from "../../hooks/useSuggestionNav";
 import fetchSmartPage from "../../utils/searchResolver";
@@ -138,13 +137,6 @@ const MultiSearch = () => {
     runSearch(searchInput);
   };
 
-  // Clicking a smart-search example chip fills the box and runs it.
-  const handlePick = (example) => {
-    setSearchInput(example);
-    setShowSuggest(false);
-    runSearch(example);
-  };
-
   return (
     <div className="search-page">
             <motion.div
@@ -228,8 +220,6 @@ const MultiSearch = () => {
               {error}
             </Text>
           </div>
-        ) : submittedTerm.trim().length === 0 ? (
-          <SmartSearchHints onPick={handlePick} />
         ) : (
           <>
             <div className="movie-grid">

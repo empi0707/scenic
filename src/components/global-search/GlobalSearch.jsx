@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import SearchField from "../search-field/SearchField";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
-import SmartSearchHints from "../smart-search-hints/SmartSearchHints";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import useSuggestionNav from "../../hooks/useSuggestionNav";
 import "./global-search.scss";
@@ -107,7 +106,7 @@ const GlobalSearch = ({ open, onClose }) => {
           </button>
         </form>
 
-        {keyword.trim().length >= 2 ? (
+        {keyword.trim().length >= 2 && (
           <SearchSuggestions
             inline
             items={suggestions}
@@ -117,8 +116,6 @@ const GlobalSearch = ({ open, onClose }) => {
             onSelect={onClose}
             onSeeAll={handleSubmit}
           />
-        ) : (
-          <SmartSearchHints onPick={run} />
         )}
       </div>
     </div>,
