@@ -103,7 +103,7 @@ const Home = () => {
                 <Input
                   type="search"
                   enterKeyHint="search"
-                  placeholder="Search Movies/Series"
+                  placeholder="Search movies, series & people"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   onFocus={() => setShowSuggest(true)}
