@@ -38,7 +38,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER3}${id}`);
         break;
       case 3:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER4}${id}?color=6366f1`);
+        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER4}${id}?autoplay=true&colour=6366f1`);
         break;
       case 4:
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER5}${id}`);

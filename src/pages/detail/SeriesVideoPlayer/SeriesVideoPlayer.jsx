@@ -154,7 +154,7 @@ const SeriesVideoPlayer = ({
     } else if (index === 2) {
       url = `${process.env.REACT_APP_TV_SERVER3}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 3) {
-      url = `${process.env.REACT_APP_TV_SERVER4}${id}/${selectedSeason}/${selectedEpisode}?color=6366f1`;
+      url = `${process.env.REACT_APP_TV_SERVER4}${id}/${selectedSeason}/${selectedEpisode}?autoplay=true&colour=6366f1`;
     } else if (index === 4) {
       url = `${process.env.REACT_APP_TV_SERVER5}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 5) {
