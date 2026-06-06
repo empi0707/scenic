@@ -102,6 +102,33 @@ const hasWord = (text, word) =>
     text
   );
 
+const stripEdges = (s) => s.trim().replace(/^["'\s]+|["'.\s]+$/g, "");
+
+// Detects actor/director phrasing and returns a person plan; the caller
+// resolves the name to a TMDB person and pulls their filmography.
+function detectPersonIntent(original, mediaType) {
+  let m = original.match(/\b(?:directed|produced|created|written)\s+by\s+(.+)$/i);
+  if (m) return { kind: "person", personQuery: stripEdges(m[1]), mediaType, dept: "crew" };
+
+  m =
+    original.match(/\b(?:movies?|films?|shows?|series)\s+(?:with|starring|featuring)\s+(.+)$/i) ||
+    original.match(/\b(?:starring|featuring)\s+(.+)$/i);
+  if (m) return { kind: "person", personQuery: stripEdges(m[1]), mediaType, dept: "cast" };
+
+  // "<name> movies/films/filmography" - only when the name isn't a known
+  // genre/language/filler word (so "action movies" stays a genre query).
+  m = original.match(/^(.+?)\s+(?:movies?|films?|filmography)$/i);
+  if (m) {
+    const cand = stripEdges(m[1]);
+    const cl = cand.toLowerCase();
+    const isVocab = LANGUAGES[cl] || GENRES[cl] || FILLER.has(cl) || cl === "anime";
+    if (cand && !isVocab && cand.split(/\s+/).length <= 4) {
+      return { kind: "person", personQuery: cand, mediaType, dept: "any" };
+    }
+  }
+  return null;
+}
+
 export default function parseSmartQuery(raw) {
   const original = (raw || "").trim();
   const q = original.toLowerCase();
@@ -116,6 +143,18 @@ export default function parseSmartQuery(raw) {
   [...TV_WORDS, ...MOVIE_WORDS].forEach((w) => {
     if (hasWord(q, w)) consumed.push(w);
   });
+
+  // "like X" / "similar to X" → recommendations for the resolved title.
+  const likeMatch = original.match(
+    /^(?:(?:movies?|films?|tv shows?|shows?|series|something|anything)\s+)?(?:like|similar to)\s+(.+)$/i
+  );
+  if (likeMatch && likeMatch[1].trim().length > 1) {
+    return { kind: "like", titleQuery: likeMatch[1].trim(), mediaType };
+  }
+
+  // Person intent (actor / director) → that person's filmography.
+  const person = detectPersonIntent(original, mediaType);
+  if (person) return person;
 
   // Language
   let language = null;

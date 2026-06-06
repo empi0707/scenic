@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
-import tmdbApi, { category } from "../api/tmdbApi";
-import parseSmartQuery from "../utils/parseSmartQuery";
+import fetchSmartPage from "../utils/searchResolver";
 
-// Lightweight autocomplete: debounced multi-search that only fetches a short
-// list of suggestions. It never navigates or changes the input, so the
-// on-screen keyboard (TV / mobile) keeps focus while typing.
+// Lightweight autocomplete: a debounced run of the same smart-search resolver
+// the results page uses, so "movies like inception", "tom cruise movies",
+// "korean thrillers" etc. all preview the right results while typing. Never
+// navigates or changes the input, so the on-screen keyboard keeps focus.
 export default function useSearchSuggestions(query, { limit = 7 } = {}) {
   const [debounced] = useDebounce(query, 300);
   const [suggestions, setSuggestions] = useState([]);
@@ -17,31 +17,16 @@ export default function useSearchSuggestions(query, { limit = 7 } = {}) {
     if (term.length < 2) {
       setSuggestions([]);
       setLoading(false);
-      return;
+      return undefined;
     }
 
     let cancelled = false;
     setLoading(true);
 
-    // Mirror the full-search routing: language/genre phrases preview Discover
-    // results; everything else previews title matches.
-    const parsed = parseSmartQuery(term);
-    const request =
-      parsed.kind === "discover"
-        ? tmdbApi
-            .discover(parsed.mediaType, parsed.params)
-            .then((res) => ({ res, discoverType: parsed.mediaType }))
-        : tmdbApi
-            .search(category.multi, { params: { query: term } })
-            .then((res) => ({ res, discoverType: null }));
-
-    request
-      .then(({ res, discoverType }) => {
+    fetchSmartPage(term, 1)
+      .then(({ results }) => {
         if (cancelled) return;
-        const raw = (res.results || []).map((it) =>
-          discoverType ? { ...it, media_type: discoverType } : it
-        );
-        const items = raw
+        const items = (results || [])
           .filter(
             (it) =>
               it.media_type === "movie" ||

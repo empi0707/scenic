@@ -8,11 +8,10 @@ import Loading from "../loading/Loading";
 import { OutlineButton } from "../button/Button";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
+import SmartSearchHints from "../smart-search-hints/SmartSearchHints";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import useSuggestionNav from "../../hooks/useSuggestionNav";
-import parseSmartQuery from "../../utils/parseSmartQuery";
-import tmdbApi from "../../api/tmdbApi";
-import { category } from "../../api/tmdbApi";
+import fetchSmartPage from "../../utils/searchResolver";
 import "./MultiSearch.scss";
 
 const MultiSearch = () => {
@@ -37,27 +36,16 @@ const MultiSearch = () => {
 
   const navigate = useNavigate();
 
-  // Fetches one page for a term. "punjabi movies", "hindi comedy", "korean
-  // series" etc. are routed to the Discover API with language/genre filters;
-  // plain titles use search. TMDB Discover paginates up to 500 pages.
-  const fetchPage = useCallback(async (term, pageNum) => {
-    const parsed = parseSmartQuery(term);
-    if (parsed.kind === "discover") {
-      const response = await tmdbApi.discover(parsed.mediaType, {
-        ...parsed.params,
-        page: pageNum,
-      });
-      const results = (response.results || []).map((item) => ({
-        ...item,
-        media_type: parsed.mediaType,
-      }));
-      return { results, totalPages: response.total_pages || 1 };
-    }
-    const response = await tmdbApi.search(category.multi, {
-      params: { query: term, page: pageNum },
-    });
-    return { results: response.results || [], totalPages: response.total_pages || 1 };
-  }, []);
+  // Caches resolved person/title lookups per term so paging doesn't re-resolve.
+  const resolvedRef = useRef({});
+
+  // Routed by parseSmartQuery: language/genre → Discover; "X movies" /
+  // "directed by X" → that person's filmography; "like X" → recommendations;
+  // everything else → title search. (See utils/searchResolver.)
+  const fetchPage = useCallback(
+    (term, pageNum) => fetchSmartPage(term, pageNum, resolvedRef.current),
+    []
+  );
 
   // Search runs ONLY when the user submits - clicking the search icon or
   // pressing Enter/Done/Search on the keyboard. No per-keystroke search, so
@@ -150,6 +138,13 @@ const MultiSearch = () => {
     runSearch(searchInput);
   };
 
+  // Clicking a smart-search example chip fills the box and runs it.
+  const handlePick = (example) => {
+    setSearchInput(example);
+    setShowSuggest(false);
+    runSearch(example);
+  };
+
   return (
     <div className="search-page">
             <motion.div
@@ -182,7 +177,11 @@ const MultiSearch = () => {
               aria-label="Clear search"
               onClick={() => {
                 setSearchInput("");
-                navigate("/");
+                setSubmittedTerm("");
+                setSearchResults([]);
+                setError(null);
+                setShowSuggest(false);
+                navigate("/search");
               }}
             >
               <i className="bx bx-x" />
@@ -229,6 +228,8 @@ const MultiSearch = () => {
               {error}
             </Text>
           </div>
+        ) : submittedTerm.trim().length === 0 ? (
+          <SmartSearchHints onPick={handlePick} />
         ) : (
           <>
             <div className="movie-grid">

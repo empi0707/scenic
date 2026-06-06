@@ -3,7 +3,8 @@ import axiosClient from "./axiosClient";
 export const category = {
     movie: 'movie',
     tv: 'tv',
-    multi: 'multi'
+    multi: 'multi',
+    person: 'person'
 }
 
 export const movieType = {
@@ -44,9 +45,9 @@ const tmdbApi = {
         const url = category[cate] + '/' + id + '/credits';
         return axiosClient.get(url, { params: {} });
     },
-    recommendations: (cate, id) => {
+    recommendations: (cate, id, page = 1) => {
         const url = category[cate] + '/' + id + '/recommendations';
-        return axiosClient.get(url, { params: {} });
+        return axiosClient.get(url, { params: { page } });
     },
     getSeason: (id, seasonNumber) => {
         const url = `tv/${id}/season/${seasonNumber}`;
