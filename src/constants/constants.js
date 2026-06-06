@@ -9,4 +9,6 @@ export const servers = [
   "Server 8",
   "Server 9",
   "Server 10",
+  "Server 11",
+  "Server 12",
 ];

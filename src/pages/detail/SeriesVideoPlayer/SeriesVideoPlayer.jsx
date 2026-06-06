@@ -154,9 +154,9 @@ const SeriesVideoPlayer = ({
     } else if (index === 2) {
       url = `${process.env.REACT_APP_TV_SERVER3}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 3) {
-      url = `${process.env.REACT_APP_TV_SERVER4}?tmdb=${id}&season=${selectedSeason}&episode=${selectedEpisode}`;
+      url = `${process.env.REACT_APP_TV_SERVER4}${id}/${selectedSeason}/${selectedEpisode}?color=6366f1`;
     } else if (index === 4) {
-      url = `${process.env.REACT_APP_TV_SERVER5}${id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`;
+      url = `${process.env.REACT_APP_TV_SERVER5}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 5) {
       url = `${process.env.REACT_APP_TV_SERVER6}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 6) {
@@ -166,7 +166,11 @@ const SeriesVideoPlayer = ({
     } else if (index === 8) {
       url = `${process.env.REACT_APP_TV_SERVER9}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 9) {
-      url = `${process.env.REACT_APP_TV_SERVER10}${id}/${selectedSeason}/${selectedEpisode}`;
+      url = `${process.env.REACT_APP_TV_SERVER10}${id}/${selectedSeason}/${selectedEpisode}?autoplay=true`;
+    } else if (index === 10) {
+      url = `${process.env.REACT_APP_TV_SERVER11}${id}/${selectedSeason}/${selectedEpisode}?theme=6366f1&startAt=15`;
+    } else if (index === 11) {
+      url = `${process.env.REACT_APP_TV_SERVER12}${id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`;
     }
 
     setServerUrl(url);

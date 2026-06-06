@@ -38,7 +38,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER3}${id}`);
         break;
       case 3:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER4}${id}`);
+        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER4}${id}?color=6366f1`);
         break;
       case 4:
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER5}${id}`);
@@ -56,7 +56,13 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER9}${id}`);
         break;
       case 9:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER10}${id}`);
+        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER10}${id}?autoplay=true`);
+        break;
+      case 10:
+        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER11}${id}?theme=6366f1&startAt=15`);
+        break;
+      case 11:
+        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER12}${id}`);
         break;
       default:
         break;

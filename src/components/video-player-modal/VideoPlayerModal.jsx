@@ -106,7 +106,12 @@ const VideoPlayerModal = ({
 
         <div className="video-modal-player">
           {serverUrl ? (
-            <iframe src={serverUrl} allowFullScreen title={title} />
+            <iframe
+              src={serverUrl}
+              allowFullScreen
+              allow="autoplay; encrypted-media"
+              title={title}
+            />
           ) : (
             <div className="no-video-message">
               Loading video...
