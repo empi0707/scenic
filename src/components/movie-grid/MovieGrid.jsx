@@ -12,27 +12,53 @@ import useSuggestionNav from "../../hooks/useSuggestionNav";
 import GlassSelect from "../glass-select/GlassSelect";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 
+const DEFAULT_SORT = "popularity.desc";
+
 const SORT_OPTIONS = [
-  { value: "popularity", label: "Popularity" },
-  { value: "rating", label: "Top Rated" },
-  { value: "newest", label: "Newest" },
+  { value: "popularity.desc", label: "Highest Popularity", icon: "bx-trending-up" },
+  { value: "popularity.asc", label: "Lowest Popularity", icon: "bx-trending-down" },
+  { value: "recent.desc", label: "Most Recent", icon: "bx-calendar" },
+  { value: "recent.asc", label: "Least Recent", icon: "bx-calendar-alt" },
+  { value: "rating.desc", label: "Highest Rating", icon: "bx-like" },
+  { value: "rating.asc", label: "Lowest Rating", icon: "bx-dislike" },
+  { value: "votes.desc", label: "Most Voted", icon: "bx-user-plus" },
+  { value: "votes.asc", label: "Least Voted", icon: "bx-user-minus" },
 ];
 
-// Maps a sort choice to TMDB Discover params. "Top Rated" gates on a minimum
-// vote count so a single 10/10 vote doesn't top the list; "Newest" uses the
-// release/air date field for the media type.
+// Maps a sort choice to TMDB Discover params. Rating/recent sorts gate on a
+// minimum vote count so a single stray vote (or a 0-vote dump) doesn't top the
+// list; "Most Recent" caps to today so it means newest *released*, not future.
 const sortParamsFor = (cat, sort) => {
-  if (sort === "rating") {
-    return { sort_by: "vote_average.desc", "vote_count.gte": 200 };
+  const dateField =
+    cat === category.tv ? "first_air_date" : "primary_release_date";
+  const today = new Date().toISOString().slice(0, 10);
+
+  switch (sort) {
+    case "popularity.asc":
+      return { sort_by: "popularity.asc" };
+    case "recent.desc":
+      return {
+        sort_by: `${dateField}.desc`,
+        [`${dateField}.lte`]: today,
+        "vote_count.gte": 1,
+      };
+    case "recent.asc":
+      return {
+        sort_by: `${dateField}.asc`,
+        [`${dateField}.gte`]: "1900-01-01",
+        "vote_count.gte": 1,
+      };
+    case "rating.desc":
+      return { sort_by: "vote_average.desc", "vote_count.gte": 200 };
+    case "rating.asc":
+      return { sort_by: "vote_average.asc", "vote_count.gte": 50 };
+    case "votes.desc":
+      return { sort_by: "vote_count.desc" };
+    case "votes.asc":
+      return { sort_by: "vote_count.asc" };
+    default:
+      return { sort_by: "popularity.desc" };
   }
-  if (sort === "newest") {
-    // Cap to today so "Newest" means newest *released*, not announced/future.
-    const today = new Date().toISOString().slice(0, 10);
-    return cat === category.tv
-      ? { sort_by: "first_air_date.desc", "first_air_date.lte": today }
-      : { sort_by: "primary_release_date.desc", "primary_release_date.lte": today };
-  }
-  return { sort_by: "popularity.desc" };
 };
 
 const MovieGrid = (props) => {
@@ -43,7 +69,7 @@ const MovieGrid = (props) => {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedSort, setSelectedSort] = useState("popularity");
+  const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -170,7 +196,7 @@ const MovieGrid = (props) => {
           const currentPath = location.pathname;
           navigate(currentPath, { replace: true });
         }
-      } else if (selectedSort !== "popularity") {
+      } else if (selectedSort !== DEFAULT_SORT) {
         // Sort-only mode (no genre/country) - use Discover so we can sort
         const param = {
           page: 1,
@@ -264,7 +290,7 @@ const MovieGrid = (props) => {
               response = await tmdbApi.getTvList(tvType.popular, { params });
           }
         }
-      } else if (selectedSort !== "popularity") {
+      } else if (selectedSort !== DEFAULT_SORT) {
         // Sort-only mode (no genre/country) - use Discover so we can sort
         const param = {
           page: page + 1,

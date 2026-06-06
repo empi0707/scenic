@@ -79,7 +79,15 @@ const GlassSelect = ({
     const update = () => {
       if (!triggerRef.current) return;
       const r = triggerRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 6, left: r.left, width: r.width });
+      // Give the menu a sensible minimum width (so long labels aren't clipped,
+      // esp. on mobile) and keep it on-screen if that pushes it past the edge.
+      const menuWidth = Math.max(r.width, 200);
+      let left = r.left;
+      if (left + menuWidth > window.innerWidth - 8) {
+        left = window.innerWidth - menuWidth - 8;
+      }
+      left = Math.max(8, left);
+      setPos({ top: r.bottom + 6, left, width: menuWidth });
     };
     update();
     window.addEventListener("scroll", update, true);
@@ -176,6 +184,9 @@ const GlassSelect = ({
         <span
           className={`glass-select__value${selected ? "" : " is-placeholder"}`}
         >
+          {selected && selected.icon && (
+            <i className={`bx ${selected.icon} glass-select__value-icon`} />
+          )}
           {selected ? selected.label : placeholder}
         </span>
         <span className="glass-select__actions">
@@ -230,7 +241,14 @@ const GlassSelect = ({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => choose(i)}
                 >
-                  <span className="glass-select__option-label">{opt.label}</span>
+                  <span className="glass-select__option-main">
+                    {opt.icon && (
+                      <i className={`bx ${opt.icon} glass-select__option-icon`} />
+                    )}
+                    <span className="glass-select__option-label">
+                      {opt.label}
+                    </span>
+                  </span>
                   {isSelected && !opt.clear && (
                     <i className="bx bx-check glass-select__check" />
                   )}

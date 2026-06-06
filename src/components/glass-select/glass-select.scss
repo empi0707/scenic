@@ -4,11 +4,13 @@
   position: relative;
   display: inline-flex;
 
-  // Compact variant for inline toolbars (e.g. "Sort by:").
+  // Compact variant for inline toolbars (e.g. "Sort by:"). Sizes to its
+  // content so the selected label (icon + text) never truncates.
   &--sm &__trigger {
-    min-width: 8.5rem;
-    max-width: 8.5rem;
-    padding: 0.4rem 0.6rem;
+    min-width: 11rem;
+    width: max-content;
+    max-width: 16rem;
+    padding: 0.4rem 0.7rem;
     font-size: 0.8rem;
     border-radius: $border-radius;
   }
@@ -47,6 +49,10 @@
   }
 
   &__value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -54,6 +60,12 @@
     &.is-placeholder {
       color: $txt-muted;
     }
+  }
+
+  &__value-icon {
+    flex-shrink: 0;
+    font-size: 1.05rem;
+    color: $accent-secondary;
   }
 
   &__actions {
@@ -137,6 +149,24 @@
     &--clear {
       color: $txt-muted;
     }
+  }
+
+  .glass-select__option-main {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+
+  .glass-select__option-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: $accent-secondary;
+  }
+
+  .glass-select__option.is-active .glass-select__option-icon,
+  .glass-select__option[aria-selected="true"] .glass-select__option-icon {
+    color: $accent-color;
   }
 
   .glass-select__option-label {
