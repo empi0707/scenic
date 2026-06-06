@@ -10,6 +10,10 @@
 
 html {
     font-size: 100%;
+    // Clip horizontal overflow at the document level too. `body` alone doesn't
+    // stop the mobile layout viewport from expanding when something overflows,
+    // which makes fixed elements (header, toaster) stretch past the screen.
+    overflow-x: hidden;
 
     @include tablet {
         font-size: 80%;

@@ -195,8 +195,7 @@
         font-weight: 500;
         transition: background 180ms ease;
 
-        &:hover,
-        &.is-active {
+        &:hover {
             background: rgba(99, 102, 241, 0.1);
         }
 
