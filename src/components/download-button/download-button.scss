@@ -51,8 +51,13 @@
   }
 
   @include mobile {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
   }
 }
 
