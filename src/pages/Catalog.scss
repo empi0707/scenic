@@ -6,8 +6,10 @@
     min-height: 100vh;
     background-color: $body-bg;
 
+    // Mobile header is a fixed 56px (not rem-scaled), so base the breathing
+    // space on that rather than $header-height which shrinks with the 60% root.
     @include mobile {
-        padding-top: calc(#{$header-height} + 2rem);
+        padding-top: calc(56px + 2.5rem);
     }
 
     // Page title — slightly bolder than home section headers so it reads
@@ -16,6 +18,7 @@
         margin-bottom: $space-8;
 
         h2 {
+            margin: 0;
             font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: -0.025em;
@@ -24,6 +27,18 @@
             @include mobile {
                 font-size: 1.25rem;
             }
+        }
+    }
+
+    &__desc {
+        margin: 0.7rem 0 0;
+        max-width: 68ch;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: $txt-secondary;
+
+        @include mobile {
+            font-size: 0.88rem;
         }
     }
 }
