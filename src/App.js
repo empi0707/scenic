@@ -11,6 +11,7 @@ import { theme } from './theme';
 import Header from './components/header/Header';
 import Footer from './components/footer/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import TopProgressBar from './components/top-progress-bar/TopProgressBar';
 import Loading from './components/loading/Loading';
 
 // Lazy-loaded route components
@@ -33,6 +34,7 @@ function App() {
                 }}
             >
                 <ScrollToTop />
+                <TopProgressBar />
                 <Header />
                 <Suspense fallback={<Loading />}>
                     <Routes>

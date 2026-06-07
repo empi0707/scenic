@@ -1,0 +1,28 @@
+@use "../../scss/" as *;
+
+// Fixed, above the header and overlays. Fades in/out; the bar width animates.
+.route-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 12000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+
+    &.is-active {
+        opacity: 1;
+    }
+
+    &__bar {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, $accent-color 0%, #818cf8 100%);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.7),
+            0 0 4px rgba(99, 102, 241, 0.5);
+        border-radius: 0 3px 3px 0;
+        transition: width 0.3s ease;
+    }
+}
