@@ -22,6 +22,7 @@ const SeriesVideoPlayer = ({
   initialEpisode,
   autoPlay = false,
   onAutoPlayConsumed,
+  onEpisodeClick,
 }) => {
   const [selectedServer, setSelectedServer] = useState(0);
   const [serverUrl, setServerUrl] = useState("");
@@ -31,6 +32,13 @@ const SeriesVideoPlayer = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Notify the parent whenever the player opens (from an episode click, the
+  // next/prev controls, or autoplay) so it can dismiss the banner trailer and
+  // never let it play behind the episode.
+  useEffect(() => {
+    if (isModalOpen && onEpisodeClick) onEpisodeClick();
+  }, [isModalOpen, onEpisodeClick]);
   const [watchedSet, setWatchedSet] = useState(
     () => (id ? watchedEpisodes.getSeriesWatched(id) : new Set())
   );
