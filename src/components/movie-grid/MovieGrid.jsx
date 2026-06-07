@@ -8,6 +8,30 @@ import GlassSelect from "../glass-select/GlassSelect";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 import { DEFAULT_SORT, SORT_OPTIONS, sortParamsFor } from "../../utils/sort";
 
+// Discover params that mirror each catalog "type", so genre/country filters on a
+// type page keep that page's intent (e.g. Top Rated stays vote-sorted).
+const typeDiscoverParams = (type) => {
+  const today = new Date().toISOString().slice(0, 10);
+  switch (type) {
+    case "top_rated":
+      return { sort_by: "vote_average.desc", "vote_count.gte": 200 };
+    case "upcoming":
+      return {
+        sort_by: "primary_release_date.asc",
+        "primary_release_date.gte": today,
+      };
+    case "now_playing":
+      return {
+        sort_by: "primary_release_date.desc",
+        "primary_release_date.lte": today,
+      };
+    case "on_the_air":
+    case "popular":
+    default:
+      return { sort_by: "popularity.desc" };
+  }
+};
+
 const MovieGrid = (props) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -54,8 +78,8 @@ const MovieGrid = (props) => {
         }));
         setCountries(countryOptions);
 
-        // Only set selected genre if it exists in current category AND we're not on a type page
-        if (genreFromUrl && !props.type) {
+        // Restore the genre selection from the URL (also on type pages).
+        if (genreFromUrl) {
           const genreOption = genreOptions.find(genre => genre.value.toString() === genreFromUrl);
           if (genreOption) {
             setSelectedGenre(genreOption);
@@ -98,13 +122,32 @@ const MovieGrid = (props) => {
         params.query = keyword;
         response = await tmdbApi.search(props.category, { params });
       } else if (props.type) {
-        // Type mode (e.g., top_rated, now_playing) - prioritize type over genre/country
-        switch (props.category) {
-          case category.movie:
-            response = await tmdbApi.getMoviesList(props.type, { params });
-            break;
-          default:
-            response = await tmdbApi.getTvList(props.type, { params });
+        // Type pages (Popular, Top Rated, ...) still honor genre/country: when a
+        // filter is set, Discover with params that match the type's intent.
+        const validGenre =
+          selectedGenre && genres.find((g) => g.value === selectedGenre.value);
+        if (validGenre || selectedCountry) {
+          const param = {
+            page: 1,
+            include_adult: false,
+            include_video: false,
+            language: "en-US",
+            ...typeDiscoverParams(props.type),
+          };
+          if (validGenre) param.with_genres = validGenre.value;
+          if (selectedCountry) param.with_origin_country = selectedCountry.value;
+          response =
+            props.category === category.movie
+              ? await tmdbApi.getMoviesByGenre(param)
+              : await tmdbApi.getTvByGenre(param);
+        } else {
+          switch (props.category) {
+            case category.movie:
+              response = await tmdbApi.getMoviesList(props.type, { params });
+              break;
+            default:
+              response = await tmdbApi.getTvList(props.type, { params });
+          }
         }
       } else if (selectedGenre || selectedCountry) {
         // Genre/Country filtering mode - but validate genre exists for current category
@@ -197,13 +240,30 @@ const MovieGrid = (props) => {
         params.query = keyword;
         response = await tmdbApi.search(props.category, { params });
       } else if (props.type) {
-        // Type mode (e.g., top_rated, now_playing) - prioritize type over genre/country
-        switch (props.category) {
-          case category.movie:
-            response = await tmdbApi.getMoviesList(props.type, { params });
-            break;
-          default:
-            response = await tmdbApi.getTvList(props.type, { params });
+        const validGenre =
+          selectedGenre && genres.find((g) => g.value === selectedGenre.value);
+        if (validGenre || selectedCountry) {
+          const param = {
+            page: page + 1,
+            include_adult: false,
+            include_video: false,
+            language: "en-US",
+            ...typeDiscoverParams(props.type),
+          };
+          if (validGenre) param.with_genres = validGenre.value;
+          if (selectedCountry) param.with_origin_country = selectedCountry.value;
+          response =
+            props.category === category.movie
+              ? await tmdbApi.getMoviesByGenre(param)
+              : await tmdbApi.getTvByGenre(param);
+        } else {
+          switch (props.category) {
+            case category.movie:
+              response = await tmdbApi.getMoviesList(props.type, { params });
+              break;
+            default:
+              response = await tmdbApi.getTvList(props.type, { params });
+          }
         }
       } else if (selectedGenre || selectedCountry) {
         // Genre/Country filtering mode - validate genre exists for current category
