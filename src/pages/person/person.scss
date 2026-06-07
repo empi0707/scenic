@@ -27,7 +27,10 @@
         $body-bg;
 
     @include mobile {
-        padding-top: calc(#{$header-height} + 1rem);
+        // Mobile header is a fixed 56px; $header-height (rem) shrinks at the
+        // 60% root font-size, so anchor off the literal pixel value so the back
+        // button clears the header (matching Detail/Collection).
+        padding-top: calc(56px + 1.25rem);
     }
 }
 

@@ -51,9 +51,10 @@ const Detail = () => {
 
   const [bannerTrailer, setBannerTrailer] = useState(false);
   const [bannerStopped, setBannerStopped] = useState(false);
-  // Desktop unmutes on the hover gesture; touch/TV stay muted (autoplay-safe)
-  // until the user taps the speaker.
-  const [bannerMuted, setBannerMuted] = useState(!canHover);
+  // Start unmuted everywhere: autoplay begins muted in the URL (autoplay-safe),
+  // then onLoad issues unMute. On touch/TV the browser's autoplay policy may
+  // keep it muted until the user taps the speaker.
+  const [bannerMuted, setBannerMuted] = useState(false);
   const bannerIframeRef = useRef(null);
   const bannerRef = useRef(null);
   const bannerStateRef = useRef(-1); // YouTube playerState: 1 = playing, 2 = paused
