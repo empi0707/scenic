@@ -4,6 +4,7 @@ import "./movie-grid.scss";
 import MovieCard from "../movie-card/MovieCard";
 import { OutlineButton } from "../button/Button";
 import Loading from "../loading/Loading";
+import { CardGridSkeleton } from "../skeleton/Skeleton";
 import GlassSelect from "../glass-select/GlassSelect";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 import { DEFAULT_SORT, SORT_OPTIONS, sortParamsFor } from "../../utils/sort";
@@ -330,7 +331,7 @@ const MovieGrid = (props) => {
   };
 
   if (isLoading) {
-    return <Loading size="large" />;
+    return <CardGridSkeleton />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import MovieCard from "../movie-card/MovieCard";
 import Loading from "../loading/Loading";
+import { CardGridSkeleton } from "../skeleton/Skeleton";
 import { OutlineButton } from "../button/Button";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
@@ -217,7 +218,7 @@ const MultiSearch = () => {
           <h2>Search Results for "{submittedTerm}"</h2>
         )}
         {isLoading ? (
-          <Loading size="large" />
+          <CardGridSkeleton />
         ) : error ? (
           <div className="error-message">
             <Text color="red" size="lg" ta="center">

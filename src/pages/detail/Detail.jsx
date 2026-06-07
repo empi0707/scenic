@@ -15,6 +15,7 @@ import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
 import Reviews from "../../components/reviews/Reviews";
 import BookmarkButton from "../../components/bookmark-button/BookmarkButton";
 import CollectionTag from "../../components/collection-tag/CollectionTag";
+import { DetailSkeleton } from "../../components/skeleton/Skeleton";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import { continueWatching } from "../../utils/continueWatching";
 
@@ -185,7 +186,11 @@ const Detail = () => {
   };
 
   if (isLoading) {
-    return <Loading size="large" />;
+    return (
+      <div className="detail-page">
+        <DetailSkeleton />
+      </div>
+    );
   }
 
   if (!item) return null;

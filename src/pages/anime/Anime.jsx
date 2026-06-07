@@ -4,6 +4,7 @@ import MovieCard from "../../components/movie-card/MovieCard";
 import { OutlineButton } from "../../components/button/Button";
 import GlassSelect from "../../components/glass-select/GlassSelect";
 import Loading from "../../components/loading/Loading";
+import { CardGridSkeleton } from "../../components/skeleton/Skeleton";
 import { SORT_OPTIONS, DEFAULT_SORT, sortParamsFor } from "../../utils/sort";
 import "../Catalog.scss";
 import "../../components/movie-grid/movie-grid.scss";
@@ -83,7 +84,7 @@ const Anime = () => {
           </div>
 
           {loading ? (
-            <Loading size="large" />
+            <CardGridSkeleton />
           ) : (
             <>
               <div className="movie-grid">

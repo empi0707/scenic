@@ -8,7 +8,7 @@ import "swiper/css/pagination";
 import "./movie-list.scss";
 import tmdbApi, { category } from "../../api/tmdbApi";
 import MovieCard from "../movie-card/MovieCard";
-import Loading from "../loading/Loading";
+import { CardRowSkeleton } from "../skeleton/Skeleton";
 
 const MovieList = ({ category: cat, type, id, data }) => {
   const [items, setItems] = useState([]);
@@ -53,7 +53,7 @@ const MovieList = ({ category: cat, type, id, data }) => {
   }, [getList]);
 
   if (isLoading) {
-    return <Loading size="small" />;
+    return <CardRowSkeleton />;
   }
 
   return (
