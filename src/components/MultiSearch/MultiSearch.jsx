@@ -9,6 +9,7 @@ import { OutlineButton } from "../button/Button";
 import MicButton from "../mic-button/MicButton";
 import SearchSuggestions from "../search-suggestions/SearchSuggestions";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
+import useDocumentTitle from "../../hooks/useDocumentTitle";
 import useSuggestionNav from "../../hooks/useSuggestionNav";
 import fetchSmartPage from "../../utils/searchResolver";
 import "./MultiSearch.scss";
@@ -19,6 +20,9 @@ const MultiSearch = () => {
   const [searchInput, setSearchInput] = useState(keyword || "");
   // The query that results are actually shown for (only updated on submit).
   const [submittedTerm, setSubmittedTerm] = useState(keyword || "");
+  useDocumentTitle(
+    submittedTerm.trim() ? `Search: ${submittedTerm.trim()}` : null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);

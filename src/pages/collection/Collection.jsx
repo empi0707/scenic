@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import Loading from "../../components/loading/Loading";
+import useDocumentTitle from "../../hooks/useDocumentTitle";
 import "./collection.scss";
 
 const yearOf = (date) => (date ? date.slice(0, 4) : "");
@@ -12,6 +13,7 @@ const Collection = () => {
   const navigate = useNavigate();
   const [collection, setCollection] = useState(null);
   const [loading, setLoading] = useState(true);
+  useDocumentTitle(collection && collection.name);
 
   useEffect(() => {
     let cancelled = false;

@@ -1,5 +1,43 @@
 @use "../../scss/" as *;
 
+// Floating back button over the banner - returns to the previous page.
+.detail-back {
+    position: absolute;
+    z-index: 4;
+    top: calc(#{$header-height} + 0.85rem);
+    left: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.4rem 0.85rem 0.4rem 0.55rem;
+    border-radius: $border-radius-full;
+    @include glass-medium;
+    color: $txt-color;
+    font-family: $font-body;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+
+    i {
+        font-size: 1.25rem;
+    }
+
+    &:hover {
+        background: $surface-hover;
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateX(-2px);
+    }
+
+    // Mobile header is a fixed 56px; anchor below it (rem would shrink at 60%).
+    @include mobile {
+        top: calc(56px + 0.6rem);
+        left: 1.25rem;
+        padding: 0.35rem 0.7rem 0.35rem 0.45rem;
+        font-size: 0.8rem;
+    }
+}
+
 // ─── DETAIL PAGE WRAPPER — cinematic gradient surface ──
 // Subtle dark gradient extends the banner's atmospheric tone through the
 // episodes and "More Like This" sections so the whole page reads as one

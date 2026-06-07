@@ -4,6 +4,7 @@ import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import Loading from "../../components/loading/Loading";
 import MovieCard from "../../components/movie-card/MovieCard";
+import useDocumentTitle from "../../hooks/useDocumentTitle";
 import "./person.scss";
 
 const getInitials = (name) => {
@@ -40,6 +41,7 @@ const Person = () => {
   const [credits, setCredits] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [bioExpanded, setBioExpanded] = useState(false);
+  useDocumentTitle(person && person.name);
 
   const handleBack = () => {
     if (window.history.length > 1) {

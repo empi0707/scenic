@@ -15,6 +15,7 @@ import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
 import Reviews from "../../components/reviews/Reviews";
 import BookmarkButton from "../../components/bookmark-button/BookmarkButton";
 import CollectionTag from "../../components/collection-tag/CollectionTag";
+import useDocumentTitle from "../../hooks/useDocumentTitle";
 import { continueWatching } from "../../utils/continueWatching";
 
 const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
@@ -40,6 +41,11 @@ const Detail = () => {
   const [trailerUrl, setTrailerUrl] = useState("");
   const [shouldOpenPlayer, setShouldOpenPlayer] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+
+  // Reflect the current title in the browser tab; restore on leave.
+  useDocumentTitle(
+    item && (item.title || item.name || item.original_title || item.original_name)
+  );
 
   const handleShare = async () => {
     if (!item) return;
@@ -198,6 +204,15 @@ const Detail = () => {
         className="banner"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       >
+        <button
+          type="button"
+          className="detail-back"
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+        >
+          <i className="bx bx-chevron-left" />
+          <span>Back</span>
+        </button>
         <div className="movie-content container">
           <div className="movie-content__poster">
             <div
