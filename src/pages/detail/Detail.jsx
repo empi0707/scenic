@@ -50,7 +50,11 @@ const Detail = () => {
       : true;
 
   const [bannerTrailer, setBannerTrailer] = useState(false);
+  // Transient: paused/reverted while scrolled out of view (can return).
   const [bannerStopped, setBannerStopped] = useState(false);
+  // Permanent for the visit: set by ✕ or by starting the movie/series, so the
+  // trailer never competes with playback. Only resets on navigation (remount).
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   // Start unmuted everywhere: autoplay begins muted in the URL (autoplay-safe),
   // then onLoad issues unMute. On touch/TV the browser's autoplay policy may
   // keep it muted until the user taps the speaker.
@@ -58,7 +62,6 @@ const Detail = () => {
   const bannerIframeRef = useRef(null);
   const bannerRef = useRef(null);
   const bannerStateRef = useRef(-1); // YouTube playerState: 1 = playing, 2 = paused
-  const hoverSuppressedRef = useRef(false); // block hover-restart after Stop until cursor leaves
 
   // Reflect the current title in the browser tab; restore on leave.
   useDocumentTitle(
@@ -71,6 +74,7 @@ const Detail = () => {
   useEffect(() => {
     setBannerTrailer(false);
     setBannerStopped(false);
+    setBannerDismissed(false);
     if (canHover || !item || wantsAutoPlay) return undefined;
     const hasTrailer = (item.videos?.results || []).some(
       (v) => v.site === "YouTube"
@@ -300,6 +304,13 @@ const Detail = () => {
     setShouldOpenPlayer(true);
   };
 
+  // The moment any player is requested (Watch Now, poster play, an episode, or
+  // a ?play=1 deep link), permanently remove the banner trailer for this visit
+  // so it can never overlap the movie/series audio.
+  useEffect(() => {
+    if (shouldOpenPlayer) setBannerDismissed(true);
+  }, [shouldOpenPlayer]);
+
   if (isLoading) {
     return (
       <div className="detail-page">
@@ -327,7 +338,11 @@ const Detail = () => {
       {}
     ).key || null;
   const showBannerTrailer =
-    bannerTrailer && bannerTrailerKey && !modalActive && !bannerStopped;
+    bannerTrailer &&
+    bannerTrailerKey &&
+    !modalActive &&
+    !bannerStopped &&
+    !bannerDismissed;
 
   return (
     <div className="detail-page">
@@ -336,20 +351,21 @@ const Detail = () => {
         ref={bannerRef}
         style={{ backgroundImage: `url(${backgroundImage})` }}
         onMouseMove={() => {
-          // Hover-to-play is desktop-only; touch/TV autoplay instead.
+          // Hover-to-play is desktop-only; touch/TV autoplay instead. Once
+          // dismissed (✕ or watching) it stays gone until the page reloads.
           // mousemove (not mouseenter) so it also fires when the cursor is
-          // already over the banner after scrolling back. Guarded so it's a
-          // no-op once the trailer is already showing, and suppressed right
-          // after Stop until the cursor leaves (so Stop actually sticks).
-          if (!canHover || !bannerTrailerKey || modalActive || showBannerTrailer)
+          // already over the banner after scrolling back.
+          if (
+            !canHover ||
+            !bannerTrailerKey ||
+            modalActive ||
+            bannerDismissed ||
+            showBannerTrailer
+          )
             return;
-          if (hoverSuppressedRef.current) return;
           setBannerStopped(false);
           setBannerTrailer(true);
           if (!bannerMuted) postToBannerTrailer("unMute");
-        }}
-        onMouseLeave={() => {
-          hoverSuppressedRef.current = false;
         }}
       >
         <button
@@ -405,10 +421,7 @@ const Detail = () => {
               <button
                 type="button"
                 className="banner__ctrl"
-                onClick={() => {
-                  setBannerStopped(true);
-                  hoverSuppressedRef.current = true;
-                }}
+                onClick={() => setBannerDismissed(true)}
                 aria-label="Stop trailer"
               >
                 <i className="bx bx-x" />
