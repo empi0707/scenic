@@ -23,12 +23,15 @@ const VideoPlayerModal = ({
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset";
+      // Clear the inline override (not "unset", which resolves to `visible` and
+      // clobbers the stylesheet's `overflow-x: hidden`, letting the fixed header
+      // stretch past the viewport and pushing the search button off-screen).
+      document.body.style.overflow = "";
       setDropdownOpen(false); // Close dropdown when modal closes
     }
 
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
