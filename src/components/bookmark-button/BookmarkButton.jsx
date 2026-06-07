@@ -53,7 +53,29 @@ const BookmarkButton = ({ item, mediaType, variant = "card", className = "" }) =
       };
       const nowSaved = watchlist.toggle(entry);
       setSaved(nowSaved);
-      toast.success(nowSaved ? "Added to My List" : "Removed from My List");
+      if (nowSaved) {
+        toast.success("Added to My List");
+      } else {
+        // Removal is reversible: offer an Undo before it's gone for good.
+        toast(
+          (t) => (
+            <span className="undo-toast">
+              Removed from My List
+              <button
+                type="button"
+                className="undo-toast__btn"
+                onClick={() => {
+                  watchlist.add(entry);
+                  toast.dismiss(t.id);
+                }}
+              >
+                Undo
+              </button>
+            </span>
+          ),
+          { duration: 6000, icon: "🗑️" }
+        );
+      }
     },
     [id, resolvedMediaType, item]
   );

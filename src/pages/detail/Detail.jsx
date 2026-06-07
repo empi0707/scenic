@@ -212,7 +212,7 @@ const Detail = () => {
       setTrailerUrl(`https://www.youtube.com/embed/${youtubeTrailer.key}`);
       setModalActive(true);
     } else {
-      alert("Trailer not available");
+      toast("No trailer available for this title", { icon: "🎬" });
     }
   };
 

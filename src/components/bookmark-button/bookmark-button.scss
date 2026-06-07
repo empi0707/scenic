@@ -1,5 +1,32 @@
 @use "../../scss/" as *;
 
+// Undo toast shown when an item is removed from My List (rendered inside the
+// react-hot-toast container, so styles must be global - this file is bundled).
+.undo-toast {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+
+    &__btn {
+        border: none;
+        background: transparent;
+        color: #818cf8;
+        font-family: $font-body;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: #a5b4fc;
+            text-decoration: underline;
+        }
+    }
+}
+
 .bookmark-btn {
     display: inline-flex;
     align-items: center;
