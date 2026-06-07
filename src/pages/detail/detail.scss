@@ -38,6 +38,128 @@
     }
 }
 
+// Trailer that plays over the banner backdrop (sits below the vignette so the
+// content stays readable). Cover-sized so a 16:9 clip fills any banner.
+.banner__trailer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    animation: banner-trailer-in 0.6s ease both;
+
+    // Overscan (scale up) so YouTube's title bar (top) and any chrome (bottom)
+    // are cropped out of view, leaving just the footage.
+    iframe {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100vw;
+        height: 56.25vw;
+        min-width: 177.78vh;
+        min-height: 100vh;
+        transform: translate(-50%, -50%) scale(1.1);
+        border: 0;
+        pointer-events: none;
+    }
+
+    // Transparent layer over the iframe so pointer events never reach the
+    // YouTube player (no hover controls / center button from interaction).
+    &-shield {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+}
+
+.banner__controls {
+    position: absolute;
+    z-index: 4;
+    bottom: 6rem;
+    right: 2.5rem;
+    display: flex;
+    gap: 0.6rem;
+
+    @include mobile {
+        bottom: 1.5rem;
+        right: 1.25rem;
+    }
+}
+
+.banner__ctrl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    @include glass-medium;
+    color: $white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        transform: scale(1.05);
+    }
+
+    @include mobile {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+// "Trailer takeover": poster fades out, the info block glides down-left, and the
+// text above the actions recedes so the footage breathes. Transform-driven
+// (GPU-composited) for butter-smooth, reversible motion (revert transitions live
+// on the base elements so stopping the trailer eases back too).
+.banner--playing {
+    // Poster fades + drifts out (keeps its layout space, so nothing reflows).
+    // animation:none cancels posterFloat's filled opacity/transform.
+    .movie-content__poster {
+        animation: none;
+        opacity: 0;
+        transform: translateX(-32px) scale(0.95);
+        transform-origin: left center;
+        pointer-events: none;
+    }
+
+    // Info glides left into the poster's place. Only a small downward nudge -
+    // the cast sits at the banner's bottom edge, so a larger shift would push it
+    // past the banner into the section below (the clashing line).
+    .movie-content__info {
+        transform: translate(-308px, 3rem);
+
+        @include tablet {
+            transform: translate(-232px, 2rem);
+        }
+
+        @include mobile {
+            transform: none;
+        }
+    }
+
+    // Fade all the text above the actions so the footage breathes (animation:
+    // none cancels the stagger fades' filled opacity). Buttons + cast stay.
+    .title,
+    .meta-row,
+    .genres,
+    .collection-tag-row,
+    .overview {
+        animation: none;
+        opacity: 0.2;
+    }
+}
+
+@keyframes banner-trailer-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 // ─── DETAIL PAGE WRAPPER — cinematic gradient surface ──
 // Subtle dark gradient extends the banner's atmospheric tone through the
 // episodes and "More Like This" sections so the whole page reads as one
@@ -187,6 +309,8 @@
         flex: 0 0 260px;
         width: 260px;
         animation: posterFloat 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        transition: opacity 0.6s ease,
+            transform 1s cubic-bezier(0.22, 1, 0.36, 1);
 
         @include tablet {
             flex: 0 0 200px;
@@ -206,6 +330,7 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
+        transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
 
         @include mobile {
             width: 100%;
@@ -214,6 +339,7 @@
 
         & > * {
             margin-bottom: 1.25rem;
+            transition: opacity 0.6s ease;
         }
 
         & > *:last-child {

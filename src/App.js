@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import 'swiper/css';
 import './assets/boxicons-2.0.7/css/boxicons.min.css';
 import './App.scss';
+import './components/skeleton/skeleton.scss';
 import '@mantine/core/styles.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';

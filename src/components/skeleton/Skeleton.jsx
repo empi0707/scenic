@@ -1,5 +1,5 @@
 import React from "react";
-import "./skeleton.scss";
+// Styles are imported globally in App.js to keep the CSS chunk order stable.
 
 // Base shimmer block.
 export const Skeleton = ({ className = "", style }) => (

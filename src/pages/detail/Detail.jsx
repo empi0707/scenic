@@ -42,11 +42,125 @@ const Detail = () => {
   const [trailerUrl, setTrailerUrl] = useState("");
   const [shouldOpenPlayer, setShouldOpenPlayer] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  // Hover-capable pointer (desktop mouse) vs touch/TV. Drives whether the
+  // trailer is hover-triggered (desktop) or autoplays (touch/TV).
+  const canHover =
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia("(hover: hover) and (pointer: fine)").matches
+      : true;
+
+  const [bannerTrailer, setBannerTrailer] = useState(false);
+  const [bannerStopped, setBannerStopped] = useState(false);
+  // Desktop unmutes on the hover gesture; touch/TV stay muted (autoplay-safe)
+  // until the user taps the speaker.
+  const [bannerMuted, setBannerMuted] = useState(!canHover);
+  const bannerIframeRef = useRef(null);
+  const bannerRef = useRef(null);
+  const bannerStateRef = useRef(-1); // YouTube playerState: 1 = playing, 2 = paused
+  const hoverSuppressedRef = useRef(false); // block hover-restart after Stop until cursor leaves
 
   // Reflect the current title in the browser tab; restore on leave.
   useDocumentTitle(
     item && (item.title || item.name || item.original_title || item.original_name)
   );
+
+  // Reset trailer state on navigation. On desktop the trailer starts on hover
+  // (handled on the banner). On touch/TV - where there's no hover - autoplay it
+  // a couple seconds after the page settles (skipped when jumping to the player).
+  useEffect(() => {
+    setBannerTrailer(false);
+    setBannerStopped(false);
+    if (canHover || !item || wantsAutoPlay) return undefined;
+    const hasTrailer = (item.videos?.results || []).some(
+      (v) => v.site === "YouTube"
+    );
+    if (!hasTrailer) return undefined;
+    const timer = setTimeout(() => setBannerTrailer(true), 2500);
+    return () => clearTimeout(timer);
+  }, [item, canHover, wantsAutoPlay]);
+
+  // Loop the banner trailer just before YouTube's end-screen could appear.
+  // Loop the clip ourselves (no &loop/&playlist, which add the < > controls):
+  // restart just before it ends, and as a fallback when it reports ENDED.
+  useEffect(() => {
+    if (!bannerTrailer || modalActive) return undefined;
+    const onMsg = (e) => {
+      if (typeof e.data !== "string" || e.origin.indexOf("youtube") === -1) return;
+      let data;
+      try {
+        data = JSON.parse(e.data);
+      } catch {
+        return;
+      }
+      const info = data && data.info;
+      if (!info) return;
+      if (typeof info.playerState === "number") {
+        bannerStateRef.current = info.playerState;
+      }
+      const win = bannerIframeRef.current && bannerIframeRef.current.contentWindow;
+      if (!win) return;
+      const restart = () => {
+        win.postMessage(
+          JSON.stringify({ event: "command", func: "seekTo", args: [0, true] }),
+          "*"
+        );
+        win.postMessage(
+          JSON.stringify({ event: "command", func: "playVideo", args: "" }),
+          "*"
+        );
+      };
+      if (info.playerState === 0) {
+        restart();
+      } else if (
+        info.duration &&
+        info.currentTime != null &&
+        info.currentTime >= info.duration - 2
+      ) {
+        restart();
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [bannerTrailer, modalActive]);
+
+  // Control sound via the iframe API so the clip is never reloaded/interrupted.
+  const postToBannerTrailer = (func) => {
+    const win = bannerIframeRef.current && bannerIframeRef.current.contentWindow;
+    if (win) {
+      win.postMessage(JSON.stringify({ event: "command", func, args: "" }), "*");
+    }
+  };
+
+  const toggleBannerMute = () => {
+    const next = !bannerMuted;
+    postToBannerTrailer(next ? "mute" : "unMute");
+    setBannerMuted(next);
+  };
+
+  // Pause the trailer once the banner scrolls out of view (resume happens on
+  // hover, handled on the banner element).
+  useEffect(() => {
+    if (!bannerTrailer) return undefined;
+    const el = bannerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return undefined;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (canHover) {
+          // Desktop: out of view → stop + revert; waits for a fresh hover.
+          if (!entry.isIntersecting) setBannerStopped(true);
+        } else if (entry.isIntersecting) {
+          // Touch/TV (no hover): just pause off-screen and resume on-screen.
+          if (bannerStateRef.current !== 1) postToBannerTrailer("playVideo");
+        } else {
+          postToBannerTrailer("pauseVideo");
+        }
+      },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bannerTrailer]);
 
   const handleShare = async () => {
     if (!item) return;
@@ -203,11 +317,39 @@ const Detail = () => {
   );
   const title = item.title || item.name;
 
+  const bannerVideos = item.videos?.results || [];
+  const bannerTrailerKey =
+    (
+      bannerVideos.find((v) => v.type === "Trailer" && v.site === "YouTube") ||
+      bannerVideos.find((v) => v.type === "Teaser" && v.site === "YouTube") ||
+      bannerVideos.find((v) => v.site === "YouTube") ||
+      {}
+    ).key || null;
+  const showBannerTrailer =
+    bannerTrailer && bannerTrailerKey && !modalActive && !bannerStopped;
+
   return (
     <div className="detail-page">
       <div
-        className="banner"
+        className={`banner${showBannerTrailer ? " banner--playing" : ""}`}
+        ref={bannerRef}
         style={{ backgroundImage: `url(${backgroundImage})` }}
+        onMouseMove={() => {
+          // Hover-to-play is desktop-only; touch/TV autoplay instead.
+          // mousemove (not mouseenter) so it also fires when the cursor is
+          // already over the banner after scrolling back. Guarded so it's a
+          // no-op once the trailer is already showing, and suppressed right
+          // after Stop until the cursor leaves (so Stop actually sticks).
+          if (!canHover || !bannerTrailerKey || modalActive || showBannerTrailer)
+            return;
+          if (hoverSuppressedRef.current) return;
+          setBannerStopped(false);
+          setBannerTrailer(true);
+          if (!bannerMuted) postToBannerTrailer("unMute");
+        }}
+        onMouseLeave={() => {
+          hoverSuppressedRef.current = false;
+        }}
       >
         <button
           type="button"
@@ -218,6 +360,62 @@ const Detail = () => {
           <i className="bx bx-chevron-left" />
           <span>Back</span>
         </button>
+
+        {showBannerTrailer && (
+          <>
+            <div className="banner__trailer">
+              <iframe
+                ref={bannerIframeRef}
+                src={`https://www.youtube.com/embed/${bannerTrailerKey}?autoplay=1&mute=1&controls=0&showinfo=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3&fs=0&disablekb=1&vq=hd1080&hd=1`}
+                title="Trailer"
+                allow="autoplay; encrypted-media"
+                onLoad={() => {
+                  const win =
+                    bannerIframeRef.current && bannerIframeRef.current.contentWindow;
+                  if (!win) return;
+                  win.postMessage(JSON.stringify({ event: "listening" }), "*");
+                  win.postMessage(
+                    JSON.stringify({
+                      event: "command",
+                      func: "setPlaybackQuality",
+                      args: ["hd1080"],
+                    }),
+                    "*"
+                  );
+                  if (!bannerMuted) {
+                    win.postMessage(
+                      JSON.stringify({ event: "command", func: "unMute", args: "" }),
+                      "*"
+                    );
+                  }
+                }}
+              />
+              <span className="banner__trailer-shield" aria-hidden="true" />
+            </div>
+            <div className="banner__controls">
+              <button
+                type="button"
+                className="banner__ctrl"
+                onClick={toggleBannerMute}
+                aria-label={bannerMuted ? "Unmute trailer" : "Mute trailer"}
+              >
+                <i className={`bx ${bannerMuted ? "bx-volume-mute" : "bx-volume-full"}`} />
+              </button>
+              <button
+                type="button"
+                className="banner__ctrl"
+                onClick={() => {
+                  setBannerStopped(true);
+                  hoverSuppressedRef.current = true;
+                }}
+                aria-label="Stop trailer"
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+          </>
+        )}
+
         <div className="movie-content container">
           <div className="movie-content__poster">
             <div
