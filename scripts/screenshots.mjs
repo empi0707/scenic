@@ -27,12 +27,15 @@ async function main() {
     log("home failed:", e.message);
   }
 
-  // Movie detail
+  // Movie detail - rotate through well-known titles each week.
   try {
-    await go("/movie/1339713");
+    const MOVIES = [27205, 157336, 155, 872585, 693134, 634649, 569094];
+    const weekIndex = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    const movieId = MOVIES[weekIndex % MOVIES.length];
+    await go("/movie/" + movieId);
     await page.waitForTimeout(4000);
     await shot("detail.png");
-    log("detail");
+    log("detail:", movieId);
   } catch (e) {
     log("detail failed:", e.message);
   }
