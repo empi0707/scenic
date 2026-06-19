@@ -33,7 +33,8 @@
 
 .video-modal-container {
   width: 100%;
-  max-width: 1200px;
+  // Cap width by viewport height so the 16:9 player + header always fit the window without scroll.
+  max-width: min(1200px, calc((90vh - 88px) * 16 / 9));
   max-height: 90vh;
   @include glass-heavy;
   border-radius: 16px;
