@@ -21,12 +21,17 @@ const VideoPlayerModal = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   const switchMirror = () => {
     setSpinning(true);
     onServerChange(selectedServer);
     setTimeout(() => setSpinning(false), 550);
   };
+
+  useEffect(() => {
+    setIframeLoaded(false);
+  }, [serverUrl]);
 
   useEffect(() => {
     if (isOpen) {
@@ -165,16 +170,18 @@ const VideoPlayerModal = ({
         </div>
 
         <div className="video-modal-player">
-          {serverUrl ? (
+          {serverUrl && (
             <iframe
               src={serverUrl}
               allowFullScreen
               allow="autoplay; encrypted-media"
               title={title}
+              onLoad={() => setIframeLoaded(true)}
             />
-          ) : (
-            <div className="no-video-message">
-              Loading video...
+          )}
+          {(!serverUrl || !iframeLoaded) && (
+            <div className="video-modal-loader skeleton" aria-hidden="true">
+              <i className="bx bx-loader-alt bx-spin"></i>
             </div>
           )}
         </div>
