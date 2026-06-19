@@ -5,13 +5,13 @@
   display: inline-flex;
 }
 
-// Matches the Detail page's Save / Share icon buttons (44px glass square).
+// Sized to match the modal header's nav / close icon buttons (34px).
 .download-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(24px) saturate(160%);
@@ -24,8 +24,8 @@
   -webkit-tap-highlight-color: transparent;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     display: block;
   }
 
@@ -51,12 +51,12 @@
   }
 
   @include mobile {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
 
     svg {
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
     }
   }
 }

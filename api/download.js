@@ -27,6 +27,16 @@ export default async function handler(request) {
         Accept: 'application/json',
       },
     });
+
+    // No download for this title: return an empty 200 so the client probe
+    // doesn't surface a red 404 in the console (it's an expected absence).
+    if (res.status === 404) {
+      return new Response(JSON.stringify({ downloads: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      });
+    }
+
     const text = await res.text();
     if (text.trim().startsWith('<')) {
       return jsonErr(502, 'Provider blocked the request');

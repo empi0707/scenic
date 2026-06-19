@@ -16,8 +16,17 @@ const VideoPlayerModal = ({
   hasPrevious,
   hasNext,
   download,
+  mirrorCount = 0,
+  mirrorIndex = 1,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+
+  const switchMirror = () => {
+    setSpinning(true);
+    onServerChange(selectedServer);
+    setTimeout(() => setSpinning(false), 550);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -78,7 +87,24 @@ const VideoPlayerModal = ({
                 onDownloaded={onClose}
               />
             )}
-            <span className="server-hint">Video not loading? Try changing server →</span>
+            {mirrorCount > 1 && (
+              <button
+                className={`mirror-switch${spinning ? " is-spinning" : ""}`}
+                onClick={switchMirror}
+                title="Try another source"
+              >
+                <i className="bx bx-revision"></i>
+                <span className="mirror-switch__label">Try another source</span>
+                <span className="mirror-switch__count">
+                  {mirrorIndex}/{mirrorCount}
+                </span>
+              </button>
+            )}
+            <span className="server-hint">
+              {mirrorCount > 1
+                ? "If none load, switch server →"
+                : "Video not loading? Try changing server →"}
+            </span>
             <div className="server-dropdown">
               <button
                 className="server-dropdown-button"
@@ -118,6 +144,24 @@ const VideoPlayerModal = ({
               <i className="bx bx-x"></i>
             </button>
           </div>
+
+          {mirrorCount > 1 ? (
+            <div className="server-hint-mobile server-hint-mobile--stack">
+              <button
+                type="button"
+                className={`mirror-chip${spinning ? " is-spinning" : ""}`}
+                onClick={switchMirror}
+              >
+                <i className="bx bx-revision"></i>
+                Try another source ({mirrorIndex}/{mirrorCount})
+              </button>
+              <span>If none load, tap the "Server" button to switch</span>
+            </div>
+          ) : (
+            <span className="server-hint-mobile">
+              Not loading? Tap the "Server" button to switch
+            </span>
+          )}
         </div>
 
         <div className="video-modal-player">

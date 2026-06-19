@@ -11,4 +11,10 @@ export const servers = [
   "Server 10",
   "Server 11",
   "Server 12",
+  "Server 13",
 ];
+
+export const server8Domains = (process.env.REACT_APP_SERVER8_DOMAINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);

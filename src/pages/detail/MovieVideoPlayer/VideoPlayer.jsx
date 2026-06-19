@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./VideoPlayer.scss";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
+import { server8Domains } from "../../../constants/constants";
 import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 
 const serverKey = (id) => `scenic:movie-server:${id}`;
@@ -20,6 +21,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
   const [selectedServer, setSelectedServer] = useState(() => readSavedServer(id));
   const [serverUrl, setServerUrl] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const mirrorRef = useRef(-1);
   const downloadAvailable = useDownloadAvailability("movie", id);
 
   const handleServerClick = (index) => {
@@ -51,9 +53,11 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       case 6:
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER7}${id}`);
         break;
-      case 7:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER8}${id}`);
+      case 7: {
+        const host = server8Domains[mirrorRef.current] || server8Domains[0] || "";
+        setServerUrl(`https://${host}/embed/movie/${id}`);
         break;
+      }
       case 8:
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER9}${id}`);
         break;
@@ -66,9 +70,19 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       case 11:
         setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER12}${id}`);
         break;
+      case 12:
+        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER13}${id}`);
+        break;
       default:
         break;
     }
+  };
+
+  const handleServerSelect = (index) => {
+    if (index === 7 && server8Domains.length) {
+      mirrorRef.current = (mirrorRef.current + 1) % server8Domains.length;
+    }
+    handleServerClick(index);
   };
 
   const handlePlayButtonClick = useCallback(() => {
@@ -97,8 +111,10 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       onClose={() => setIsModalOpen(false)}
       serverUrl={serverUrl}
       title={title}
-      onServerChange={handleServerClick}
+      onServerChange={handleServerSelect}
       selectedServer={selectedServer}
+      mirrorCount={selectedServer === 7 ? server8Domains.length : 0}
+      mirrorIndex={Math.max(mirrorRef.current, 0) + 1}
       hasPrevious={false}
       hasNext={false}
       download={{ mediaType: "movie", id, title, available: downloadAvailable }}

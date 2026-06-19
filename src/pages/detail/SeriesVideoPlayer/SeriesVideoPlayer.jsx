@@ -4,6 +4,7 @@ import apiConfig from "../../../api/apiConfig";
 import tmdbApi from "../../../api/tmdbApi";
 import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
+import { server8Domains } from "../../../constants/constants";
 import { watchedEpisodes } from "../../../utils/watchedEpisodes";
 import useListboxKeyboard from "../../../hooks/useListboxKeyboard";
 import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
@@ -26,6 +27,7 @@ const SeriesVideoPlayer = ({
 }) => {
   const [selectedServer, setSelectedServer] = useState(0);
   const [serverUrl, setServerUrl] = useState("");
+  const mirrorRef = useRef(-1);
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [episodes, setEpisodes] = useState([]);
@@ -33,12 +35,25 @@ const SeriesVideoPlayer = ({
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Notify the parent whenever the player opens (from an episode click, the
-  // next/prev controls, or autoplay) so it can dismiss the banner trailer and
-  // never let it play behind the episode.
+  // Tell the parent when the player opens (so it dismisses the banner trailer).
   useEffect(() => {
     if (isModalOpen && onEpisodeClick) onEpisodeClick();
   }, [isModalOpen, onEpisodeClick]);
+
+  // While playing, the selected episode counts as watched (covers card, < >, season change).
+  useEffect(() => {
+    if (!isModalOpen || !id || !selectedSeason || !selectedEpisode) return;
+    const ep = episodes.find((e) => e.episode_number === selectedEpisode);
+    const name = ep?.name || "";
+    const still = ep?.still_path || null;
+    watchedEpisodes.markWatched(id, selectedSeason, selectedEpisode, {
+      episodeName: name,
+      stillPath: still,
+    });
+    watchedEpisodes.trackOpen(id, selectedSeason, selectedEpisode, name, still);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isModalOpen, id, selectedSeason, selectedEpisode, episodes]);
+
   const [watchedSet, setWatchedSet] = useState(
     () => (id ? watchedEpisodes.getSeriesWatched(id) : new Set())
   );
@@ -177,7 +192,8 @@ const SeriesVideoPlayer = ({
     } else if (index === 6) {
       url = `${process.env.REACT_APP_TV_SERVER7}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 7) {
-      url = `${process.env.REACT_APP_TV_SERVER8}${id}/${selectedSeason}/${selectedEpisode}`;
+      const host = server8Domains[mirrorRef.current] || server8Domains[0] || "";
+      url = `https://${host}/embed/tv/${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 8) {
       url = `${process.env.REACT_APP_TV_SERVER9}${id}/${selectedSeason}/${selectedEpisode}`;
     } else if (index === 9) {
@@ -186,9 +202,18 @@ const SeriesVideoPlayer = ({
       url = `${process.env.REACT_APP_TV_SERVER11}${id}/${selectedSeason}/${selectedEpisode}?theme=6366f1&startAt=15`;
     } else if (index === 11) {
       url = `${process.env.REACT_APP_TV_SERVER12}${id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`;
+    } else if (index === 12) {
+      url = `${process.env.REACT_APP_TV_SERVER13}${id}/${selectedSeason}/${selectedEpisode}`;
     }
 
     setServerUrl(url);
+  };
+
+  const handleServerSelect = (index) => {
+    if (index === 7 && server8Domains.length) {
+      mirrorRef.current = (mirrorRef.current + 1) % server8Domains.length;
+    }
+    handleServerClick(index);
   };
 
   useEffect(() => {
@@ -364,8 +389,10 @@ const SeriesVideoPlayer = ({
         serverUrl={serverUrl}
         title={getCurrentEpisodeTitle()}
         subtitle={getCurrentEpisodeSubtitle()}
-        onServerChange={handleServerClick}
+        onServerChange={handleServerSelect}
         selectedServer={selectedServer}
+        mirrorCount={selectedServer === 7 ? server8Domains.length : 0}
+        mirrorIndex={Math.max(mirrorRef.current, 0) + 1}
         onPrevious={handlePreviousEpisode}
         onNext={handleNextEpisode}
         hasPrevious={hasPreviousEpisode()}

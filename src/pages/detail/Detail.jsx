@@ -29,9 +29,7 @@ const Detail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const videoPlayerRef = useRef(null);
 
-  // Parse autoplay intent from the URL — Continue Watching links pass
-  // `?play=1`, and for series `?s=2&e=5&play=1` to jump straight to
-  // the right episode.
+  // Continue Watching deep links: ?play=1 (and ?s=&e= for series).
   const search = new URLSearchParams(location.search);
   const wantsAutoPlay = search.get("play") === "1";
   const initialSeason = parseInt(search.get("s") || "", 10);
@@ -42,35 +40,27 @@ const Detail = () => {
   const [trailerUrl, setTrailerUrl] = useState("");
   const [shouldOpenPlayer, setShouldOpenPlayer] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
-  // Hover-capable pointer (desktop mouse) vs touch/TV. Drives whether the
-  // trailer is hover-triggered (desktop) or autoplays (touch/TV).
+  // Desktop (hover) plays the trailer on hover; touch/TV autoplays.
   const canHover =
     typeof window !== "undefined" && typeof window.matchMedia === "function"
       ? window.matchMedia("(hover: hover) and (pointer: fine)").matches
       : true;
 
   const [bannerTrailer, setBannerTrailer] = useState(false);
-  // Transient: paused/reverted while scrolled out of view (can return).
+  // Transient pause/revert while scrolled out of view (can return).
   const [bannerStopped, setBannerStopped] = useState(false);
-  // Permanent for the visit: set by ✕ or by starting the movie/series, so the
-  // trailer never competes with playback. Only resets on navigation (remount).
+  // Permanent dismiss (✕ or playback start); resets on navigation.
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  // Start unmuted everywhere: autoplay begins muted in the URL (autoplay-safe),
-  // then onLoad issues unMute. On touch/TV the browser's autoplay policy may
-  // keep it muted until the user taps the speaker.
   const [bannerMuted, setBannerMuted] = useState(false);
   const bannerIframeRef = useRef(null);
   const bannerRef = useRef(null);
   const bannerStateRef = useRef(-1); // YouTube playerState: 1 = playing, 2 = paused
 
-  // Reflect the current title in the browser tab; restore on leave.
   useDocumentTitle(
     item && (item.title || item.name || item.original_title || item.original_name)
   );
 
-  // Reset trailer state on navigation. On desktop the trailer starts on hover
-  // (handled on the banner). On touch/TV - where there's no hover - autoplay it
-  // a couple seconds after the page settles (skipped when jumping to the player).
+  // Reset on navigation; touch/TV autoplays after a delay (no hover there).
   useEffect(() => {
     setBannerTrailer(false);
     setBannerStopped(false);
@@ -84,9 +74,7 @@ const Detail = () => {
     return () => clearTimeout(timer);
   }, [item, canHover, wantsAutoPlay]);
 
-  // Loop the banner trailer just before YouTube's end-screen could appear.
-  // Loop the clip ourselves (no &loop/&playlist, which add the < > controls):
-  // restart just before it ends, and as a fallback when it reports ENDED.
+  // Play once, no loop: revert to the static poster when the trailer ends.
   useEffect(() => {
     if (!bannerTrailer || modalActive) return undefined;
     const onMsg = (e) => {
@@ -102,33 +90,18 @@ const Detail = () => {
       if (typeof info.playerState === "number") {
         bannerStateRef.current = info.playerState;
       }
-      const win = bannerIframeRef.current && bannerIframeRef.current.contentWindow;
-      if (!win) return;
-      const restart = () => {
-        win.postMessage(
-          JSON.stringify({ event: "command", func: "seekTo", args: [0, true] }),
-          "*"
-        );
-        win.postMessage(
-          JSON.stringify({ event: "command", func: "playVideo", args: "" }),
-          "*"
-        );
-      };
-      if (info.playerState === 0) {
-        restart();
-      } else if (
-        info.duration &&
-        info.currentTime != null &&
-        info.currentTime >= info.duration - 2
-      ) {
-        restart();
-      }
+      const ended =
+        info.playerState === 0 ||
+        (info.duration &&
+          info.currentTime != null &&
+          info.currentTime >= info.duration - 1);
+      if (ended) setBannerDismissed(true);
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
   }, [bannerTrailer, modalActive]);
 
-  // Control sound via the iframe API so the clip is never reloaded/interrupted.
+  // Mute via the iframe API so the clip isn't reloaded.
   const postToBannerTrailer = (func) => {
     const win = bannerIframeRef.current && bannerIframeRef.current.contentWindow;
     if (win) {
@@ -142,8 +115,7 @@ const Detail = () => {
     setBannerMuted(next);
   };
 
-  // Pause the trailer once the banner scrolls out of view (resume happens on
-  // hover, handled on the banner element).
+  // Pause off-screen; desktop reverts and waits for hover, touch/TV resumes.
   useEffect(() => {
     if (!bannerTrailer) return undefined;
     const el = bannerRef.current;
@@ -151,10 +123,8 @@ const Detail = () => {
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (canHover) {
-          // Desktop: out of view → stop + revert; waits for a fresh hover.
           if (!entry.isIntersecting) setBannerStopped(true);
         } else if (entry.isIntersecting) {
-          // Touch/TV (no hover): just pause off-screen and resume on-screen.
           if (bannerStateRef.current !== 1) postToBannerTrailer("playVideo");
         } else {
           postToBannerTrailer("pauseVideo");
@@ -185,9 +155,7 @@ const Detail = () => {
 
     if (navigator.share) {
       try {
-        // URL is embedded in `text` (not passed separately) so WhatsApp puts
-        // it on its own line instead of appending it after the body with a
-        // space. WhatsApp still auto-detects the URL and renders the preview.
+        // URL inside `text` (not the url field) so WhatsApp puts it on its own line.
         await navigator.share({
           title: `${displayTitle} - Scenic`,
           text: fullMessage,
@@ -254,36 +222,7 @@ const Detail = () => {
     // eslint-disable-next-line
   }, [category, id]);
 
-  // Record this title in Continue Watching once we have the data. Fires
-  // every time the page is opened so the row reflects recent activity.
-  useEffect(() => {
-    if (!item) return;
-    const isTv = category === "tv";
-    // For series, sum the episode_count across real seasons (skip 0/specials)
-    // so the Continue Watching card can render a progress bar.
-    const totalEpisodes = isTv
-      ? (item.seasons || [])
-          .filter((s) => s.season_number !== 0)
-          .reduce((sum, s) => sum + (s.episode_count || 0), 0)
-      : null;
-
-    continueWatching.track({
-      id: item.id,
-      mediaType: isTv ? "tv" : "movie",
-      title: item.title || item.name || "",
-      posterPath: item.poster_path || null,
-      backdropPath: item.backdrop_path || null,
-      voteAverage: item.vote_average ?? null,
-      releaseDate: item.release_date || item.first_air_date || null,
-      totalEpisodes,
-    });
-  }, [item, category]);
-
-  // Autoplay handoff from Continue Watching. Movies open the player
-  // straight away once the item loads; series need the episode list to
-  // render first, which SeriesVideoPlayer handles via its own autoPlay
-  // prop. We strip the query params after firing so a refresh doesn't
-  // re-trigger playback.
+  // Autoplay handoff from Continue Watching; strip params so a refresh doesn't replay.
   useEffect(() => {
     if (!item || !wantsAutoPlay || autoPlayConsumedRef.current) return;
     const isTv = category === "tv";
@@ -292,8 +231,7 @@ const Detail = () => {
       autoPlayConsumedRef.current = true;
       navigate(location.pathname, { replace: true });
     }
-    // For TV we leave the URL params in place — SeriesVideoPlayer reads
-    // them on mount and clears the consumed flag itself once it acts.
+    // TV keeps the params; SeriesVideoPlayer consumes them on mount.
   }, [item, wantsAutoPlay, category, location.pathname, navigate]);
 
   const handlePlayButtonClick = () => {
@@ -304,11 +242,33 @@ const Detail = () => {
     setShouldOpenPlayer(true);
   };
 
-  // The moment any player is requested (Watch Now, poster play, an episode, or
-  // a ?play=1 deep link), permanently remove the banner trailer for this visit
-  // so it can never overlap the movie/series audio.
+  const trackContinueWatching = () => {
+    if (!item) return;
+    const isTv = category === "tv";
+    const totalEpisodes = isTv
+      ? (item.seasons || [])
+          .filter((s) => s.season_number !== 0)
+          .reduce((sum, s) => sum + (s.episode_count || 0), 0)
+      : null;
+    continueWatching.track({
+      id: item.id,
+      mediaType: isTv ? "tv" : "movie",
+      title: item.title || item.name || "",
+      posterPath: item.poster_path || null,
+      backdropPath: item.backdrop_path || null,
+      voteAverage: item.vote_average ?? null,
+      releaseDate: item.release_date || item.first_air_date || null,
+      totalEpisodes,
+    });
+  };
+
+  // On play: dismiss the trailer and add to Continue Watching (only now).
   useEffect(() => {
-    if (shouldOpenPlayer) setBannerDismissed(true);
+    if (shouldOpenPlayer) {
+      setBannerDismissed(true);
+      trackContinueWatching();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldOpenPlayer]);
 
   if (isLoading) {
@@ -351,10 +311,7 @@ const Detail = () => {
         ref={bannerRef}
         style={{ backgroundImage: `url(${backgroundImage})` }}
         onMouseMove={() => {
-          // Hover-to-play is desktop-only; touch/TV autoplay instead. Once
-          // dismissed (✕ or watching) it stays gone until the page reloads.
-          // mousemove (not mouseenter) so it also fires when the cursor is
-          // already over the banner after scrolling back.
+          // Desktop hover-to-play; mousemove also fires when already over the banner after a scroll.
           if (
             !canHover ||
             !bannerTrailerKey ||
