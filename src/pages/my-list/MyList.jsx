@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { watchlist } from "../../utils/watchlist";
+import { buildShareText } from "../../utils/shareList";
 import BookmarkButton from "../../components/bookmark-button/BookmarkButton";
 import InfoTooltip from "../../components/info-tooltip/InfoTooltip";
+import { ShareIcon, CheckIcon } from "../../assets/icons/ShareIcon";
 import apiConfig from "../../api/apiConfig";
 import "./my-list.scss";
 
@@ -64,13 +67,46 @@ const ListCard = ({ item }) => {
 };
 
 const MyList = () => {
+  const navigate = useNavigate();
   const [items, setItems] = useState(() => watchlist.getAll());
+  const [shareSuccess, setShareSuccess] = useState(false);
+  const hadItemsRef = useRef(items.length > 0);
 
   useEffect(() => {
     const sync = () => setItems(watchlist.getAll());
     sync();
     return watchlist.subscribe(sync);
   }, []);
+
+  useEffect(() => {
+    if (items.length === 0 && hadItemsRef.current) navigate("/");
+    hadItemsRef.current = items.length > 0;
+  }, [items, navigate]);
+
+  const handleShare = async () => {
+    if (!items.length) return;
+    const text = buildShareText(items);
+    const flash = () => {
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 1400);
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "My Scenic watchlist", text });
+        flash();
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("List link copied to clipboard");
+      flash();
+    } catch {
+      toast.error("Could not copy link");
+    }
+  };
 
   return (
     <div className="my-list-page">
@@ -84,23 +120,36 @@ const MyList = () => {
               devices or browsers. Clearing site data will erase the list.
             </InfoTooltip>
           </div>
-          {items.length > 0 && (() => {
-            const movies = items.filter((it) => it.mediaType === "movie").length;
-            const series = items.filter((it) => it.mediaType === "tv").length;
-            const parts = [];
-            if (movies > 0) parts.push(`${movies} ${movies === 1 ? "Movie" : "Movies"}`);
-            if (series > 0) parts.push(`${series} ${series === 1 ? "Series" : "Series"}`);
-            return (
-              <span className="my-list__count">
-                {parts.map((p, i) => (
-                  <React.Fragment key={p}>
-                    {i > 0 && <span className="my-list__count-sep">·</span>}
-                    {p}
-                  </React.Fragment>
-                ))}
-              </span>
-            );
-          })()}
+          {items.length > 0 && (
+            <div className="my-list__actions">
+              {(() => {
+                const movies = items.filter((it) => it.mediaType === "movie").length;
+                const series = items.filter((it) => it.mediaType === "tv").length;
+                const parts = [];
+                if (movies > 0) parts.push(`${movies} ${movies === 1 ? "Movie" : "Movies"}`);
+                if (series > 0) parts.push(`${series} ${series === 1 ? "Series" : "Series"}`);
+                return (
+                  <span className="my-list__count">
+                    {parts.map((p, i) => (
+                      <React.Fragment key={p}>
+                        {i > 0 && <span className="my-list__count-sep">·</span>}
+                        {p}
+                      </React.Fragment>
+                    ))}
+                  </span>
+                );
+              })()}
+              <button
+                type="button"
+                className={`my-list__share${shareSuccess ? " is-success" : ""}`}
+                onClick={handleShare}
+                aria-label={shareSuccess ? "List link copied" : "Share my list"}
+              >
+                {shareSuccess ? <CheckIcon /> : <ShareIcon />}
+                <span>{shareSuccess ? "Copied" : "Share list"}</span>
+              </button>
+            </div>
+          )}
         </header>
 
         {items.length === 0 ? (

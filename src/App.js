@@ -21,6 +21,7 @@ const Detail = lazy(() => import('./pages/detail/Detail'));
 const Person = lazy(() => import('./pages/person/Person'));
 const MultiSearch = lazy(() => import('./components/MultiSearch/MultiSearch'));
 const MyList = lazy(() => import('./pages/my-list/MyList'));
+const SharedList = lazy(() => import('./pages/shared-list/SharedList'));
 const Collection = lazy(() => import('./pages/collection/Collection'));
 const Anime = lazy(() => import('./pages/anime/Anime'));
 
@@ -42,6 +43,7 @@ function App() {
                         <Route path='/collection/:id' element={<Collection />} />
                         <Route path='/anime' element={<Anime />} />
                         <Route path='/my-list' element={<MyList />} />
+                        <Route path='/shared-list' element={<SharedList />} />
                         <Route path='/:category/search/:keyword' element={<Catalog />} />
                         <Route path='/:category/type/:type' element={<Catalog />} />
                         <Route path='/:category/:id' element={<Detail />} />
