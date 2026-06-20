@@ -70,8 +70,10 @@ const Detail = () => {
       (v) => v.site === "YouTube"
     );
     if (!hasTrailer) return undefined;
-    const timer = setTimeout(() => setBannerTrailer(true), 2500);
-    return () => clearTimeout(timer);
+    // Trailer autoplay disabled.
+    // const timer = setTimeout(() => setBannerTrailer(true), 2500);
+    // return () => clearTimeout(timer);
+    return undefined;
   }, [item, canHover, wantsAutoPlay]);
 
   // Play once, no loop: revert to the static poster when the trailer ends.
@@ -320,9 +322,10 @@ const Detail = () => {
             showBannerTrailer
           )
             return;
-          setBannerStopped(false);
-          setBannerTrailer(true);
-          if (!bannerMuted) postToBannerTrailer("unMute");
+          // Trailer autoplay disabled.
+          // setBannerStopped(false);
+          // setBannerTrailer(true);
+          // if (!bannerMuted) postToBannerTrailer("unMute");
         }}
       >
         <button
