@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import "./VideoPlayer.scss";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
 import { server8Domains } from "../../../constants/constants";
+import { buildServerUrl } from "../../../utils/serverUrl";
 import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 
 const serverKey = (id) => `scenic:movie-server:${id}`;
@@ -31,51 +32,9 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
     } catch {
       /* ignore */
     }
-    switch (index) {
-      case 0:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER1}${id}`);
-        break;
-      case 1:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER2}${id}`);
-        break;
-      case 2:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER3}${id}`);
-        break;
-      case 3:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER4}${id}?autoplay=true&colour=6366f1`);
-        break;
-      case 4:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER5}${id}`);
-        break;
-      case 5:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER6}${id}`);
-        break;
-      case 6:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER7}${id}`);
-        break;
-      case 7: {
-        const host = server8Domains[mirrorRef.current] || server8Domains[0] || "";
-        setServerUrl(`https://${host}/embed/movie/${id}`);
-        break;
-      }
-      case 8:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER9}${id}`);
-        break;
-      case 9:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER10}${id}?autoplay=true`);
-        break;
-      case 10:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER11}${id}?theme=6366f1&startAt=15`);
-        break;
-      case 11:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER12}${id}`);
-        break;
-      case 12:
-        setServerUrl(`${process.env.REACT_APP_MOVIE_SERVER13}${id}`);
-        break;
-      default:
-        break;
-    }
+    setServerUrl(
+      buildServerUrl({ mediaType: "movie", index, id, mirrorIndex: mirrorRef.current })
+    );
   };
 
   const handleServerSelect = (index) => {
@@ -88,10 +47,9 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
   const handlePlayButtonClick = useCallback(() => {
     // Resume on the same server the user last picked for this title.
     const idx = readSavedServer(id);
-    const serverVar =
-      process.env[`REACT_APP_MOVIE_SERVER${idx + 1}`] ||
-      process.env.REACT_APP_MOVIE_SERVER1;
-    setServerUrl(`${serverVar}${id}`);
+    setServerUrl(
+      buildServerUrl({ mediaType: "movie", index: idx, id, mirrorIndex: mirrorRef.current })
+    );
     setSelectedServer(idx);
     setIsModalOpen(true);
   }, [id]);
