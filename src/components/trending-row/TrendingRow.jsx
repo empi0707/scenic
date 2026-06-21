@@ -8,6 +8,7 @@ import "swiper/css/pagination";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import Button from "../button/Button";
+import InlineError from "../inline-error/InlineError";
 import "./trending-row.scss";
 
 const SWIPER_BREAKPOINTS = {
@@ -37,11 +38,14 @@ const TrendingRow = ({
 }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       setIsLoading(true);
+      setError(false);
       try {
         const res = await tmdbApi.trending(mediaType, timeWindow);
         const filtered = (res.results || [])
@@ -54,6 +58,7 @@ const TrendingRow = ({
         if (!cancelled) setItems(filtered);
       } catch (e) {
         console.error("Trending fetch failed:", e);
+        if (!cancelled) setError(true);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -62,9 +67,10 @@ const TrendingRow = ({
     return () => {
       cancelled = true;
     };
-  }, [mediaType, timeWindow, limit]);
+  }, [mediaType, timeWindow, limit, reloadKey]);
 
   if (isLoading) return <TrendingRowSkeleton />;
+  if (error) return <InlineError onRetry={() => setReloadKey((k) => k + 1)} />;
   if (items.length === 0) return null;
 
   return (

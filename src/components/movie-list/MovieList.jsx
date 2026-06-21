@@ -9,10 +9,12 @@ import "./movie-list.scss";
 import tmdbApi, { category } from "../../api/tmdbApi";
 import MovieCard from "../movie-card/MovieCard";
 import { CardRowSkeleton } from "../skeleton/Skeleton";
+import InlineError from "../inline-error/InlineError";
 
 const MovieList = ({ category: cat, type, id, data }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const getList = useCallback(async () => {
     if (data) {
@@ -20,6 +22,7 @@ const MovieList = ({ category: cat, type, id, data }) => {
       return;
     }
     setIsLoading(true);
+    setError(false);
     try {
       let response;
       const params = {};
@@ -42,8 +45,9 @@ const MovieList = ({ category: cat, type, id, data }) => {
 
       setItems(response.results);
       setIsLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch movie/TV list:", error);
+    } catch (err) {
+      console.error("Failed to fetch movie/TV list:", err);
+      setError(true);
       setIsLoading(false);
     }
   }, [cat, type, id, data]);
@@ -54,6 +58,10 @@ const MovieList = ({ category: cat, type, id, data }) => {
 
   if (isLoading) {
     return <CardRowSkeleton />;
+  }
+
+  if (error) {
+    return <InlineError onRetry={getList} />;
   }
 
   return (

@@ -6,6 +6,7 @@ import { OutlineButton } from "../button/Button";
 import Loading from "../loading/Loading";
 import { CardGridSkeleton } from "../skeleton/Skeleton";
 import GlassSelect from "../glass-select/GlassSelect";
+import InlineError from "../inline-error/InlineError";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
 import { DEFAULT_SORT, SORT_OPTIONS, sortParamsFor } from "../../utils/sort";
 
@@ -44,6 +45,7 @@ const MovieGrid = (props) => {
   const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState(false);
 
   const { keyword } = useParams();
   const location = useLocation();
@@ -114,10 +116,11 @@ const MovieGrid = (props) => {
 
   const getList = async () => {
     setIsLoading(true);
+    setError(false);
     try {
       let response = null;
       const params = {};
-      
+
       if (keyword !== undefined) {
         // Search mode
         params.query = keyword;
@@ -213,8 +216,9 @@ const MovieGrid = (props) => {
       setItems(response.results);
       setTotalPage(response.total_pages);
       setPage(1); // Reset page when getting new list
-    } catch (error) {
-      console.error("Error fetching content:", error);
+    } catch (err) {
+      console.error("Error fetching content:", err);
+      setError(true);
     } finally {
       setIsLoading(false);
     }
@@ -384,15 +388,19 @@ const MovieGrid = (props) => {
           </div>
         </div>
       )}
-      <div className="movie-grid">
-        {items.map((item, i) => (
-          (item.poster_path || item.backdrop_path) && <MovieCard category={props.category} item={item} key={i} />
-        ))}
-      </div>
-      {page < totalPage ? (
+      {error ? (
+        <InlineError onRetry={getList} />
+      ) : (
+        <div className="movie-grid">
+          {items.map((item, i) => (
+            (item.poster_path || item.backdrop_path) && <MovieCard category={props.category} item={item} key={i} />
+          ))}
+        </div>
+      )}
+      {!error && page < totalPage ? (
         <div className="movie-grid__loadmore">
-          <OutlineButton 
-            className="small" 
+          <OutlineButton
+            className="small"
             onClick={loadMore}
             disabled={isLoadingMore}
           >

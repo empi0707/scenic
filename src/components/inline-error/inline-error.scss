@@ -1,0 +1,48 @@
+@use "../../scss/" as *;
+
+.inline-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding: 1.75rem 1rem;
+  font-family: $font-family;
+  font-size: 0.92rem;
+
+  &__icon {
+    font-size: 1.25rem;
+    color: rgba(255, 99, 99, 0.85);
+  }
+
+  &__text {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &__retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 38px;
+    padding: 0 0.95rem;
+    border-radius: $border-radius;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: $font-family;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+    i {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.16);
+      border-color: $accent-color;
+      color: $white;
+    }
+  }
+}
