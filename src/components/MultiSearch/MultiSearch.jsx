@@ -15,6 +15,14 @@ import useSuggestionNav from "../../hooks/useSuggestionNav";
 import fetchSmartPage from "../../utils/searchResolver";
 import "./MultiSearch.scss";
 
+const EXAMPLES = [
+  "movies like Inception",
+  "Korean dramas",
+  "Punjabi movies",
+  "directed by Nolan",
+  "Hindi comedy",
+];
+
 const MultiSearch = () => {
   const { keyword } = useParams();
   const [searchResults, setSearchResults] = useState([]);
@@ -24,7 +32,7 @@ const MultiSearch = () => {
   useDocumentTitle(
     submittedTerm.trim() ? `Search: ${submittedTerm.trim()}` : null
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(keyword));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -142,6 +150,16 @@ const MultiSearch = () => {
     runSearch(searchInput);
   };
 
+  const runExample = (q) => {
+    setSearchInput(q);
+    setShowSuggest(false);
+    runSearch(q);
+  };
+
+  const visibleResults = searchResults.filter(
+    (item) => item.backdrop_path || item.poster_path
+  );
+
   return (
     <div className="search-page">
             <motion.div
@@ -225,18 +243,46 @@ const MultiSearch = () => {
               {error}
             </Text>
           </div>
+        ) : visibleResults.length === 0 ? (
+          <div className="search-empty">
+            <i
+              className={`bx ${
+                submittedTerm.trim() ? "bx-movie-play" : "bx-search-alt-2"
+              } search-empty__icon`}
+            />
+            <p className="search-empty__headline">
+              {submittedTerm.trim()
+                ? `No results for "${submittedTerm}"`
+                : "Search Scenic"}
+            </p>
+            <p className="search-empty__sub">
+              {submittedTerm.trim()
+                ? "Check the spelling or try a broader search. You can also search by mood, language, or person."
+                : "Find movies, series and anime, or try a natural search like these:"}
+            </p>
+            <div className="search-empty__chips">
+              {EXAMPLES.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  className="search-empty__chip"
+                  onClick={() => runExample(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : (
           <>
             <div className="movie-grid">
-              {searchResults
-                .filter((item) => item.backdrop_path || item.poster_path)
-                .map((item, i) => (
-                  <MovieCard
-                    category={item.media_type}
-                    item={item}
-                    key={`${item.media_type}-${item.id}-${i}`}
-                  />
-                ))}
+              {visibleResults.map((item, i) => (
+                <MovieCard
+                  category={item.media_type}
+                  item={item}
+                  key={`${item.media_type}-${item.id}-${i}`}
+                />
+              ))}
             </div>
             {canLoadMore && (
               <div className="load-more">
