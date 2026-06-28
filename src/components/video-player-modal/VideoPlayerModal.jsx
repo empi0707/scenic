@@ -22,6 +22,7 @@ const VideoPlayerModal = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [serverTimedOut, setServerTimedOut] = useState(false);
 
   const switchMirror = () => {
     setSpinning(true);
@@ -31,7 +32,15 @@ const VideoPlayerModal = ({
 
   useEffect(() => {
     setIframeLoaded(false);
+    setServerTimedOut(false);
   }, [serverUrl]);
+
+  // If the server never finishes loading, assume it's down and prompt a switch.
+  useEffect(() => {
+    if (!serverUrl || iframeLoaded) return;
+    const timer = setTimeout(() => setServerTimedOut(true), 22000);
+    return () => clearTimeout(timer);
+  }, [serverUrl, iframeLoaded]);
 
   useEffect(() => {
     if (isOpen) {
@@ -174,15 +183,31 @@ const VideoPlayerModal = ({
             <iframe
               src={serverUrl}
               allowFullScreen
-              allow="autoplay; encrypted-media"
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              // Omits allow-popups and allow-top-navigation to block ad tabs/redirects.
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+              referrerPolicy="origin"
               title={title}
               onLoad={() => setIframeLoaded(true)}
             />
           )}
-          {(!serverUrl || !iframeLoaded) && (
-            <div className="video-modal-loader skeleton" aria-hidden="true">
-              <i className="bx bx-loader-alt bx-spin"></i>
+          {serverUrl && !iframeLoaded && serverTimedOut ? (
+            <div className="video-modal-timeout">
+              <i className="bx bx-error-circle"></i>
+              <p>This server is taking too long to respond. It might be down right now, so try another one.</p>
+              <button
+                className="video-modal-timeout__action"
+                onClick={() => setDropdownOpen(true)}
+              >
+                Try another source
+              </button>
             </div>
+          ) : (
+            (!serverUrl || !iframeLoaded) && (
+              <div className="video-modal-loader skeleton" aria-hidden="true">
+                <i className="bx bx-loader-alt bx-spin"></i>
+              </div>
+            )
           )}
         </div>
       </div>
