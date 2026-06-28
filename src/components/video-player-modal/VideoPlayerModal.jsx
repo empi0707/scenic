@@ -184,9 +184,6 @@ const VideoPlayerModal = ({
               src={serverUrl}
               allowFullScreen
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-              // Omits allow-popups and allow-top-navigation to block ad tabs/redirects.
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-              referrerPolicy="origin"
               title={title}
               onLoad={() => setIframeLoaded(true)}
             />
