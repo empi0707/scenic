@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import tmdbApi from "../../api/tmdbApi";
@@ -18,8 +18,9 @@ import CollectionTag from "../../components/collection-tag/CollectionTag";
 import { DetailSkeleton } from "../../components/skeleton/Skeleton";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import { continueWatching } from "../../utils/continueWatching";
+import lazyWithRetry from "../../utils/lazyWithRetry";
 
-const SeriesVideoPlayer = lazy(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
+const SeriesVideoPlayer = lazyWithRetry(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
 const Detail = () => {
   const { category, id } = useParams();

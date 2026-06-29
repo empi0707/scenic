@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import 'swiper/css';
 import './assets/boxicons-2.0.7/css/boxicons.min.css';
 import './App.scss';
@@ -13,17 +13,19 @@ import Footer from './components/footer/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import TopProgressBar from './components/top-progress-bar/TopProgressBar';
 import Loading from './components/loading/Loading';
+import ChunkErrorBoundary from './components/ChunkErrorBoundary';
+import lazyWithRetry from './utils/lazyWithRetry';
 
 // Lazy-loaded route components
-const Home = lazy(() => import('./pages/home/Home'));
-const Catalog = lazy(() => import('./pages/Catalog'));
-const Detail = lazy(() => import('./pages/detail/Detail'));
-const Person = lazy(() => import('./pages/person/Person'));
-const MultiSearch = lazy(() => import('./components/MultiSearch/MultiSearch'));
-const MyList = lazy(() => import('./pages/my-list/MyList'));
-const SharedList = lazy(() => import('./pages/shared-list/SharedList'));
-const Collection = lazy(() => import('./pages/collection/Collection'));
-const Anime = lazy(() => import('./pages/anime/Anime'));
+const Home = lazyWithRetry(() => import('./pages/home/Home'));
+const Catalog = lazyWithRetry(() => import('./pages/Catalog'));
+const Detail = lazyWithRetry(() => import('./pages/detail/Detail'));
+const Person = lazyWithRetry(() => import('./pages/person/Person'));
+const MultiSearch = lazyWithRetry(() => import('./components/MultiSearch/MultiSearch'));
+const MyList = lazyWithRetry(() => import('./pages/my-list/MyList'));
+const SharedList = lazyWithRetry(() => import('./pages/shared-list/SharedList'));
+const Collection = lazyWithRetry(() => import('./pages/collection/Collection'));
+const Anime = lazyWithRetry(() => import('./pages/anime/Anime'));
 
 function App() {
     return (
@@ -37,6 +39,7 @@ function App() {
                 <ScrollToTop />
                 <TopProgressBar />
                 <Header />
+                <ChunkErrorBoundary>
                 <Suspense fallback={<Loading />}>
                     <Routes>
                         <Route path='/person/:id' element={<Person />} />
@@ -53,6 +56,7 @@ function App() {
                         <Route path="/search/:keyword" element={<MultiSearch />} />
                     </Routes>
                 </Suspense>
+                </ChunkErrorBoundary>
                 <Footer />
                 <Toaster
                     position="top-right"
