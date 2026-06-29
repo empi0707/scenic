@@ -183,7 +183,7 @@ const VideoPlayerModal = ({
             <iframe
               src={serverUrl}
               allowFullScreen
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allow="autoplay; encrypted-media"
               title={title}
               onLoad={() => setIframeLoaded(true)}
             />
