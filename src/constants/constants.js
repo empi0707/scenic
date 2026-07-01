@@ -12,6 +12,7 @@ export const servers = [
   "Server 11",
   "Server 12",
   "Server 13",
+  "Server 14",
 ];
 
 // Sentinel index for the ad-free HLS player; kept out of `servers` so iframe
