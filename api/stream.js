@@ -22,9 +22,11 @@ module.exports = async (req, res) => {
       episode,
     });
 
+    // No source: return an empty 200 (not 404) so the client's probe doesn't
+    // surface a red error in the console — absence is expected for some titles.
     if (!stream) {
       res.setHeader("Cache-Control", "no-store");
-      res.status(404).json({ error: "No stream found" });
+      res.status(200).json({ url: null });
       return;
     }
 

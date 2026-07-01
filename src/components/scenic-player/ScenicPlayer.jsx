@@ -157,15 +157,19 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
     };
 
     fetch(`/api/stream?${params.toString()}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        if (!data?.url) throw new Error("No stream URL");
+        if (!data?.url) {
+          setErrorMsg("No ad-free source found for this title.");
+          setStatus("error");
+          return;
+        }
         attach(data.url);
       })
-      .catch((err) => {
+      .catch(() => {
         if (cancelled) return;
-        setErrorMsg(err.message === "HTTP 404" ? "No ad-free source found for this title." : "Couldn't reach the ad-free source.");
+        setErrorMsg("Couldn't reach the ad-free source.");
         setStatus("error");
       });
 

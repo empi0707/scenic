@@ -25,7 +25,7 @@ module.exports = function (app) {
         season,
         episode,
       });
-      if (!stream) return res.status(404).json({ error: "No stream found" });
+      if (!stream) return res.json({ url: null });
       return res.json(stream);
     } catch (e) {
       return res.status(502).json({ error: e.message || "Extraction failed" });
