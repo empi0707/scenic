@@ -10,10 +10,15 @@ const baseHeaders = () => ({
   Origin: BASE_URL,
 });
 
+// Returns { ok, status, text } so callers can report where a scrape failed.
 async function getText(url, accept) {
-  const res = await fetch(url, { headers: { ...baseHeaders(), Accept: accept } });
-  if (!res.ok) return null;
-  return res.text();
+  try {
+    const res = await fetch(url, { headers: { ...baseHeaders(), Accept: accept } });
+    const text = res.ok ? await res.text() : null;
+    return { ok: res.ok, status: res.status, text };
+  } catch (e) {
+    return { ok: false, status: 0, text: null, error: e.message };
+  }
 }
 
 // The embed HTML carries the playlist URL and a signed token/expiry.
@@ -39,26 +44,32 @@ function buildMasterUrl({ token, expires, playlist }) {
 async function getStreamSource({ type, id, season, episode }) {
   if (!BASE_URL) throw new Error("STREAM_BASE_URL not configured");
 
+  const diag = { stage: "api", status: 0 };
+
   const apiUrl =
     type === "tv"
       ? `${BASE_URL}/api/tv/${id}/${season}/${episode}`
       : `${BASE_URL}/api/movie/${id}`;
 
-  const apiRaw = await getText(apiUrl, "application/json, text/javascript, */*; q=0.01");
-  if (!apiRaw) return null;
+  const api = await getText(apiUrl, "application/json, text/javascript, */*; q=0.01");
+  diag.status = api.status;
+  if (!api.text) return { url: null, _diag: { ...diag, error: api.error } };
+
   let apiData;
   try {
-    apiData = JSON.parse(apiRaw);
+    apiData = JSON.parse(api.text);
   } catch {
-    return null;
+    return { url: null, _diag: { ...diag, stage: "api-parse" } };
   }
-  if (!apiData?.src) return null;
+  if (!apiData?.src) return { url: null, _diag: { ...diag, stage: "api-nosrc" } };
 
-  const html = await getText(BASE_URL + apiData.src, "text/html,application/xhtml+xml,*/*");
-  if (!html) return null;
+  const embed = await getText(BASE_URL + apiData.src, "text/html,application/xhtml+xml,*/*");
+  if (!embed.text) {
+    return { url: null, _diag: { stage: "embed", status: embed.status, error: embed.error } };
+  }
 
-  const tokenData = extractTokenData(html);
-  if (!tokenData) return null;
+  const tokenData = extractTokenData(embed.text);
+  if (!tokenData) return { url: null, _diag: { stage: "token", status: embed.status } };
 
   return { provider: "stream", type: "hls", url: buildMasterUrl(tokenData) };
 }

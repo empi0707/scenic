@@ -1,4 +1,5 @@
 {
+  "regions": ["fra1"],
   "rewrites": [
     { "source": "/api/tmdb/:path*", "destination": "/api/tmdb?proxyPath=:path*" },
     { "source": "/api/download/:path*", "destination": "/api/download?path=:path*" },

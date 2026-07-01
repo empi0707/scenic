@@ -24,9 +24,10 @@ module.exports = async (req, res) => {
 
     // No source: return an empty 200 (not 404) so the client's probe doesn't
     // surface a red error in the console — absence is expected for some titles.
-    if (!stream) {
+    // Pass ?debug=1 to include the _diag (which scrape stage failed + status).
+    if (!stream || !stream.url) {
       res.setHeader("Cache-Control", "no-store");
-      res.status(200).json({ url: null });
+      res.status(200).json(req.query.debug ? stream : { url: null });
       return;
     }
 
