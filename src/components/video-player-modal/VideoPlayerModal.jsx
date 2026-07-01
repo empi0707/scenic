@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./VideoPlayerModal.scss";
-import { servers } from "../../constants/constants";
+import { servers, AD_FREE_SERVER, AD_FREE_LABEL } from "../../constants/constants";
 import DownloadButton from "../download-button/DownloadButton";
+import ScenicPlayer from "../scenic-player/ScenicPlayer";
 
 const VideoPlayerModal = ({
   isOpen,
@@ -16,6 +17,7 @@ const VideoPlayerModal = ({
   hasPrevious,
   hasNext,
   download,
+  streamMedia,
   mirrorCount = 0,
   mirrorIndex = 1,
 }) => {
@@ -23,12 +25,32 @@ const VideoPlayerModal = ({
   const [spinning, setSpinning] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [serverTimedOut, setServerTimedOut] = useState(false);
+  const [autoSwitchMsg, setAutoSwitchMsg] = useState("");
 
   const switchMirror = () => {
     setSpinning(true);
     onServerChange(selectedServer);
     setTimeout(() => setSpinning(false), 550);
   };
+
+  // When the ad-free source fails, quietly advance to the next server instead
+  // of dumping the user into the server menu.
+  const handleStreamFatal = () => {
+    const next = selectedServer === AD_FREE_SERVER ? 0 : selectedServer + 1;
+    if (next < servers.length) {
+      setAutoSwitchMsg("Scenic+ isn't available for this title. Switching to the next server...");
+      onServerChange(next);
+    } else {
+      setAutoSwitchMsg("No source found. Pick a server above to try another.");
+      setDropdownOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoSwitchMsg) return undefined;
+    const t = setTimeout(() => setAutoSwitchMsg(""), 3500);
+    return () => clearTimeout(t);
+  }, [autoSwitchMsg]);
 
   useEffect(() => {
     setIframeLoaded(false);
@@ -125,7 +147,11 @@ const VideoPlayerModal = ({
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <i className="bx bx-server"></i>
-                <span>{servers[selectedServer] || "Select Server"}</span>
+                <span>
+                  {selectedServer === AD_FREE_SERVER
+                    ? AD_FREE_LABEL
+                    : servers[selectedServer] || "Select Server"}
+                </span>
                 <i
                   className={`bx bx-chevron-down ${dropdownOpen ? "rotate" : ""}`}
                 ></i>
@@ -133,6 +159,18 @@ const VideoPlayerModal = ({
 
               {dropdownOpen && (
                 <div className="server-dropdown-menu">
+                  <div
+                    className={`server-option server-option--adfree ${
+                      selectedServer === AD_FREE_SERVER ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      onServerChange(AD_FREE_SERVER);
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <span>{AD_FREE_LABEL}</span>
+                    {selectedServer === AD_FREE_SERVER && <i className="bx bx-check"></i>}
+                  </div>
                   {servers.map((server, index) => (
                     <div
                       key={index}
@@ -179,32 +217,48 @@ const VideoPlayerModal = ({
         </div>
 
         <div className="video-modal-player">
-          {serverUrl && (
-            <iframe
-              src={serverUrl}
-              allowFullScreen
-              allow="autoplay; encrypted-media"
-              title={title}
-              onLoad={() => setIframeLoaded(true)}
-            />
-          )}
-          {serverUrl && !iframeLoaded && serverTimedOut ? (
-            <div className="video-modal-timeout">
-              <i className="bx bx-error-circle"></i>
-              <p>This server is taking too long to respond. It might be down right now, so try another one.</p>
-              <button
-                className="video-modal-timeout__action"
-                onClick={() => setDropdownOpen(true)}
-              >
-                Try another source
-              </button>
+          {autoSwitchMsg && (
+            <div className="video-modal-toast">
+              <i className="bx bx-loader-alt bx-spin"></i>
+              <span>{autoSwitchMsg}</span>
             </div>
+          )}
+          {selectedServer === AD_FREE_SERVER ? (
+            <ScenicPlayer
+              media={streamMedia}
+              title={title}
+              onFatal={handleStreamFatal}
+            />
           ) : (
-            (!serverUrl || !iframeLoaded) && (
-              <div className="video-modal-loader skeleton" aria-hidden="true">
-                <i className="bx bx-loader-alt bx-spin"></i>
-              </div>
-            )
+            <>
+              {serverUrl && (
+                <iframe
+                  src={serverUrl}
+                  allowFullScreen
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  title={title}
+                  onLoad={() => setIframeLoaded(true)}
+                />
+              )}
+              {serverUrl && !iframeLoaded && serverTimedOut ? (
+                <div className="video-modal-timeout">
+                  <i className="bx bx-error-circle"></i>
+                  <p>This server is taking too long to respond. It might be down right now, so try another one.</p>
+                  <button
+                    className="video-modal-timeout__action"
+                    onClick={() => setDropdownOpen(true)}
+                  >
+                    Try another source
+                  </button>
+                </div>
+              ) : (
+                (!serverUrl || !iframeLoaded) && (
+                  <div className="video-modal-loader skeleton" aria-hidden="true">
+                    <i className="bx bx-loader-alt bx-spin"></i>
+                  </div>
+                )
+              )}
+            </>
           )}
         </div>
       </div>

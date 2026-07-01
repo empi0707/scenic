@@ -4,7 +4,7 @@ import apiConfig from "../../../api/apiConfig";
 import tmdbApi from "../../../api/tmdbApi";
 import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
-import { server8Domains } from "../../../constants/constants";
+import { server8Domains, AD_FREE_SERVER } from "../../../constants/constants";
 import { buildServerUrl } from "../../../utils/serverUrl";
 import { watchedEpisodes } from "../../../utils/watchedEpisodes";
 import useListboxKeyboard from "../../../hooks/useListboxKeyboard";
@@ -26,7 +26,7 @@ const SeriesVideoPlayer = ({
   onAutoPlayConsumed,
   onEpisodeClick,
 }) => {
-  const [selectedServer, setSelectedServer] = useState(0);
+  const [selectedServer, setSelectedServer] = useState(AD_FREE_SERVER);
   const [serverUrl, setServerUrl] = useState("");
   const mirrorRef = useRef(-1);
   const [selectedSeason, setSelectedSeason] = useState(null);
@@ -136,7 +136,7 @@ const SeriesVideoPlayer = ({
           if (seriesId === id) {
             setSelectedSeason(season);
             setSelectedEpisode(episode);
-            if (Number.isFinite(server) && server >= 0) {
+            if (Number.isFinite(server) && server >= AD_FREE_SERVER) {
               setSelectedServer(server);
             }
           } else {
@@ -177,14 +177,16 @@ const SeriesVideoPlayer = ({
   const handleServerClick = (index) => {
     setSelectedServer(index);
     setServerUrl(
-      buildServerUrl({
-        mediaType: "tv",
-        index,
-        id,
-        season: selectedSeason,
-        episode: selectedEpisode,
-        mirrorIndex: mirrorRef.current,
-      })
+      index === AD_FREE_SERVER
+        ? ""
+        : buildServerUrl({
+            mediaType: "tv",
+            index,
+            id,
+            season: selectedSeason,
+            episode: selectedEpisode,
+            mirrorIndex: mirrorRef.current,
+          })
     );
   };
 
@@ -376,6 +378,12 @@ const SeriesVideoPlayer = ({
         onNext={handleNextEpisode}
         hasPrevious={hasPreviousEpisode()}
         hasNext={hasNextEpisode()}
+        streamMedia={{
+          type: "tv",
+          id,
+          season: selectedSeason,
+          episode: selectedEpisode,
+        }}
         download={{
           mediaType: "tv",
           id,

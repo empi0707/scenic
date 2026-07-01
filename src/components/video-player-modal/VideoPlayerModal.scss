@@ -528,6 +528,36 @@
     }
   }
 
+  .video-modal-toast {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: calc(100% - 2rem);
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    background: rgba(16, 16, 24, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(14px);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    animation: modalToastIn 0.2s ease both;
+
+    i { font-size: 1.1rem; color: #818cf8; }
+    span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
+
+  @keyframes modalToastIn {
+    from { opacity: 0; transform: translate(-50%, -8px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
   .video-modal-timeout {
     position: absolute;
     inset: 0;

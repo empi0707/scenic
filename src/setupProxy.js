@@ -1,11 +1,37 @@
-// Dev-only: makes /api/download work under `npm start` (where Vercel functions
-// don't run). Mirrors api/download.js. In production the Vercel function serves
-// this route instead. Runs in the CRA dev server's Node process.
+// Dev-only: makes /api/* routes work under `npm start` (where Vercel functions
+// don't run). Mirrors the api/*.js handlers. In production the Vercel functions
+// serve these routes instead. Runs in the CRA dev server's Node process.
+const { getStreamSource } = require("../api/_streamSource");
+
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 module.exports = function (app) {
+  // Mirrors api/stream.js — the ad-free HLS extractor.
+  app.use("/api/stream", async (req, res) => {
+    const { type = "movie", id, season, episode } = req.query || {};
+    res.set("Cache-Control", "no-store");
+
+    if (!id) return res.status(400).json({ error: "Missing id" });
+    if (type === "tv" && (!season || !episode)) {
+      return res.status(400).json({ error: "TV requires season and episode" });
+    }
+
+    try {
+      const stream = await getStreamSource({
+        type: type === "tv" ? "tv" : "movie",
+        id,
+        season,
+        episode,
+      });
+      if (!stream) return res.status(404).json({ error: "No stream found" });
+      return res.json(stream);
+    } catch (e) {
+      return res.status(502).json({ error: e.message || "Extraction failed" });
+    }
+  });
+
   app.use("/api/download", async (req, res) => {
     const BASE = process.env.DOWNLOAD_BASE_URL;
     const path = (req.url || "").split("?")[0].replace(/^\/+/, "");

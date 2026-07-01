@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import "./VideoPlayer.scss";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
-import { server8Domains } from "../../../constants/constants";
+import { server8Domains, AD_FREE_SERVER } from "../../../constants/constants";
 import { buildServerUrl } from "../../../utils/serverUrl";
 import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 
 const serverKey = (id) => `scenic:movie-server:${id}`;
 
 const readSavedServer = (id) => {
-  if (!id || typeof window === "undefined") return 0;
+  if (!id || typeof window === "undefined") return AD_FREE_SERVER;
   try {
     const raw = localStorage.getItem(serverKey(id));
-    const n = raw == null ? 0 : parseInt(raw, 10);
-    return Number.isFinite(n) && n >= 0 ? n : 0;
+    const n = raw == null ? AD_FREE_SERVER : parseInt(raw, 10);
+    return Number.isFinite(n) && n >= AD_FREE_SERVER ? n : AD_FREE_SERVER;
   } catch {
-    return 0;
+    return AD_FREE_SERVER;
   }
 };
 
@@ -33,7 +33,9 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       /* ignore */
     }
     setServerUrl(
-      buildServerUrl({ mediaType: "movie", index, id, mirrorIndex: mirrorRef.current })
+      index === AD_FREE_SERVER
+        ? ""
+        : buildServerUrl({ mediaType: "movie", index, id, mirrorIndex: mirrorRef.current })
     );
   };
 
@@ -48,7 +50,9 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
     // Resume on the same server the user last picked for this title.
     const idx = readSavedServer(id);
     setServerUrl(
-      buildServerUrl({ mediaType: "movie", index: idx, id, mirrorIndex: mirrorRef.current })
+      idx === AD_FREE_SERVER
+        ? ""
+        : buildServerUrl({ mediaType: "movie", index: idx, id, mirrorIndex: mirrorRef.current })
     );
     setSelectedServer(idx);
     setIsModalOpen(true);
@@ -75,6 +79,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       mirrorIndex={Math.max(mirrorRef.current, 0) + 1}
       hasPrevious={false}
       hasNext={false}
+      streamMedia={{ type: "movie", id }}
       download={{ mediaType: "movie", id, title, available: downloadAvailable }}
     />
   );
