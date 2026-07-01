@@ -1,20 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import "./VideoPlayer.scss";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
-import { server8Domains, AD_FREE_SERVER } from "../../../constants/constants";
+import { server8Domains, AD_FREE_SERVER, AD_FREE_ENABLED } from "../../../constants/constants";
 import { buildServerUrl } from "../../../utils/serverUrl";
 import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 
 const serverKey = (id) => `scenic:movie-server:${id}`;
 
 const readSavedServer = (id) => {
-  if (!id || typeof window === "undefined") return AD_FREE_SERVER;
+  if (!id || typeof window === "undefined") return 0;
   try {
     const raw = localStorage.getItem(serverKey(id));
-    const n = raw == null ? AD_FREE_SERVER : parseInt(raw, 10);
-    return Number.isFinite(n) && n >= AD_FREE_SERVER ? n : AD_FREE_SERVER;
+    const n = raw == null ? 0 : parseInt(raw, 10);
+    // Honor an explicitly saved Scenic+ (-1) only while it's enabled; otherwise
+    // default to Server 1 (so an old saved -1 doesn't strand users).
+    const min = AD_FREE_ENABLED ? AD_FREE_SERVER : 0;
+    return Number.isFinite(n) && n >= min ? n : 0;
   } catch {
-    return AD_FREE_SERVER;
+    return 0;
   }
 };
 

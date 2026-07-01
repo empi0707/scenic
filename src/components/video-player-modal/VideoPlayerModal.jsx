@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./VideoPlayerModal.scss";
-import { servers, AD_FREE_SERVER, AD_FREE_LABEL } from "../../constants/constants";
+import { servers, AD_FREE_SERVER, AD_FREE_LABEL, AD_FREE_ENABLED } from "../../constants/constants";
 import DownloadButton from "../download-button/DownloadButton";
 import ScenicPlayer from "../scenic-player/ScenicPlayer";
 
@@ -159,18 +159,6 @@ const VideoPlayerModal = ({
 
               {dropdownOpen && (
                 <div className="server-dropdown-menu">
-                  <div
-                    className={`server-option server-option--adfree ${
-                      selectedServer === AD_FREE_SERVER ? "active" : ""
-                    }`}
-                    onClick={() => {
-                      onServerChange(AD_FREE_SERVER);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    <span>{AD_FREE_LABEL}</span>
-                    {selectedServer === AD_FREE_SERVER && <i className="bx bx-check"></i>}
-                  </div>
                   {servers.map((server, index) => (
                     <div
                       key={index}
@@ -188,6 +176,20 @@ const VideoPlayerModal = ({
                       )}
                     </div>
                   ))}
+                  {AD_FREE_ENABLED && (
+                    <div
+                      className={`server-option server-option--adfree ${
+                        selectedServer === AD_FREE_SERVER ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        onServerChange(AD_FREE_SERVER);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span>{AD_FREE_LABEL}</span>
+                      {selectedServer === AD_FREE_SERVER && <i className="bx bx-check"></i>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -223,7 +225,7 @@ const VideoPlayerModal = ({
               <span>{autoSwitchMsg}</span>
             </div>
           )}
-          {selectedServer === AD_FREE_SERVER ? (
+          {AD_FREE_ENABLED && selectedServer === AD_FREE_SERVER ? (
             <ScenicPlayer
               media={streamMedia}
               title={title}

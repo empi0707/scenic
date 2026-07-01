@@ -4,7 +4,7 @@ import apiConfig from "../../../api/apiConfig";
 import tmdbApi from "../../../api/tmdbApi";
 import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
-import { server8Domains, AD_FREE_SERVER } from "../../../constants/constants";
+import { server8Domains, AD_FREE_SERVER, AD_FREE_ENABLED } from "../../../constants/constants";
 import { buildServerUrl } from "../../../utils/serverUrl";
 import { watchedEpisodes } from "../../../utils/watchedEpisodes";
 import useListboxKeyboard from "../../../hooks/useListboxKeyboard";
@@ -26,7 +26,7 @@ const SeriesVideoPlayer = ({
   onAutoPlayConsumed,
   onEpisodeClick,
 }) => {
-  const [selectedServer, setSelectedServer] = useState(AD_FREE_SERVER);
+  const [selectedServer, setSelectedServer] = useState(0);
   const [serverUrl, setServerUrl] = useState("");
   const mirrorRef = useRef(-1);
   const [selectedSeason, setSelectedSeason] = useState(null);
@@ -117,7 +117,8 @@ const SeriesVideoPlayer = ({
         // on the same provider the user last used.
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-          if (saved && saved.seriesId === id && Number.isFinite(saved.server)) {
+          const min = AD_FREE_ENABLED ? AD_FREE_SERVER : 0;
+          if (saved && saved.seriesId === id && Number.isFinite(saved.server) && saved.server >= min) {
             setSelectedServer(saved.server);
           }
         } catch {
@@ -136,7 +137,7 @@ const SeriesVideoPlayer = ({
           if (seriesId === id) {
             setSelectedSeason(season);
             setSelectedEpisode(episode);
-            if (Number.isFinite(server) && server >= AD_FREE_SERVER) {
+            if (Number.isFinite(server) && server >= (AD_FREE_ENABLED ? AD_FREE_SERVER : 0)) {
               setSelectedServer(server);
             }
           } else {
