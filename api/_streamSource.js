@@ -1,4 +1,8 @@
 const BASE_URL = (process.env.STREAM_BASE_URL || "").replace(/\/+$/, "");
+// Optional scraper/unlocker prefix ending in `url=` (e.g. ScraperAPI:
+// "https://api.scraperapi.com/?api_key=KEY&url="). When set, the scrape requests
+// go through it so they come from a residential IP that vixsrc doesn't 403.
+const SCRAPE_PROXY = process.env.SCRAPE_PROXY || "";
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/150 Safari/537.36";
@@ -10,10 +14,12 @@ const baseHeaders = () => ({
   Origin: BASE_URL,
 });
 
+const proxied = (url) => (SCRAPE_PROXY ? `${SCRAPE_PROXY}${encodeURIComponent(url)}` : url);
+
 // Returns { ok, status, text } so callers can report where a scrape failed.
 async function getText(url, accept) {
   try {
-    const res = await fetch(url, { headers: { ...baseHeaders(), Accept: accept } });
+    const res = await fetch(proxied(url), { headers: { ...baseHeaders(), Accept: accept } });
     const text = res.ok ? await res.text() : null;
     return { ok: res.ok, status: res.status, text };
   } catch (e) {
