@@ -7,7 +7,70 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
+const isPlaylist = (url, contentType) =>
+  /\.m3u8(\?|$)/i.test(url) || /mpegurl/i.test(contentType || "");
+
+function rewriteManifest(text, baseUrl, hParam) {
+  const wrap = (u) => {
+    const abs = new URL(u, baseUrl).toString();
+    return `/api/hls-proxy?url=${encodeURIComponent(abs)}&h=${encodeURIComponent(hParam)}`;
+  };
+  return text
+    .split("\n")
+    .map((line) => {
+      const t = line.trim();
+      if (!t) return line;
+      if (t.startsWith("#")) return line.replace(/URI="([^"]+)"/g, (_m, u) => `URI="${wrap(u)}"`);
+      return wrap(t);
+    })
+    .join("\n");
+}
+
 module.exports = function (app) {
+  // Mirrors api/hls-proxy.js — injects source headers and rewrites manifests.
+  app.use("/api/hls-proxy", async (req, res) => {
+    const target = req.query.url;
+    const h = req.query.h;
+    if (!target) return res.status(400).json({ error: "Missing url" });
+
+    let injected = {};
+    try {
+      if (h) injected = JSON.parse(Buffer.from(h, "base64").toString("utf8"));
+    } catch {
+      /* ignore malformed headers */
+    }
+
+    try {
+      const upstream = await fetch(target, {
+        headers: { "User-Agent": UA, ...injected, ...(req.headers.range ? { Range: req.headers.range } : {}) },
+      });
+      const contentType = upstream.headers.get("content-type") || "";
+      const base = upstream.url || target;
+
+      if (isPlaylist(target, contentType)) {
+        const body = rewriteManifest(await upstream.text(), base, h || "");
+        res.set({ "Content-Type": "application/vnd.apple.mpegurl", "Cache-Control": "no-store" });
+        return res.status(upstream.status).send(body);
+      }
+
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      const binary = /^(video|audio|image)\//i.test(contentType) || /octet-stream|mp2t|mp4|\bts\b/i.test(contentType);
+      if (!binary && buf.slice(0, 64).toString("utf8").trimStart().startsWith("#EXTM3U")) {
+        const body = rewriteManifest(buf.toString("utf8"), base, h || "");
+        res.set({ "Content-Type": "application/vnd.apple.mpegurl", "Cache-Control": "no-store" });
+        return res.status(upstream.status).send(body);
+      }
+
+      for (const k of ["content-type", "content-range", "accept-ranges"]) {
+        const v = upstream.headers.get(k);
+        if (v) res.set(k, v);
+      }
+      return res.status(upstream.status).send(buf);
+    } catch (e) {
+      return res.status(502).json({ error: e.message || "Proxy failed" });
+    }
+  });
+
   // Mirrors api/stream.js — the ad-free HLS extractor.
   app.use("/api/stream", async (req, res) => {
     const { type = "movie", id, season, episode } = req.query || {};

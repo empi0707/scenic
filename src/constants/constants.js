@@ -19,11 +19,8 @@ export const servers = [
 // server indices and saved preferences stay stable.
 export const AD_FREE_SERVER = -1;
 export const AD_FREE_LABEL = "Scenic+";
-// Scenic+ is disabled for now: the source IP-locks its playlist token to the
-// scrape IP, so browser playback fails in prod (works only when scrape and
-// playback share an IP, e.g. local dev). Flip to true once a reliable,
-// non-IP-bound source is wired up.
-export const AD_FREE_ENABLED = false;
+// Env-driven so Scenic+ can be toggled per environment. Defaults off.
+export const AD_FREE_ENABLED = process.env.REACT_APP_ADFREE_ENABLED === "true";
 
 export const server8Domains = (process.env.REACT_APP_SERVER8_DOMAINS || "")
   .split(",")

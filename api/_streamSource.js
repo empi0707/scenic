@@ -1,83 +1,72 @@
-const BASE_URL = (process.env.STREAM_BASE_URL || "").replace(/\/+$/, "");
-// Optional scraper/unlocker prefix ending in `url=` (e.g. ScraperAPI:
-// "https://api.scraperapi.com/?api_key=KEY&url="). When set, the scrape requests
-// go through it so they come from a residential IP that vixsrc doesn't 403.
-const SCRAPE_PROXY = process.env.SCRAPE_PROXY || "";
+// Resolves a TMDB id to an ad-free HLS master playlist. The source binds the
+// playlist token to the network it was scraped from, so the URL is returned
+// wrapped in /api/hls-proxy: the proxy (same origin/network as this scrape)
+// fetches the manifest and segments with the required headers and relays them,
+// which is what lets playback work from any client.
+const BASE = (process.env.STREAM_SOURCE_BASE || "https://vixsrc.to").replace(/\/+$/, "");
+
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/150 Safari/537.36";
 
-const baseHeaders = () => ({
+const baseHeaders = {
   "User-Agent": UA,
   "Accept-Language": "en-US,en;q=0.9",
-  Referer: `${BASE_URL}/`,
-  Origin: BASE_URL,
-});
+  Referer: `${BASE}/`,
+  Origin: BASE,
+};
 
-const proxied = (url) => (SCRAPE_PROXY ? `${SCRAPE_PROXY}${encodeURIComponent(url)}` : url);
-
-// Returns { ok, status, text } so callers can report where a scrape failed.
 async function getText(url, accept) {
-  try {
-    const res = await fetch(proxied(url), { headers: { ...baseHeaders(), Accept: accept } });
-    const text = res.ok ? await res.text() : null;
-    return { ok: res.ok, status: res.status, text };
-  } catch (e) {
-    return { ok: false, status: 0, text: null, error: e.message };
-  }
+  const res = await fetch(url, { headers: { ...baseHeaders, Accept: accept } });
+  return { status: res.status, text: res.ok ? await res.text() : null };
 }
 
-// The embed HTML carries the playlist URL and a signed token/expiry.
 function extractTokenData(html) {
   const token = html.match(/token["']\s*:\s*["']([^"']+)/)?.[1];
   const expires = html.match(/expires["']\s*:\s*["']([^"']+)/)?.[1];
   const playlist = html.match(/url\s*:\s*["']([^"']+)/)?.[1];
   if (!token || !expires || !playlist) return null;
-  // Reject already-expired tokens (60s grace).
   if (parseInt(expires, 10) * 1000 - 60_000 < Date.now()) return null;
   return { token, expires, playlist };
 }
 
-function buildMasterUrl({ token, expires, playlist }) {
-  const sep = playlist.includes("?") ? "&" : "?";
-  return `${playlist}${sep}token=${token}&expires=${expires}&h=1`;
+function proxied(url, headers) {
+  const h = Buffer.from(JSON.stringify(headers)).toString("base64");
+  return `/api/hls-proxy?url=${encodeURIComponent(url)}&h=${encodeURIComponent(h)}`;
 }
 
-// Pull subtitle tracks and the best resolution out of the master manifest.
-// type: "movie" | "tv"
-// Returns just the master HLS URL; hls.js discovers subtitles/qualities from
-// the manifest on the client, so we skip fetching it here (one fewer round-trip).
 async function getStreamSource({ type, id, season, episode }) {
-  if (!BASE_URL) throw new Error("STREAM_BASE_URL not configured");
-
-  const diag = { stage: "api", status: 0 };
-
   const apiUrl =
     type === "tv"
-      ? `${BASE_URL}/api/tv/${id}/${season}/${episode}`
-      : `${BASE_URL}/api/movie/${id}`;
+      ? `${BASE}/api/tv/${id}/${season}/${episode}`
+      : `${BASE}/api/movie/${id}`;
 
   const api = await getText(apiUrl, "application/json, text/javascript, */*; q=0.01");
-  diag.status = api.status;
-  if (!api.text) return { url: null, _diag: { ...diag, error: api.error } };
+  if (!api.text) return { url: null, _diag: { stage: "api", status: api.status } };
 
-  let apiData;
+  let src;
   try {
-    apiData = JSON.parse(api.text);
+    src = JSON.parse(api.text).src;
   } catch {
-    return { url: null, _diag: { ...diag, stage: "api-parse" } };
+    return { url: null, _diag: { stage: "api-parse", status: api.status } };
   }
-  if (!apiData?.src) return { url: null, _diag: { ...diag, stage: "api-nosrc" } };
+  if (!src) return { url: null, _diag: { stage: "api-nosrc", status: api.status } };
 
-  const embed = await getText(BASE_URL + apiData.src, "text/html,application/xhtml+xml,*/*");
-  if (!embed.text) {
-    return { url: null, _diag: { stage: "embed", status: embed.status, error: embed.error } };
-  }
+  const embed = await getText(BASE + src, "text/html,application/xhtml+xml,*/*");
+  if (!embed.text) return { url: null, _diag: { stage: "embed", status: embed.status } };
 
   const tokenData = extractTokenData(embed.text);
   if (!tokenData) return { url: null, _diag: { stage: "token", status: embed.status } };
 
-  return { provider: "stream", type: "hls", url: buildMasterUrl(tokenData) };
+  const sep = tokenData.playlist.includes("?") ? "&" : "?";
+  const master = `${tokenData.playlist}${sep}token=${tokenData.token}&expires=${tokenData.expires}&h=1`;
+
+  // Segments/sub-playlists need the embed page as Referer; the proxy re-adds it.
+  return {
+    type: "hls",
+    url: proxied(master, { Referer: apiUrl, "User-Agent": UA }),
+    subtitles: [],
+  };
 }
 
 module.exports = { getStreamSource };
