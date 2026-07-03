@@ -12,6 +12,32 @@ const UA =
 const isPlaylist = (url, contentType) =>
   /\.m3u8(\?|$)/i.test(url) || /mpegurl/i.test(contentType || "");
 
+// Browsers need WebVTT; upstream subtitles are SRT.
+function srtToVtt(srt) {
+  const body = srt
+    .replace(/^﻿/, "")
+    .replace(/\r+/g, "")
+    .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2");
+  return `WEBVTT\n\n${body.trim()}\n`;
+}
+
+// The stream origin intermittently returns 5xx (Cloudflare origin errors) or
+// resets the connection; retry transient failures before relaying.
+async function fetchRetry(url, opts, tries = 4) {
+  let last = null;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res.status < 500) return res;
+      last = res;
+    } catch {
+      last = null;
+    }
+  }
+  if (last) return last;
+  throw new Error("upstream unreachable");
+}
+
 function rewriteManifest(text, baseUrl, hParam) {
   const wrap = (u) => {
     const abs = new URL(u, baseUrl).toString();
@@ -46,7 +72,7 @@ module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
-    const upstream = await fetch(target, {
+    const upstream = await fetchRetry(target, {
       headers: {
         "User-Agent": UA,
         ...injected,
@@ -55,6 +81,13 @@ module.exports = async (req, res) => {
     });
     const contentType = upstream.headers.get("content-type") || "";
     const base = upstream.url || target;
+
+    if (req.query.conv === "vtt") {
+      res.setHeader("Content-Type", "text/vtt; charset=utf-8");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.status(upstream.status).send(srtToVtt(await upstream.text()));
+      return;
+    }
 
     const sendManifest = (text) => {
       res.setHeader("Content-Type", "application/vnd.apple.mpegurl");

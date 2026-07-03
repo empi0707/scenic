@@ -77,7 +77,8 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
   const [levels, setLevels] = useState([]);
   const [currentLevel, setCurrentLevel] = useState(-1); // -1 = auto
   const [activeHeight, setActiveHeight] = useState(0); // resolution actually playing
-  const [subtitles, setSubtitles] = useState([]); // {id, name}
+  const [subtitles, setSubtitles] = useState([]); // {id, name} — in-manifest (hls.js)
+  const [extSubs, setExtSubs] = useState([]); // {lang, label, url} — external <track>
   const [currentSub, setCurrentSub] = useState(-1); // -1 = off
   const [audioTracks, setAudioTracks] = useState([]);
   const [currentAudio, setCurrentAudio] = useState(-1);
@@ -165,6 +166,7 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
           setStatus("error");
           return;
         }
+        setExtSubs(Array.isArray(data.subtitles) ? data.subtitles : []);
         attach(data.url);
       })
       .catch(() => {
@@ -367,8 +369,24 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
     setCurrentAudio(id);
     setMenu(null);
   };
+  // External subs are native <track>s toggled by textTrack mode; in-manifest
+  // subs go through hls.js. Ids >= 1000 are external.
+  const showNativeSub = (label) => {
+    const v = videoRef.current;
+    if (!v) return;
+    Array.from(v.textTracks).forEach((t) => {
+      t.mode = label != null && t.label === label ? "showing" : "hidden";
+    });
+  };
   const pickSub = (id) => {
-    if (hlsRef.current) hlsRef.current.subtitleTrack = id;
+    const ext = id >= 1000 ? extSubs[id - 1000] : null;
+    if (ext) {
+      if (hlsRef.current) hlsRef.current.subtitleTrack = -1;
+      showNativeSub(ext.label || ext.lang || `Subtitle ${id - 999}`);
+    } else {
+      if (hlsRef.current) hlsRef.current.subtitleTrack = id;
+      showNativeSub(null);
+    }
     setCurrentSub(id);
     setMenu(null);
   };
@@ -397,6 +415,10 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
   const pct = duration ? (current / duration) * 100 : 0;
   const bufPct = duration ? (buffered / duration) * 100 : 0;
   const qualityTag = activeHeight >= 2160 ? "4K" : activeHeight >= 720 ? "HD" : "";
+  const allSubs = [
+    ...subtitles,
+    ...extSubs.map((s, i) => ({ id: 1000 + i, name: s.label || s.lang || `Subtitle ${i + 1}` })),
+  ];
 
   return (
     <div
@@ -416,8 +438,19 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
         ref={videoRef}
         className="scenic-player__video"
         playsInline
+        crossOrigin="anonymous"
         style={{ filter: `brightness(${brightness})` }}
-      />
+      >
+        {extSubs.map((s, i) => (
+          <track
+            key={`ext-${i}`}
+            kind="subtitles"
+            src={s.url}
+            srcLang={s.lang || "en"}
+            label={s.label || s.lang || `Subtitle ${i + 1}`}
+          />
+        ))}
+      </video>
 
       {/* Center title card before playback starts */}
       {!started && status === "ready" && (
@@ -516,7 +549,7 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
             </div>
 
             <div className="scenic-player__group scenic-player__group--right">
-              {subtitles.length > 0 && (
+              {allSubs.length > 0 && (
                 <div className="scenic-player__menuwrap">
                   <button className={currentSub >= 0 ? "is-active" : ""} onClick={() => setMenu(menu === "cc" ? null : "cc")} aria-label="Subtitles">
                     {Ic.cc}
@@ -525,7 +558,7 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
                     <div className="scenic-player__menu">
                       <div className="scenic-player__menu-title">Subtitles</div>
                       <button className={currentSub === -1 ? "sel" : ""} onClick={() => pickSub(-1)}>Off</button>
-                      {subtitles.map((s) => (
+                      {allSubs.map((s) => (
                         <button key={s.id} className={currentSub === s.id ? "sel" : ""} onClick={() => pickSub(s.id)}>{s.name}</button>
                       ))}
                     </div>

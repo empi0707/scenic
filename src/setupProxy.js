@@ -10,6 +10,29 @@ const UA =
 const isPlaylist = (url, contentType) =>
   /\.m3u8(\?|$)/i.test(url) || /mpegurl/i.test(contentType || "");
 
+function srtToVtt(srt) {
+  const body = srt
+    .replace(/^﻿/, "")
+    .replace(/\r+/g, "")
+    .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2");
+  return `WEBVTT\n\n${body.trim()}\n`;
+}
+
+async function fetchRetry(url, opts, tries = 4) {
+  let last = null;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res.status < 500) return res;
+      last = res;
+    } catch {
+      last = null;
+    }
+  }
+  if (last) return last;
+  throw new Error("upstream unreachable");
+}
+
 function rewriteManifest(text, baseUrl, hParam) {
   const wrap = (u) => {
     const abs = new URL(u, baseUrl).toString();
@@ -41,11 +64,16 @@ module.exports = function (app) {
     }
 
     try {
-      const upstream = await fetch(target, {
+      const upstream = await fetchRetry(target, {
         headers: { "User-Agent": UA, ...injected, ...(req.headers.range ? { Range: req.headers.range } : {}) },
       });
       const contentType = upstream.headers.get("content-type") || "";
       const base = upstream.url || target;
+
+      if (req.query.conv === "vtt") {
+        res.set({ "Content-Type": "text/vtt; charset=utf-8", "Cache-Control": "public, max-age=3600" });
+        return res.status(upstream.status).send(srtToVtt(await upstream.text()));
+      }
 
       if (isPlaylist(target, contentType)) {
         const body = rewriteManifest(await upstream.text(), base, h || "");
