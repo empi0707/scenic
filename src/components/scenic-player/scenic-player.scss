@@ -229,7 +229,7 @@ $glass: rgba(16, 16, 24, 0.66);
     transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
     animation: sp-pop 0.25s ease both;
 
-    svg { font-size: 2.6rem; margin-left: 4px; }
+    svg { font-size: 2.6rem; }
     &:hover {
       background: $accent;
       border-color: transparent;
@@ -352,11 +352,7 @@ $glass: rgba(16, 16, 24, 0.66);
     &--right { justify-content: flex-end; }
   }
 
-  // Play is the largest control — plain filled triangle, no ring
   &__bar &__play {
-    width: 50px;
-    height: 50px;
-    svg { font-size: 2.2rem; }
     &:hover { background: rgba(255, 255, 255, 0.16); }
   }
 
@@ -438,7 +434,7 @@ $glass: rgba(16, 16, 24, 0.66);
   &__gesture {
     position: absolute;
     top: 50%;
-    left: 50%;
+    left: 50%; // default; overridden per side below
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
@@ -454,6 +450,10 @@ $glass: rgba(16, 16, 24, 0.66);
     animation: sp-fade 0.15s ease both;
 
     svg { font-size: 1.7rem; color: #fff; }
+
+    // Volume (left-half swipe) shows on the left; brightness on the right.
+    &--volume { left: 18%; }
+    &--brightness { left: 82%; }
   }
   &__gesture-bar {
     position: relative;
@@ -771,10 +771,28 @@ $glass: rgba(16, 16, 24, 0.66);
   }
 
   @media (max-width: 600px) {
-    &__controls { padding: 2rem 0.5rem 0.6rem; }
-    &__bar { gap: 0.1rem; }
-    &__bar button { width: 40px; height: 40px; svg { font-size: 1.65rem; } }
-    &__bar &__play { width: 44px; height: 44px; svg { font-size: 1.95rem; } }
-    &__time { font-size: 0.76rem; margin-left: 0.3rem; }
+    &__controls { padding: 2rem 0.6rem 0.65rem; }
+
+    // Keep the desktop grouping (transport left, options right); just shrink to
+    // fit and drop volume + PiP (unusable/redundant on touch) so the row never
+    // overflows and the fullscreen button always stays on-screen.
+    &__bar {
+      gap: 0.1rem;
+      button { width: 38px; height: 38px; svg { font-size: 1.5rem; } }
+    }
+    &__bar &__play { width: 38px; height: 38px; svg { font-size: 1.6rem; } }
+    &__time { font-size: 0.74rem; margin-left: 0.2rem; white-space: nowrap; }
+    &__volume { display: none; }
+
+    &__bigplay {
+      width: 60px;
+      height: 60px;
+      svg { font-size: 1.9rem; }
+    }
+  }
+
+  // Tiny phones (≤360px) can't fit PiP + fullscreen; drop PiP, keep fullscreen.
+  @media (max-width: 360px) {
+    button[aria-label="Picture in picture"] { display: none; }
   }
 }

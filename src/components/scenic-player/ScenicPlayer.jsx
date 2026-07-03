@@ -13,26 +13,30 @@ const S = (props) => (
 );
 
 const Ic = {
-  play: <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.85l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5Z" /></svg>,
-  pause: <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><rect x="6" y="4.5" width="4" height="15" rx="1.4" /><rect x="14" y="4.5" width="4" height="15" rx="1.4" /></svg>,
+  play: <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6a1 1 0 0 0 1.5.87l11-6.8a1 1 0 0 0 0-1.74l-11-6.8A1 1 0 0 0 8 5.2Z" /></svg>,
+  pause: <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><rect x="6.5" y="3.5" width="4" height="17" rx="1.4" /><rect x="13.5" y="3.5" width="4" height="17" rx="1.4" /></svg>,
   back10: (
     <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true">
-      <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
-      <text x="12" y="16" fontSize="7" fontWeight="700" textAnchor="middle" fill="currentColor">10</text>
+      <g transform="translate(12 12) scale(0.9) translate(-12 -12)">
+        <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+        <text x="12" y="16" fontSize="7" fontWeight="700" textAnchor="middle" fill="currentColor">10</text>
+      </g>
     </svg>
   ),
   fwd10: (
     <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true">
-      <path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" />
-      <text x="12" y="16" fontSize="7" fontWeight="700" textAnchor="middle" fill="currentColor">10</text>
+      <g transform="translate(12 12) scale(0.9) translate(-12 -12)">
+        <path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" />
+        <text x="12" y="16" fontSize="7" fontWeight="700" textAnchor="middle" fill="currentColor">10</text>
+      </g>
     </svg>
   ),
-  volHigh: <S><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" stroke="none" /><path d="M16 8.5a5 5 0 0 1 0 7" /><path d="M19 5.5a9 9 0 0 1 0 13" /></S>,
-  volLow: <S><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" stroke="none" /><path d="M16 8.5a5 5 0 0 1 0 7" /></S>,
-  volMute: <S><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" stroke="none" /><path d="m17 9 4 4M21 9l-4 4" /></S>,
-  cc: <S><rect x="2.5" y="5" width="19" height="14" rx="3" /><path d="M10 10.5a2.6 2.6 0 1 0 0 3" /><path d="M17.5 10.5a2.6 2.6 0 1 0 0 3" /></S>,
-  gear: <S><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" /></S>,
-  pip: <S><rect x="2.5" y="4.5" width="19" height="15" rx="3" /><rect x="12" y="11" width="7.5" height="6" rx="1.5" fill="currentColor" stroke="none" /></S>,
+  volHigh: <S><path d="M3 8.5v7h4l6 5V3.5L7 8.5H3Z" fill="currentColor" stroke="none" /><path d="M16.5 8.5a5 5 0 0 1 0 7" /><path d="M19.5 5.5a9 9 0 0 1 0 13" /></S>,
+  volLow: <S><path d="M3 8.5v7h4l6 5V3.5L7 8.5H3Z" fill="currentColor" stroke="none" /><path d="M16.5 8.5a5 5 0 0 1 0 7" /></S>,
+  volMute: <S><path d="M3 8.5v7h4l6 5V3.5L7 8.5H3Z" fill="currentColor" stroke="none" /><path d="m17 9.5 4 4M21 9.5l-4 4" /></S>,
+  cc: <S><rect x="2.5" y="3.5" width="19" height="17" rx="4" /><path d="M10 9.8a2.9 2.9 0 1 0 0 4.4" /><path d="M17 9.8a2.9 2.9 0 1 0 0 4.4" /></S>,
+  gear: <S strokeWidth="2.45"><g transform="translate(12 12) scale(0.82) translate(-12 -12)"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" /></g></S>,
+  pip: <S><rect x="2.5" y="3.5" width="19" height="17" rx="3.5" /><rect x="11.5" y="11" width="8" height="6.5" rx="1.5" fill="currentColor" stroke="none" /></S>,
   full: <S><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3" /></S>,
   exit: <S><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M16 21v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" /></S>,
   alert: <S><circle cx="12" cy="12" r="9" /><path d="M12 8v4.5M12 16h.01" /></S>,
@@ -346,8 +350,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   };
 
   // Mobile: vertical swipe on the left half = volume, right half = brightness.
+  // Only active in fullscreen — avoids hijacking page scroll in the modal.
   const onTouchStart = (e) => {
-    if (e.touches.length !== 1) return;
+    if (!isFs || e.touches.length !== 1) return;
     const t = e.touches[0];
     const rect = containerRef.current.getBoundingClientRect();
     // Ignore swipes that start on the bottom control strip.
@@ -576,7 +581,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
 
       {/* Touch gesture feedback (volume / brightness) */}
       {gesture && (
-        <div className="scenic-player__gesture">
+        <div className={`scenic-player__gesture scenic-player__gesture--${gesture.mode}`}>
           {gesture.mode === "brightness"
             ? Ic.sun
             : gesture.pct === 0 ? Ic.volMute : Ic.volHigh}
