@@ -159,6 +159,20 @@ const VideoPlayerModal = ({
 
               {dropdownOpen && (
                 <div className="server-dropdown-menu">
+                  {AD_FREE_ENABLED && (
+                    <div
+                      className={`server-option server-option--adfree ${
+                        selectedServer === AD_FREE_SERVER ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        onServerChange(AD_FREE_SERVER);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span>{AD_FREE_LABEL}</span>
+                      {selectedServer === AD_FREE_SERVER && <i className="bx bx-check"></i>}
+                    </div>
+                  )}
                   {servers.map((server, index) => (
                     <div
                       key={index}
@@ -176,20 +190,6 @@ const VideoPlayerModal = ({
                       )}
                     </div>
                   ))}
-                  {AD_FREE_ENABLED && (
-                    <div
-                      className={`server-option server-option--adfree ${
-                        selectedServer === AD_FREE_SERVER ? "active" : ""
-                      }`}
-                      onClick={() => {
-                        onServerChange(AD_FREE_SERVER);
-                        setDropdownOpen(false);
-                      }}
-                    >
-                      <span>{AD_FREE_LABEL}</span>
-                      {selectedServer === AD_FREE_SERVER && <i className="bx bx-check"></i>}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -229,6 +229,7 @@ const VideoPlayerModal = ({
             <ScenicPlayer
               media={streamMedia}
               title={title}
+              subtitle={subtitle}
               onFatal={handleStreamFatal}
             />
           ) : (

@@ -2,6 +2,18 @@ $accent: #6366f1;
 $accent-bright: #818cf8;
 $glass: rgba(16, 16, 24, 0.66);
 
+// Zero-specificity button reset for the subtitles panel so every button class
+// rule still wins (no `&` here — that breaks inside :where()).
+:where(.scenic-player__caps button) {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 .scenic-player {
   position: absolute;
   inset: 0;
@@ -11,6 +23,7 @@ $glass: rgba(16, 16, 24, 0.66);
   overflow: hidden;
   user-select: none;
   font-family: inherit;
+  container-type: size; // so the subtitle overlay can size to the player
 
   &__video {
     width: 100%;
@@ -19,11 +32,28 @@ $glass: rgba(16, 16, 24, 0.66);
     background: #000;
   }
 
-  &__video::cue {
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    line-height: 1.4;
+  // Custom subtitle overlay — we render cues ourselves for full styling control.
+  &__cue {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.16em;
+    padding: 0 5%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 2;
+    font-size: calc(4.6cqh * var(--sub-scale, 1));
+    line-height: 1.32;
+  }
+  &__cue-line {
+    display: inline-block;
+    padding: 0.06em 0.42em;
     border-radius: 4px;
+    white-space: pre-wrap;
+    max-width: 100%;
   }
 
   &__spinner {
@@ -50,9 +80,10 @@ $glass: rgba(16, 16, 24, 0.66);
     right: 0;
     text-align: center;
     pointer-events: none;
+    z-index: 3;
     animation: sp-fade 0.5s ease both;
 
-    span {
+    .scenic-player__nw-eyebrow {
       display: block;
       font-size: 0.7rem;
       font-weight: 600;
@@ -69,6 +100,97 @@ $glass: rgba(16, 16, 24, 0.66);
       color: #fff;
       text-shadow: 0 2px 24px rgba(0, 0, 0, 0.9);
     }
+    .scenic-player__nw-sub,
+    .scenic-player__nw-hint { display: none; }
+
+    // Netflix-style paused view: left, large title + metadata, clear of controls.
+    &.is-paused {
+      top: auto;
+      bottom: 28%;
+      left: 5.5%;
+      right: auto;
+      text-align: left;
+      max-width: 82%;
+      animation: sp-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+      .scenic-player__nw-eyebrow {
+        display: block;
+        font-size: 0.72rem;
+        letter-spacing: 0.28em;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      strong {
+        margin-top: 0.7rem;
+        font-size: clamp(2.2rem, 6vw, 4rem);
+        line-height: 1.02;
+        letter-spacing: -0.025em;
+        text-shadow: 0 6px 44px rgba(0, 0, 0, 0.95);
+      }
+      .scenic-player__nw-sub {
+        display: block;
+        margin-top: 0.7rem;
+        font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.82);
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+      }
+      .scenic-player__nw-hint {
+        display: block;
+        margin-top: 1.15rem;
+        font-size: 0.74rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.48);
+      }
+    }
+  }
+
+  @keyframes sp-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    animation: sp-fade 0.4s ease both;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.74));
+    }
+  }
+
+  &__pause-dim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.45) 48%,
+      rgba(0, 0, 0, 0.12) 100%
+    );
+    animation: sp-fade 0.35s ease both;
+    pointer-events: none;
+  }
+
+  &__paused-tag {
+    position: absolute;
+    right: 5.5%;
+    bottom: 14%;
+    z-index: 3;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+    animation: sp-fade 0.4s ease both;
   }
 
   &__error {
@@ -376,6 +498,7 @@ $glass: rgba(16, 16, 24, 0.66);
     animation: sp-menu 0.18s ease both;
 
     &--wide { min-width: 172px; }
+    &--scroll { max-height: 320px; min-width: 150px; }
 
     button {
       width: 100%;
@@ -405,11 +528,238 @@ $glass: rgba(16, 16, 24, 0.66);
     color: rgba(255, 255, 255, 0.4);
   }
 
-  &__speeds {
+  // ---- Subtitles panel (self-contained; no base-menu button bleed) --------
+  &__caps {
+    position: absolute;
+    bottom: 52px;
+    right: 0;
+    width: 340px;
+    max-width: calc(100vw - 24px);
+    max-height: min(68vh, 520px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 14px;
+    border-radius: 18px;
+    background: $glass;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(20px) saturate(1.4);
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    animation: sp-menu 0.18s ease both;
+
+    // Overflowing content must scroll, not compress the fixed-height rows.
+    > * { flex-shrink: 0; }
+  }
+
+  &__caps-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 2px 12px;
+  }
+  &__caps-title {
+    flex: 1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  &__caps-actions { display: flex; align-items: center; gap: 6px; }
+  &__caps-total {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  &__caps &__caps-icon {
+    width: 28px;
+    height: 28px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    button { font-size: 0.78rem; padding: 0.45rem 0.3rem; justify-content: center; }
+    place-items: center;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    svg { width: 16px; height: 16px; }
+    &:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+  }
+
+  &__caps-seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  &__caps &__seg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+    transition: background 0.15s ease;
+    &:hover { background: rgba(255, 255, 255, 0.12); }
+    &.is-on {
+      background: $accent;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    }
+  }
+
+  &__caps &__caps-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    transition: background 0.15s ease;
+    &:hover { background: rgba(255, 255, 255, 0.12); }
+  }
+
+  &__caps-section {
+    padding: 14px 2px 6px;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.38);
+  }
+
+  &__caps-list { display: flex; flex-direction: column; gap: 4px; }
+  &__caps &__caps-item {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 44px;
+    padding: 0 12px !important;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    &:hover { background: rgba(255, 255, 255, 0.1); }
+    &.is-sel { background: rgba(99, 102, 241, 0.22); color: $accent-bright; }
+  }
+  &__caps-flag {
+    font-size: 1.25rem;
+    line-height: 1;
+    width: 26px;
+    text-align: center;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  }
+  &__caps-lang {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ---- Caption settings (appearance) --------------------------------------
+  &__caps &__pillgrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 2px 2px;
+    button {
+      width: auto !important;
+      padding: 0.5rem 0.9rem !important;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.8);
+      &:hover { background: rgba(255, 255, 255, 0.12); }
+      &.sel { background: $accent; color: #fff; }
+    }
+  }
+
+  &__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 4px 2px 6px;
+  }
+  &__caps &__swatch {
+    width: 52px;
+    height: 38px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    padding: 0 !important;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    &:hover { transform: translateY(-1px); }
+    &.sel {
+      border-color: $accent-bright;
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.5), 0 0 14px rgba(129, 140, 248, 0.5);
+    }
+    &--custom {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 700;
+      background: conic-gradient(from 0deg, #ef4444, #eab308, #22c55e, #06b6d4, #6366f1, #d946ef, #ef4444);
+      input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    }
+  }
+
+  &__slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 2px 2px;
+    span { font-size: 0.88rem; font-weight: 600; color: #fff; }
+    em { font-size: 0.8rem; font-style: normal; color: rgba(255, 255, 255, 0.45); }
+  }
+  // Thin track lives on the track pseudo-element; the input box is just the
+  // interactive area (so it never renders as a chunky bar).
+  &__range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+    margin: 0 0 2px;
+
+    &::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      margin-top: -4.5px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+    }
+    &::-moz-range-track {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    &::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
+    }
   }
 
   @keyframes sp-fade { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }

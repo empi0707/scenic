@@ -1,4 +1,5 @@
 const CATALOG_BASE = (process.env.CATALOG_BASE || "").replace(/\/+$/, "");
+const PLAYER_ACTION = process.env.CATALOG_PLAYER_ACTION || "";
 const TMDB_KEY = process.env.TMDB_API_KEY || process.env.REACT_APP_API_KEY || "";
 
 const UA =
@@ -64,7 +65,7 @@ function proxied(url, headers) {
 }
 
 async function getStreamSource({ type, id, season, episode }) {
-  if (!CATALOG_BASE) return { url: null, _diag: { stage: "unconfigured" } };
+  if (!CATALOG_BASE || !PLAYER_ACTION) return { url: null, _diag: { stage: "unconfigured" } };
 
   const meta = await tmdbMeta({ type, id });
   if (!meta || !meta.title) return { url: null, _diag: { stage: "tmdb" } };
@@ -92,7 +93,7 @@ async function getStreamSource({ type, id, season, episode }) {
       "X-Requested-With": "XMLHttpRequest",
       Referer: `${CATALOG_BASE}${path}`,
     },
-    body: `action=uniquestream_player_ajax&nonce=${nonce}&post=${post}&type=${ptype}&nume=${num}`,
+    body: `action=${PLAYER_ACTION}&nonce=${nonce}&post=${post}&type=${ptype}&nume=${num}`,
   });
   if (!ajax.ok) return { url: null, _diag: { stage: "ajax", status: ajax.status } };
 
@@ -128,7 +129,9 @@ async function getStreamSource({ type, id, season, episode }) {
   return {
     type: "hls",
     url: master,
-    subtitles: subUrl ? [{ lang: "en", label: "English", url: `${proxied(subUrl, headers)}&conv=vtt` }] : [],
+    subtitles: subUrl
+      ? [{ lang: "en", label: "English (source)", url: `${proxied(subUrl, headers)}&conv=vtt` }]
+      : [],
   };
 }
 

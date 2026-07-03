@@ -26,7 +26,7 @@ const SeriesVideoPlayer = ({
   onAutoPlayConsumed,
   onEpisodeClick,
 }) => {
-  const [selectedServer, setSelectedServer] = useState(0);
+  const [selectedServer, setSelectedServer] = useState(AD_FREE_ENABLED ? AD_FREE_SERVER : 0);
   const [serverUrl, setServerUrl] = useState("");
   const mirrorRef = useRef(-1);
   const [selectedSeason, setSelectedSeason] = useState(null);

@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
+import apiConfig from "../../api/apiConfig";
+import Subtitles from "./Subtitles";
+import { SUB_DEFAULTS } from "../../constants/constants";
+import { strokeCss, hexToRgba, cueLines } from "./subtitleStyle";
 import "./scenic-player.scss";
 
-const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 const S = (props) => (
   <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"
@@ -52,7 +55,7 @@ const preferredAudio = (tracks) => {
   return en >= 0 ? en : -1;
 };
 
-const ScenicPlayer = ({ media, title, onFatal }) => {
+const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const hlsRef = useRef(null);
@@ -77,18 +80,26 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
   const [levels, setLevels] = useState([]);
   const [currentLevel, setCurrentLevel] = useState(-1); // -1 = auto
   const [activeHeight, setActiveHeight] = useState(0); // resolution actually playing
-  const [subtitles, setSubtitles] = useState([]); // {id, name} — in-manifest (hls.js)
-  const [extSubs, setExtSubs] = useState([]); // {lang, label, url} — external <track>
-  const [currentSub, setCurrentSub] = useState(-1); // -1 = off
+  const [extSubs, setExtSubs] = useState([]); // {lang, label, url} from the source
+  const [activeSub, setActiveSub] = useState(null); // {key, url, lang, label} | null
+  const [cueText, setCueText] = useState(""); // current subtitle text (custom overlay)
+  const [subStyle, setSubStyle] = useState(() => {
+    try {
+      return { ...SUB_DEFAULTS, ...JSON.parse(localStorage.getItem("scenic:substyle") || "{}") };
+    } catch {
+      return SUB_DEFAULTS;
+    }
+  });
   const [audioTracks, setAudioTracks] = useState([]);
   const [currentAudio, setCurrentAudio] = useState(-1);
-  const [rate, setRate] = useState(1);
+  const fileRef = useRef(null);
 
   const [menu, setMenu] = useState(null); // null | 'settings' | 'cc'
   const [isFs, setIsFs] = useState(false);
   const [hover, setHover] = useState(null); // { pct, time } while scrubbing
   const [brightness, setBrightness] = useState(1); // CSS-simulated screen brightness
   const [gesture, setGesture] = useState(null); // { mode, pct } during a touch swipe
+  const [backdrop, setBackdrop] = useState(""); // TMDB backdrop shown while not playing
 
   // Fetch the stream URL from /api/stream, then attach hls.js.
   useEffect(() => {
@@ -130,12 +141,6 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
           video.play().catch(() => {});
         });
 
-        hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_e, data) => {
-          if (cancelled) return;
-          setSubtitles((data.subtitleTracks || []).map((t, i) => ({
-            id: i, name: t.name || t.lang || `Track ${i + 1}`,
-          })));
-        });
         hls.on(Hls.Events.LEVEL_SWITCHED, (_e, d) => {
           setCurrentLevel(hls.autoLevelEnabled ? -1 : d.level);
           setActiveHeight(hls.levels?.[d.level]?.height || 0);
@@ -180,6 +185,55 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     };
   }, [media?.type, media?.id, media?.season, media?.episode]);
+
+  // TMDB backdrop, shown behind the video while loading/buffering/paused.
+  useEffect(() => {
+    if (!media?.id) return undefined;
+    let alive = true;
+    setBackdrop("");
+    const cate = media.type === "tv" ? "tv" : "movie";
+    const key = process.env.REACT_APP_API_KEY;
+    fetch(`https://api.themoviedb.org/3/${cate}/${media.id}?api_key=${key}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive && d?.backdrop_path) setBackdrop(apiConfig.w1280Image(d.backdrop_path));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [media?.type, media?.id]);
+
+  useEffect(() => { setActiveSub(null); }, [media?.type, media?.id, media?.season, media?.episode]);
+  useEffect(() => {
+    try { localStorage.setItem("scenic:substyle", JSON.stringify(subStyle)); } catch { /* ignore */ }
+  }, [subStyle]);
+
+  // We render subtitles ourselves (::cue is styled unreliably by browsers), so
+  // keep the chosen track "hidden" (still fires cues) and mirror its text.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) { setCueText(""); return undefined; }
+    let track = null;
+    const attach = () => {
+      Array.from(v.textTracks).forEach((t) => { t.mode = "disabled"; });
+      track = activeSub ? Array.from(v.textTracks).find((t) => t.label === activeSub.label) : null;
+      if (track) {
+        track.mode = "hidden";
+        track.addEventListener("cuechange", onCue);
+        onCue();
+      } else {
+        setCueText("");
+      }
+    };
+    const onCue = () => {
+      const cues = track ? Array.from(track.activeCues || []) : [];
+      setCueText(cues.map((c) => c.text).join("\n"));
+    };
+    const id = setTimeout(attach, 0);
+    return () => {
+      clearTimeout(id);
+      if (track) track.removeEventListener("cuechange", onCue);
+    };
+  }, [activeSub]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -369,32 +423,22 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
     setCurrentAudio(id);
     setMenu(null);
   };
-  // External subs are native <track>s toggled by textTrack mode; in-manifest
-  // subs go through hls.js. Ids >= 1000 are external.
-  const showNativeSub = (label) => {
-    const v = videoRef.current;
-    if (!v) return;
-    Array.from(v.textTracks).forEach((t) => {
-      t.mode = label != null && t.label === label ? "showing" : "hidden";
-    });
+  const selectSub = (sub) => { setActiveSub(sub); setMenu(null); };
+  const onUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let text = String(reader.result || "");
+      if (!/^﻿?WEBVTT/.test(text.trimStart())) {
+        text = "WEBVTT\n\n" + text.replace(/\r+/g, "").replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2");
+      }
+      const url = URL.createObjectURL(new Blob([text], { type: "text/vtt" }));
+      selectSub({ key: `up-${file.name}`, url, lang: "und", label: `Uploaded · ${file.name}` });
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   };
-  const pickSub = (id) => {
-    const ext = id >= 1000 ? extSubs[id - 1000] : null;
-    if (ext) {
-      if (hlsRef.current) hlsRef.current.subtitleTrack = -1;
-      showNativeSub(ext.label || ext.lang || `Subtitle ${id - 999}`);
-    } else {
-      if (hlsRef.current) hlsRef.current.subtitleTrack = id;
-      showNativeSub(null);
-    }
-    setCurrentSub(id);
-    setMenu(null);
-  };
-  const pickRate = (r) => {
-    if (videoRef.current) videoRef.current.playbackRate = r;
-    setRate(r);
-  };
-
   useEffect(() => {
     const onKey = (e) => {
       if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
@@ -415,10 +459,13 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
   const pct = duration ? (current / duration) * 100 : 0;
   const bufPct = duration ? (buffered / duration) * 100 : 0;
   const qualityTag = activeHeight >= 2160 ? "4K" : activeHeight >= 720 ? "HD" : "";
-  const allSubs = [
-    ...subtitles,
-    ...extSubs.map((s, i) => ({ id: 1000 + i, name: s.label || s.lang || `Subtitle ${i + 1}` })),
-  ];
+  const paused = started && !playing && !buffering && status === "ready";
+  const showBackdrop = !!backdrop && (status === "loading" || buffering || !started);
+  const showNowWatching = status === "ready" && !buffering && (!started || paused);
+  const epTag =
+    media?.type === "tv" && media?.season != null
+      ? `${title} · S${media.season}:E${media.episode}`
+      : title;
 
   return (
     <div
@@ -439,24 +486,77 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
         className="scenic-player__video"
         playsInline
         crossOrigin="anonymous"
+        poster={backdrop || undefined}
         style={{ filter: `brightness(${brightness})` }}
       >
-        {extSubs.map((s, i) => (
+        {activeSub && (
           <track
-            key={`ext-${i}`}
+            key={activeSub.key}
             kind="subtitles"
-            src={s.url}
-            srcLang={s.lang || "en"}
-            label={s.label || s.lang || `Subtitle ${i + 1}`}
+            src={activeSub.url}
+            srcLang={activeSub.lang}
+            label={activeSub.label}
           />
-        ))}
+        )}
       </video>
 
-      {/* Center title card before playback starts */}
-      {!started && status === "ready" && (
-        <div className="scenic-player__nowwatching">
-          <span>You're Watching</span>
+      {/* Custom subtitle overlay — full control, no ::cue quirks */}
+      {cueText && (
+        <div className="scenic-player__cue" style={{ bottom: `${subStyle.position}%`, "--sub-scale": subStyle.size / 100 }}>
+          {cueLines(cueText).map((line, i) => (
+            <span
+              key={i}
+              className="scenic-player__cue-line"
+              style={{
+                fontFamily: `'${subStyle.family}', sans-serif`,
+                fontWeight: subStyle.weight,
+                color: subStyle.color,
+                background: hexToRgba("#000000", subStyle.background / 100),
+                textShadow: strokeCss(subStyle.stroke, subStyle.strokeWidth),
+              }}
+            >
+              {line}
+            </span>
+          ))}
+        </div>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".srt,.vtt,text/plain"
+        style={{ display: "none" }}
+        onChange={onUpload}
+      />
+
+      {/* Backdrop behind the video while there's no frame (loading/buffering) */}
+      {showBackdrop && (
+        <div
+          className="scenic-player__backdrop"
+          style={{ backgroundImage: `url(${backdrop})` }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Netflix-style dim over the paused frame */}
+      {paused && <div className="scenic-player__pause-dim" aria-hidden="true" />}
+
+      {/* "You're Watching" card — before start and while paused */}
+      {showNowWatching && (
+        <div className={`scenic-player__nowwatching${paused ? " is-paused" : ""}`}>
+          <span className="scenic-player__nw-eyebrow">You're watching</span>
           <strong>{title}</strong>
+          {subtitle && <p className="scenic-player__nw-sub">{subtitle}</p>}
+        </div>
+      )}
+
+      {/* Netflix-style "Paused" tag, bottom-right */}
+      {paused && <span className="scenic-player__paused-tag">Paused</span>}
+
+      {/* Title over the backdrop while the stream is loading */}
+      {status === "loading" && (
+        <div className="scenic-player__nowwatching">
+          <span className="scenic-player__nw-eyebrow">Now Playing</span>
+          <strong>{epTag}</strong>
         </div>
       )}
 
@@ -549,22 +649,19 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
             </div>
 
             <div className="scenic-player__group scenic-player__group--right">
-              {allSubs.length > 0 && (
-                <div className="scenic-player__menuwrap">
-                  <button className={currentSub >= 0 ? "is-active" : ""} onClick={() => setMenu(menu === "cc" ? null : "cc")} aria-label="Subtitles">
-                    {Ic.cc}
-                  </button>
-                  {menu === "cc" && (
-                    <div className="scenic-player__menu">
-                      <div className="scenic-player__menu-title">Subtitles</div>
-                      <button className={currentSub === -1 ? "sel" : ""} onClick={() => pickSub(-1)}>Off</button>
-                      {allSubs.map((s) => (
-                        <button key={s.id} className={currentSub === s.id ? "sel" : ""} onClick={() => pickSub(s.id)}>{s.name}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <Subtitles
+                media={media}
+                extSubs={extSubs}
+                activeSub={activeSub}
+                onSelect={selectSub}
+                onOff={() => setActiveSub(null)}
+                onUploadClick={() => fileRef.current && fileRef.current.click()}
+                menu={menu}
+                setMenu={setMenu}
+                ccIcon={Ic.cc}
+                subStyle={subStyle}
+                setSubStyle={setSubStyle}
+              />
 
               <div className="scenic-player__menuwrap">
                 <button onClick={() => setMenu(menu === "settings" ? null : "settings")} aria-label="Settings">
@@ -586,12 +683,6 @@ const ScenicPlayer = ({ media, title, onFatal }) => {
                         ))}
                       </>
                     )}
-                    <div className="scenic-player__menu-title">Speed</div>
-                    <div className="scenic-player__speeds">
-                      {SPEEDS.map((r) => (
-                        <button key={r} className={rate === r ? "sel" : ""} onClick={() => pickRate(r)}>{r === 1 ? "Normal" : `${r}x`}</button>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>

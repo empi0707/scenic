@@ -2,6 +2,7 @@
 // don't run). Mirrors the api/*.js handlers. In production the Vercel functions
 // serve these routes instead. Runs in the CRA dev server's Node process.
 const { getStreamSource } = require("../api/_streamSource");
+const { listSubtitles, downloadVtt } = require("../api/_subtitle");
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
@@ -96,6 +97,29 @@ module.exports = function (app) {
       return res.status(upstream.status).send(buf);
     } catch (e) {
       return res.status(502).json({ error: e.message || "Proxy failed" });
+    }
+  });
+
+  // Mirrors api/subtitle.js — list (all languages) + download (file_id).
+  app.use("/api/subtitle", async (req, res) => {
+    const { file_id, type = "movie", id, season, episode } = req.query || {};
+    res.set("Access-Control-Allow-Origin", "*");
+    if (file_id) {
+      res.set("Content-Type", "text/vtt; charset=utf-8");
+      try {
+        const vtt = await downloadVtt(file_id);
+        return res.status(200).send(vtt || "WEBVTT\n\n");
+      } catch {
+        return res.status(200).send("WEBVTT\n\n");
+      }
+    }
+    res.set("Content-Type", "application/json");
+    if (!id) return res.status(200).json({ total: 0, items: [] });
+    try {
+      const list = await listSubtitles({ type: type === "tv" ? "tv" : "movie", id, season, episode });
+      return res.status(200).json(list);
+    } catch {
+      return res.status(200).json({ total: 0, items: [] });
     }
   });
 

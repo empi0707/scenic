@@ -8,16 +8,19 @@ import useDownloadAvailability from "../../../hooks/useDownloadAvailability";
 const serverKey = (id) => `scenic:movie-server:${id}`;
 
 const readSavedServer = (id) => {
-  if (!id || typeof window === "undefined") return 0;
+  // Default to Scenic+ (the ad-free player) when enabled; else Server 1.
+  const fallback = AD_FREE_ENABLED ? AD_FREE_SERVER : 0;
+  if (!id || typeof window === "undefined") return fallback;
   try {
     const raw = localStorage.getItem(serverKey(id));
-    const n = raw == null ? 0 : parseInt(raw, 10);
+    if (raw == null) return fallback;
+    const n = parseInt(raw, 10);
     // Honor an explicitly saved Scenic+ (-1) only while it's enabled; otherwise
     // default to Server 1 (so an old saved -1 doesn't strand users).
     const min = AD_FREE_ENABLED ? AD_FREE_SERVER : 0;
     return Number.isFinite(n) && n >= min ? n : 0;
   } catch {
-    return 0;
+    return fallback;
   }
 };
 
