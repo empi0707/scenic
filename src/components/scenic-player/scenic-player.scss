@@ -45,7 +45,7 @@ $glass: rgba(16, 16, 24, 0.66);
     text-align: center;
     pointer-events: none;
     z-index: 2;
-    font-size: calc(4.6cqh * var(--sub-scale, 1));
+    font-size: 4.6cqh; // scaled per-size via inline style
     line-height: 1.32;
   }
   &__cue-line {

@@ -502,7 +502,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
 
       {/* Custom subtitle overlay — full control, no ::cue quirks */}
       {cueText && (
-        <div className="scenic-player__cue" style={{ bottom: `${subStyle.position}%`, "--sub-scale": subStyle.size / 100 }}>
+        <div className="scenic-player__cue" style={{ bottom: `${subStyle.position}%`, fontSize: `${(4.6 * subStyle.size) / 100}cqh` }}>
           {cueLines(cueText).map((line, i) => (
             <span
               key={i}
