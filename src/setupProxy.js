@@ -1,7 +1,7 @@
 // Dev-only: makes /api/* routes work under `npm start` (where Vercel functions
 // don't run). Mirrors the api/*.js handlers. In production the Vercel functions
 // serve these routes instead. Runs in the CRA dev server's Node process.
-const { getStreamSource } = require("../api/_streamSource");
+const { resolveStream } = require("../api/_sources");
 const { listSubtitles, downloadVtt } = require("../api/_subtitle");
 
 const UA =
@@ -125,7 +125,7 @@ module.exports = function (app) {
 
   // Mirrors api/stream.js — the ad-free HLS extractor.
   app.use("/api/stream", async (req, res) => {
-    const { type = "movie", id, season, episode } = req.query || {};
+    const { type = "movie", id, season, episode, src } = req.query || {};
     res.set("Cache-Control", "no-store");
 
     if (!id) return res.status(400).json({ error: "Missing id" });
@@ -134,14 +134,17 @@ module.exports = function (app) {
     }
 
     try {
-      const stream = await getStreamSource({
+      const { stream, src: idx, next } = await resolveStream({
         type: type === "tv" ? "tv" : "movie",
         id,
         season,
         episode,
+        src,
       });
-      if (!stream || !stream.url) return res.json(req.query.debug ? stream : { url: null });
-      return res.json(stream);
+      if (!stream || !stream.url) {
+        return res.json(req.query.debug ? { ...stream, src: idx, next } : { url: null, next });
+      }
+      return res.json({ ...stream, src: idx, next });
     } catch (e) {
       return res.status(502).json({ error: e.message || "Extraction failed" });
     }

@@ -59,8 +59,11 @@ $glass: rgba(16, 16, 24, 0.66);
   &__spinner {
     position: absolute;
     inset: 0;
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
     pointer-events: none;
 
     svg {
@@ -68,6 +71,16 @@ $glass: rgba(16, 16, 24, 0.66);
       color: #fff;
       filter: drop-shadow(0 0 14px rgba(99, 102, 241, 0.7));
     }
+  }
+
+  &__spinner-note {
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(0, 0, 0, 0.45);
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
   }
 
   &__spin { animation: sp-spin 0.8s linear infinite; }

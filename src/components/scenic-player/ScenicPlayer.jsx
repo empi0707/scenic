@@ -104,21 +104,44 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   const [brightness, setBrightness] = useState(1); // CSS-simulated screen brightness
   const [gesture, setGesture] = useState(null); // { mode, pct } during a touch swipe
   const [backdrop, setBackdrop] = useState(""); // TMDB backdrop shown while not playing
+  const [srcIdx, setSrcIdx] = useState(0); // which ordered source to resolve (0 = primary)
+  const [switching, setSwitching] = useState(false); // falling back to another source
 
-  // Fetch the stream URL from /api/stream, then attach hls.js.
+  // A new title starts from the primary source again.
+  useEffect(() => {
+    setSrcIdx(0);
+    setSwitching(false);
+  }, [media?.type, media?.id, media?.season, media?.episode]);
+
+  // Fetch the stream URL from /api/stream, then attach hls.js. On resolve or
+  // playback failure, fall through to the next source (`next`) with a loader.
   useEffect(() => {
     if (!media?.id) return undefined;
     let cancelled = false;
     setStatus("loading");
     setStarted(false);
 
-    const params = new URLSearchParams({ type: media.type || "movie", id: String(media.id) });
+    const params = new URLSearchParams({ type: media.type || "movie", id: String(media.id), src: String(srcIdx) });
     if (media.type === "tv") {
       params.set("season", String(media.season));
       params.set("episode", String(media.episode));
     }
 
     const video = videoRef.current;
+    const nextRef = { current: null };
+    let watchdog = null;
+    const fallback = () => {
+      if (cancelled) return;
+      clearTimeout(watchdog);
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      if (nextRef.current != null) {
+        setSwitching(true);
+        setSrcIdx(nextRef.current);
+      } else {
+        setErrorMsg("No ad-free source found for this title.");
+        setStatus("error");
+      }
+    };
 
     const attach = (url) => {
       if (Hls.isSupported()) {
@@ -133,6 +156,14 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
         hls.loadSource(url);
         hls.attachMedia(video);
 
+        // Some mirror encodes resolve fine but the browser can't decode them:
+        // hls emits non-fatal append errors forever and nothing ever buffers.
+        // Watch for "no data appended" and fall through to the next encode.
+        let appended = false;
+        let appendFails = 0;
+        watchdog = setTimeout(() => { if (!cancelled && !appended) fallback(); }, 12000);
+        hls.on(Hls.Events.BUFFER_APPENDED, () => { appended = true; clearTimeout(watchdog); });
+
         hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
           if (cancelled) return;
           setLevels(data.levels || []);
@@ -142,6 +173,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
           if (pref >= 0) { hls.audioTrack = pref; setCurrentAudio(pref); }
           else setCurrentAudio(hls.audioTrack);
           setStatus("ready");
+          setSwitching(false);
           video.play().catch(() => {});
         });
 
@@ -152,15 +184,27 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
         hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_e, d) => setCurrentAudio(d.id));
 
         hls.on(Hls.Events.ERROR, (_e, data) => {
+          const D = Hls.ErrorDetails;
+          // Undecodable encode: repeated append errors before any data buffered.
+          if (!appended && (data.details === D.BUFFER_APPEND_ERROR || data.details === D.BUFFER_APPENDING_ERROR)) {
+            if (++appendFails >= 3 && nextRef.current != null) { fallback(); return; }
+          }
           if (!data.fatal) return;
+          const manifestDead =
+            data.details === D.MANIFEST_LOAD_ERROR ||
+            data.details === D.MANIFEST_LOAD_TIMEOUT ||
+            data.details === D.MANIFEST_PARSING_ERROR;
+          // Unreachable/broken manifest with an encode left → try the next one.
+          if (manifestDead && nextRef.current != null) { fallback(); return; }
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
           else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+          else if (nextRef.current != null) { fallback(); }
           else { setErrorMsg("Playback failed for this title."); setStatus("error"); }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         // Safari native HLS.
         video.src = url;
-        video.addEventListener("loadedmetadata", () => { setStatus("ready"); video.play().catch(() => {}); }, { once: true });
+        video.addEventListener("loadedmetadata", () => { setStatus("ready"); setSwitching(false); video.play().catch(() => {}); }, { once: true });
       } else {
         setErrorMsg("Your browser can't play this stream."); setStatus("error");
       }
@@ -170,25 +214,22 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        if (!data?.url) {
-          setErrorMsg("No ad-free source found for this title.");
-          setStatus("error");
-          return;
-        }
+        nextRef.current = data?.next ?? null;
+        if (!data?.url) { fallback(); return; }
         setExtSubs(Array.isArray(data.subtitles) ? data.subtitles : []);
         attach(data.url);
       })
       .catch(() => {
         if (cancelled) return;
-        setErrorMsg("Couldn't reach the ad-free source.");
-        setStatus("error");
+        fallback();
       });
 
     return () => {
       cancelled = true;
+      clearTimeout(watchdog);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     };
-  }, [media?.type, media?.id, media?.season, media?.episode]);
+  }, [media?.type, media?.id, media?.season, media?.episode, srcIdx]);
 
   // TMDB backdrop, shown behind the video while loading/buffering/paused.
   useEffect(() => {
@@ -567,7 +608,10 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
 
       {/* Loading / buffering */}
       {(status === "loading" || buffering) && status !== "error" && (
-        <div className="scenic-player__spinner">{Ic.spinner}</div>
+        <div className="scenic-player__spinner">
+          {Ic.spinner}
+          {switching && <span className="scenic-player__spinner-note">Trying another source…</span>}
+        </div>
       )}
 
       {/* Error */}
