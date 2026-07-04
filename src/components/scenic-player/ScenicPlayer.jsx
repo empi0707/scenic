@@ -4,6 +4,8 @@ import apiConfig from "../../api/apiConfig";
 import Subtitles from "./Subtitles";
 import { SUB_DEFAULTS } from "../../constants/constants";
 import { strokeCss, hexToRgba, cueLines } from "./subtitleStyle";
+import { playbackProgress, progressKey } from "../../utils/playbackProgress";
+import { watchedEpisodes } from "../../utils/watchedEpisodes";
 import "./scenic-player.scss";
 
 
@@ -59,7 +61,7 @@ const preferredAudio = (tracks) => {
   return en >= 0 ? en : -1;
 };
 
-const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
+const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const hlsRef = useRef(null);
@@ -68,6 +70,18 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   const touchRef = useRef(null);
   const swipeConsumed = useRef(false);
   const gestureTimer = useRef(null);
+  // Kept in refs so the once-mounted event/keyboard effects read fresh values.
+  const mediaRef = useRef(media);
+  const hasNextRef = useRef(hasNext);
+  const onNextRef = useRef(onNext);
+  const lastSaveRef = useRef(0);
+  const didResumeRef = useRef(false);
+  const markedRef = useRef(false);
+  const tapRef = useRef(null); // { time, side } for double-tap seek
+  const singleTapTimer = useRef(null);
+  mediaRef.current = media;
+  hasNextRef.current = hasNext;
+  onNextRef.current = onNext;
 
   const [status, setStatus] = useState("loading"); // loading | ready | error
   const [errorMsg, setErrorMsg] = useState("");
@@ -104,6 +118,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   const [brightness, setBrightness] = useState(1); // CSS-simulated screen brightness
   const [gesture, setGesture] = useState(null); // { mode, pct } during a touch swipe
   const [backdrop, setBackdrop] = useState(""); // TMDB backdrop shown while not playing
+  const [countdown, setCountdown] = useState(null); // seconds until autoplay-next, or null
+  const [showHelp, setShowHelp] = useState(false); // keyboard shortcuts overlay
+  const [seekFx, setSeekFx] = useState(null); // { side, amount } double-tap seek ripple
   const [srcIdx, setSrcIdx] = useState(0); // which ordered source to resolve (0 = primary)
   const [switching, setSwitching] = useState(false); // falling back to another source
 
@@ -111,6 +128,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   useEffect(() => {
     setSrcIdx(0);
     setSwitching(false);
+    setCountdown(null);
+    didResumeRef.current = false;
+    markedRef.current = false;
   }, [media?.type, media?.id, media?.season, media?.episode]);
 
   // Fetch the stream URL from /api/stream, then attach hls.js. On resolve or
@@ -130,6 +150,15 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
     const video = videoRef.current;
     const nextRef = { current: null };
     let watchdog = null;
+    // Seek to the stored position for this title once, when playback is ready.
+    const resume = () => {
+      if (didResumeRef.current) return;
+      didResumeRef.current = true;
+      const saved = playbackProgress.get(progressKey(mediaRef.current));
+      if (saved && saved.time > 5 && (!saved.duration || saved.time < saved.duration - 15)) {
+        try { video.currentTime = saved.time; } catch { /* ignore */ }
+      }
+    };
     const fallback = () => {
       if (cancelled) return;
       clearTimeout(watchdog);
@@ -174,6 +203,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
           else setCurrentAudio(hls.audioTrack);
           setStatus("ready");
           setSwitching(false);
+          resume();
           video.play().catch(() => {});
         });
 
@@ -204,7 +234,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         // Safari native HLS.
         video.src = url;
-        video.addEventListener("loadedmetadata", () => { setStatus("ready"); setSwitching(false); video.play().catch(() => {}); }, { once: true });
+        video.addEventListener("loadedmetadata", () => { setStatus("ready"); setSwitching(false); resume(); video.play().catch(() => {}); }, { once: true });
       } else {
         setErrorMsg("Your browser can't play this stream."); setStatus("error");
       }
@@ -280,19 +310,46 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
     };
   }, [activeSub]);
 
+  const goNext = useCallback(() => {
+    setCountdown(null);
+    if (hasNextRef.current && onNextRef.current) onNextRef.current();
+  }, []);
+
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return undefined;
+    // Mark a TV episode watched (adds the tick) once, near the end.
+    const markEpisodeWatched = () => {
+      if (markedRef.current) return;
+      markedRef.current = true;
+      const m = mediaRef.current;
+      if (m?.type === "tv" && m.id != null) watchedEpisodes.markWatched(String(m.id), m.season, m.episode);
+    };
     const onTime = () => {
       setCurrent(v.currentTime);
       if (v.buffered.length) setBuffered(v.buffered.end(v.buffered.length - 1));
+      if (v.duration && v.currentTime / v.duration > 0.9) markEpisodeWatched();
+      const now = Date.now();
+      if (now - lastSaveRef.current > 5000 && v.currentTime > 5) {
+        lastSaveRef.current = now;
+        playbackProgress.save(progressKey(mediaRef.current), v.currentTime, v.duration);
+      }
     };
     const onDur = () => setDuration(v.duration || 0);
     const onPlay = () => { setPlaying(true); setStarted(true); };
-    const onPause = () => setPlaying(false);
+    const onPause = () => {
+      setPlaying(false);
+      if (v.currentTime > 5) playbackProgress.save(progressKey(mediaRef.current), v.currentTime, v.duration);
+    };
     const onVol = () => { setMuted(v.muted); setVolume(v.volume); };
     const onWaiting = () => setBuffering(true);
     const onPlaying = () => setBuffering(false);
+    // End of title: finished, so clear resume, tick the episode, offer next.
+    const onEnded = () => {
+      playbackProgress.clear(progressKey(mediaRef.current));
+      markEpisodeWatched();
+      if (hasNextRef.current && onNextRef.current) setCountdown(10);
+    };
 
     v.addEventListener("timeupdate", onTime);
     v.addEventListener("durationchange", onDur);
@@ -301,7 +358,11 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
     v.addEventListener("volumechange", onVol);
     v.addEventListener("waiting", onWaiting);
     v.addEventListener("playing", onPlaying);
+    v.addEventListener("ended", onEnded);
     return () => {
+      if (v.currentTime > 5 && v.duration && v.currentTime < v.duration - 15) {
+        playbackProgress.save(progressKey(mediaRef.current), v.currentTime, v.duration);
+      }
       v.removeEventListener("timeupdate", onTime);
       v.removeEventListener("durationchange", onDur);
       v.removeEventListener("play", onPlay);
@@ -309,8 +370,17 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
       v.removeEventListener("volumechange", onVol);
       v.removeEventListener("waiting", onWaiting);
       v.removeEventListener("playing", onPlaying);
+      v.removeEventListener("ended", onEnded);
     };
   }, []);
+
+  // Autoplay-next countdown tick.
+  useEffect(() => {
+    if (countdown == null) return undefined;
+    if (countdown <= 0) { goNext(); return undefined; }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, goNext]);
 
   useEffect(() => {
     if (status === "error" && onFatal) onFatal(errorMsg);
@@ -351,6 +421,24 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
     const v = videoRef.current;
     if (v) v.currentTime = Math.min(Math.max(0, v.currentTime + delta), v.duration || 0);
   }, []);
+
+  const adjustVolume = useCallback((delta) => {
+    const v = videoRef.current;
+    if (!v) return;
+    const nv = Math.min(1, Math.max(0, (v.muted ? 0 : v.volume) + delta));
+    v.volume = nv;
+    v.muted = nv === 0;
+  }, []);
+
+  // Toggle captions between off and the first source track (keyboard 'c').
+  const toggleCaptions = useCallback(() => {
+    setActiveSub((cur) => {
+      if (cur) return null;
+      const s = extSubs[0];
+      return s ? { key: "src-0", url: s.url, lang: s.lang || "en", label: s.label || "Subtitle 1" } : cur;
+    });
+  }, [extSubs]);
+
 
   const seekTo = (e) => {
     const v = videoRef.current;
@@ -401,6 +489,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
     const isRight = t.clientX - rect.left > rect.width / 2;
     touchRef.current = {
       startY: t.clientY,
+      startX: t.clientX,
+      left: rect.left,
+      width: rect.width,
       height: rect.height,
       mode: isRight ? "brightness" : "volume",
       startVal: isRight ? brightness : muted ? 0 : volume,
@@ -426,10 +517,30 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   };
 
   const onTouchEnd = () => {
-    if (touchRef.current?.moved) swipeConsumed.current = true;
+    const st = touchRef.current;
     touchRef.current = null;
     clearTimeout(gestureTimer.current);
     gestureTimer.current = setTimeout(() => setGesture(null), 500);
+    if (!st) return;
+    if (st.moved) { swipeConsumed.current = true; return; }
+    // A tap in fullscreen: single tap reveals controls, double tap seeks.
+    swipeConsumed.current = true; // suppress the container's click-to-toggle
+    const rel = st.startX - st.left;
+    const side = rel < st.width * 0.35 ? "left" : rel > st.width * 0.65 ? "right" : "center";
+    const now = Date.now();
+    const prev = tapRef.current;
+    if (prev && now - prev.time < 300 && prev.side === side && side !== "center") {
+      clearTimeout(singleTapTimer.current);
+      tapRef.current = null;
+      const amount = side === "right" ? 10 : -10;
+      seekBy(amount);
+      setSeekFx({ side, amount, id: now });
+      setTimeout(() => setSeekFx((f) => (f && f.id === now ? null : f)), 550);
+    } else {
+      tapRef.current = { time: now, side };
+      clearTimeout(singleTapTimer.current);
+      singleTapTimer.current = setTimeout(() => { showControls(); tapRef.current = null; }, 280);
+    }
   };
 
   const toggleFullscreen = async () => {
@@ -488,19 +599,25 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
   useEffect(() => {
     const onKey = (e) => {
       if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+      if (e.key === "Escape") { if (showHelp) setShowHelp(false); return; }
       switch (e.key) {
         case " ": case "k": e.preventDefault(); togglePlay(); break;
-        case "ArrowLeft": seekBy(-10); break;
-        case "ArrowRight": seekBy(10); break;
+        case "ArrowLeft": case "j": seekBy(-10); break;
+        case "ArrowRight": case "l": seekBy(10); break;
+        case "ArrowUp": e.preventDefault(); adjustVolume(0.1); break;
+        case "ArrowDown": e.preventDefault(); adjustVolume(-0.1); break;
         case "f": toggleFullscreen(); break;
         case "m": toggleMute(); break;
+        case "c": toggleCaptions(); break;
+        case "n": goNext(); break;
+        case "?": setShowHelp((h) => !h); break;
         default: return;
       }
       showControls();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePlay, seekBy, showControls]);
+  }, [togglePlay, seekBy, showControls, adjustVolume, toggleCaptions, goNext, showHelp]);
 
   const pct = duration ? (current / duration) * 100 : 0;
   const bufPct = duration ? (buffered / duration) * 100 : 0;
@@ -636,8 +753,51 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal }) => {
         </div>
       )}
 
+      {/* Double-tap seek ripple */}
+      {seekFx && (
+        <div className={`scenic-player__seekfx scenic-player__seekfx--${seekFx.side}`} aria-hidden="true">
+          {seekFx.amount < 0 ? Ic.back10 : Ic.fwd10}
+          <span>{Math.abs(seekFx.amount)}s</span>
+        </div>
+      )}
+
+      {/* Autoplay next episode card */}
+      {countdown != null && (
+        <div className="scenic-player__nextcard">
+          <span className="scenic-player__nextcard-eyebrow">Next episode</span>
+          <p className="scenic-player__nextcard-count">Playing in {countdown}s</p>
+          <div className="scenic-player__nextcard-actions">
+            <button className="scenic-player__nextcard-play" onClick={goNext}>Play now</button>
+            <button className="scenic-player__nextcard-cancel" onClick={() => setCountdown(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard shortcuts help */}
+      {showHelp && (
+        <div className="scenic-player__help" onClick={() => setShowHelp(false)}>
+          <div className="scenic-player__help-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="scenic-player__help-head">
+              <span>Keyboard shortcuts</span>
+              <button onClick={() => setShowHelp(false)} aria-label="Close">{Ic.exit}</button>
+            </div>
+            <ul>
+              <li><kbd>Space</kbd><kbd>K</kbd><span>Play / pause</span></li>
+              <li><kbd>J</kbd><kbd>←</kbd><span>Back 10s</span></li>
+              <li><kbd>L</kbd><kbd>→</kbd><span>Forward 10s</span></li>
+              <li><kbd>↑</kbd><kbd>↓</kbd><span>Volume</span></li>
+              <li><kbd>M</kbd><span>Mute</span></li>
+              <li><kbd>C</kbd><span>Captions on / off</span></li>
+              <li><kbd>F</kbd><span>Fullscreen</span></li>
+              {hasNext && <li><kbd>N</kbd><span>Next episode</span></li>}
+              <li><kbd>?</kbd><span>This help</span></li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Big center play button when paused */}
-      {status === "ready" && !playing && !buffering && (
+      {status === "ready" && !playing && !buffering && countdown == null && (
         <button className="scenic-player__bigplay" onClick={togglePlay} aria-label="Play">
           {Ic.play}
         </button>

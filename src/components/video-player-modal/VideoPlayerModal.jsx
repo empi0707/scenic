@@ -231,6 +231,8 @@ const VideoPlayerModal = ({
               title={title}
               subtitle={subtitle}
               onFatal={handleStreamFatal}
+              onNext={onNext}
+              hasNext={hasNext}
             />
           ) : (
             <>

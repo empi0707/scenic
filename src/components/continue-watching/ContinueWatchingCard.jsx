@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import apiConfig from "../../api/apiConfig";
 import { watchedEpisodes } from "../../utils/watchedEpisodes";
+import { playbackProgress } from "../../utils/playbackProgress";
 
 // Landscape (16:9) card used inside Continue Watching. For series we
 // prefer the episode's own still image (so the user sees what they were
@@ -67,6 +68,15 @@ const ContinueWatchingCard = ({ entry }) => {
         if (meta?.stillPath) episodeStillPath = meta.stillPath;
       }
     }
+    // Blend in how far through the resume episode the user actually is.
+    if (last) {
+      const frac = playbackProgress.fraction({ type: "tv", id: entry.id, season: last.season, episode: last.episode });
+      if (frac > 0.01) progressPct = Math.max(progressPct || 0, Math.round(frac * 100));
+    }
+  } else {
+    // Movies: bar reflects the saved playback position.
+    const frac = playbackProgress.fraction({ type: "movie", id: entry.id });
+    if (frac > 0.01) progressPct = Math.min(100, Math.round(frac * 100));
   }
 
   // Prefer the last-watched episode's still for TV; otherwise fall back
