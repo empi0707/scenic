@@ -42,6 +42,7 @@ const Ic = {
   full: <S><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3" /></S>,
   exit: <S><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M16 21v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" /></S>,
   alert: <S><circle cx="12" cy="12" r="9" /><path d="M12 8v4.5M12 16h.01" /></S>,
+  kbd: <S><rect x="2.5" y="6" width="19" height="12" rx="2" /><path d="M6 9.6h.01M9.5 9.6h.01M13 9.6h.01M16.5 9.6h.01M6 13h.01M18 13h.01M9 13h6" /></S>,
   sun: <S><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></S>,
   spinner: <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" className="scenic-player__spin" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.22)" strokeWidth="3" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>,
 };
@@ -896,6 +897,14 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
                 )}
               </div>
 
+              <button
+                className="scenic-player__kbd-btn"
+                onClick={() => setShowHelp(true)}
+                aria-label="Keyboard shortcuts"
+                title="Keyboard shortcuts (?)"
+              >
+                {Ic.kbd}
+              </button>
               {document.pictureInPictureEnabled && (
                 <button onClick={togglePip} aria-label="Picture in picture">{Ic.pip}</button>
               )}

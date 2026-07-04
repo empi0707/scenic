@@ -919,6 +919,7 @@ $glass: rgba(16, 16, 24, 0.66);
     &__bar &__play { width: 38px; height: 38px; svg { font-size: 1.6rem; } }
     &__time { font-size: 0.74rem; margin-left: 0.2rem; white-space: nowrap; }
     &__volume { display: none; }
+    &__kbd-btn { display: none; } // no keyboard on touch devices
 
     &__bigplay {
       width: 60px;
