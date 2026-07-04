@@ -3,7 +3,9 @@
 // host's referer are env-driven. The decoded list is HLS; each entry is a
 // fallback candidate the client can walk when one fails to play.
 const RELAY_BASE = (process.env.RELAY_BASE || "").replace(/\/+$/, "");
-const RELAY_PROVIDER = process.env.RELAY_PROVIDER || "";
+// Comma-separated provider routes tried in order; coverage varies per title, so
+// each is a fallback candidate the client walks.
+const PROVIDERS = (process.env.RELAY_PROVIDER || "").split(",").map((s) => s.trim()).filter(Boolean);
 const RELAY_REFERER = process.env.RELAY_REFERER || "";
 
 const UA =
@@ -67,28 +69,31 @@ function collectHls(node, acc) {
 }
 
 async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
-  if (!RELAY_BASE || !RELAY_PROVIDER) return { stream: { url: null, _diag: { stage: "unconfigured" } }, total: 0 };
+  if (!RELAY_BASE || !PROVIDERS.length) return { stream: { url: null, _diag: { stage: "unconfigured" } }, total: 0 };
 
-  const path =
-    type === "tv"
-      ? `/${RELAY_PROVIDER}/tv/${id}/${season}/${episode}`
-      : `/${RELAY_PROVIDER}/movie/${id}`;
+  const total = PROVIDERS.length;
+  if (candidate >= total) return { stream: { url: null, _diag: { stage: "exhausted" } }, total };
+  const provider = PROVIDERS[candidate];
+
+  const path = type === "tv" ? `/${provider}/tv/${id}/${season}/${episode}` : `/${provider}/movie/${id}`;
   const res = await tryFetch(`${RELAY_BASE}${path}`, { headers: { "User-Agent": UA, Referer: `${RELAY_BASE}/` } });
-  if (!res.ok) return { stream: { url: null, _diag: { stage: "fetch", status: res.status } }, total: 0 };
+  if (!res.ok) return { stream: { url: null, _diag: { stage: "fetch", status: res.status, provider } }, total };
 
   const j = await res.json().catch(() => null);
-  if (!j) return { stream: { url: null, _diag: { stage: "parse" } }, total: 0 };
+  if (!j) return { stream: { url: null, _diag: { stage: "parse", provider } }, total };
 
   let obj = j;
   if (j.encrypted) {
     try { obj = JSON.parse(decodePayload(j.data || "")); } catch { obj = null; }
   }
-  const urls = [...new Set(collectHls(obj, []))];
-  const total = urls.length;
-  if (candidate >= total) return { stream: { url: null, _diag: { stage: "exhausted" } }, total };
+  // Prefer master/variant playlists over single-rendition ones.
+  const urls = [...new Set(collectHls(obj, []))].sort(
+    (a, b) => (/(master|\/pl\/)/i.test(b) ? 1 : 0) - (/(master|\/pl\/)/i.test(a) ? 1 : 0)
+  );
+  if (!urls.length) return { stream: { url: null, _diag: { stage: "nostream", provider } }, total };
 
   const headers = { Referer: RELAY_REFERER || `${RELAY_BASE}/`, "User-Agent": UA };
-  return { stream: { type: "hls", url: proxied(urls[candidate], headers), subtitles: [] }, total };
+  return { stream: { type: "hls", url: proxied(urls[0], headers), subtitles: [] }, total };
 }
 
 module.exports = { getRelaySource };
