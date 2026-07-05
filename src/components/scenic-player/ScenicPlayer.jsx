@@ -86,6 +86,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const singleTapTimer = useRef(null);
   const failedRef = useRef({}); // { [src]: true } sources that failed to play
   const sourceListRef = useRef([]); // mirror of sourceList for the once-mounted effects
+  const activeSubRef = useRef(null); // mirror of activeSub so toggleFullscreen stays non-reactive
   mediaRef.current = media;
   hasNextRef.current = hasNext;
   onNextRef.current = onNext;
@@ -113,6 +114,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const [activeHeight, setActiveHeight] = useState(0); // resolution actually playing
   const [extSubs, setExtSubs] = useState([]); // {lang, label, url} from the source
   const [activeSub, setActiveSub] = useState(null); // {key, url, lang, label} | null
+  activeSubRef.current = activeSub;
   const [cueText, setCueText] = useState(""); // current subtitle text (custom overlay)
   const [subStyle, setSubStyle] = useState(() => {
     try {
@@ -469,7 +471,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
 
   useEffect(() => {
     const onFs = () => {
-      const fs = Boolean(document.fullscreenElement);
+      const fs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
       setIsFs(fs);
       if (!fs) {
         try {
@@ -480,7 +482,26 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
       }
     };
     document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
+    document.addEventListener("webkitfullscreenchange", onFs);
+    // iOS native <video> fullscreen fires these on the element, not `document`.
+    const v = videoRef.current;
+    const onBegin = () => setIsFs(true);
+    const onEnd = () => {
+      setIsFs(false);
+      // Revert any track we flipped to "showing" for the native player so our
+      // own overlay resumes and cues aren't rendered twice.
+      Array.from(v?.textTracks || []).forEach((t) => {
+        if (t.mode === "showing") t.mode = "hidden";
+      });
+    };
+    v?.addEventListener("webkitbeginfullscreen", onBegin);
+    v?.addEventListener("webkitendfullscreen", onEnd);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFs);
+      document.removeEventListener("webkitfullscreenchange", onFs);
+      v?.removeEventListener("webkitbeginfullscreen", onBegin);
+      v?.removeEventListener("webkitendfullscreen", onEnd);
+    };
   }, []);
 
   const showControls = useCallback(() => {
@@ -573,21 +594,27 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     window.addEventListener("pointerup", up);
   };
 
-  // Mobile: vertical swipe on the left half = volume, right half = brightness.
-  // Only active in fullscreen — avoids hijacking page scroll in the modal.
+  // Mobile touch:
+  //  • vertical swipe (fullscreen only) — left half = volume, right half = brightness
+  //  • double-tap left / right thirds — seek ∓10s
+  //  • double-tap centre — toggle fullscreen (works in and out of fullscreen)
+  //  • single tap — reveal controls (fullscreen) or play/pause (windowed)
   const onTouchStart = (e) => {
-    if (!isFs || e.touches.length !== 1) return;
+    if (e.touches.length !== 1) return;
     const t = e.touches[0];
     const rect = containerRef.current.getBoundingClientRect();
-    // Ignore swipes that start on the bottom control strip.
-    if (t.clientY > rect.bottom - 72) return;
     const isRight = t.clientX - rect.left > rect.width / 2;
+    // Swipe adjust is fullscreen-only (so it doesn't hijack page scroll in the
+    // modal) and never on the bottom control strip.
+    const swipe = isFs && t.clientY <= rect.bottom - 72;
     touchRef.current = {
       startY: t.clientY,
       startX: t.clientX,
       left: rect.left,
       width: rect.width,
       height: rect.height,
+      target: e.target,
+      swipe,
       mode: isRight ? "brightness" : "volume",
       startVal: isRight ? brightness : muted ? 0 : volume,
       moved: false,
@@ -598,6 +625,13 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     const st = touchRef.current;
     if (!st || e.touches.length !== 1) return;
     const dy = st.startY - e.touches[0].clientY;
+    if (!st.swipe) {
+      // Windowed / control strip: any real movement is a scroll, so cancel the
+      // pending tap rather than adjusting volume/brightness.
+      const dx = e.touches[0].clientX - st.startX;
+      if (Math.abs(dy) > 12 || Math.abs(dx) > 12) st.moved = true;
+      return;
+    }
     if (!st.moved && Math.abs(dy) < 10) return;
     st.moved = true;
     const min = st.mode === "brightness" ? 0.2 : 0;
@@ -617,39 +651,73 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     clearTimeout(gestureTimer.current);
     gestureTimer.current = setTimeout(() => setGesture(null), 500);
     if (!st) return;
-    if (st.moved) { swipeConsumed.current = true; return; }
-    // A tap in fullscreen: single tap reveals controls, double tap seeks.
+    if (st.moved) { if (st.swipe) swipeConsumed.current = true; return; }
+    // Only the video/empty area is a "player tap" — let real controls (buttons,
+    // menus) receive their own touches untouched.
+    const tgt = st.target;
+    if (tgt && tgt !== containerRef.current && tgt.tagName !== "VIDEO") return;
     swipeConsumed.current = true; // suppress the container's click-to-toggle
     const rel = st.startX - st.left;
     const side = rel < st.width * 0.35 ? "left" : rel > st.width * 0.65 ? "right" : "center";
     const now = Date.now();
     const prev = tapRef.current;
-    if (prev && now - prev.time < 300 && prev.side === side && side !== "center") {
+    if (prev && now - prev.time < 300 && prev.side === side) {
       clearTimeout(singleTapTimer.current);
       tapRef.current = null;
-      const amount = side === "right" ? 10 : -10;
-      seekBy(amount);
-      setSeekFx({ side, amount, id: now });
-      setTimeout(() => setSeekFx((f) => (f && f.id === now ? null : f)), 550);
+      if (side === "center") {
+        toggleFullscreen();
+      } else {
+        const amount = side === "right" ? 10 : -10;
+        seekBy(amount);
+        setSeekFx({ side, amount, id: now });
+        setTimeout(() => setSeekFx((f) => (f && f.id === now ? null : f)), 550);
+      }
     } else {
       tapRef.current = { time: now, side };
       clearTimeout(singleTapTimer.current);
-      singleTapTimer.current = setTimeout(() => { showControls(); tapRef.current = null; }, 280);
+      singleTapTimer.current = setTimeout(() => {
+        if (isFs) showControls();
+        else togglePlay();
+        tapRef.current = null;
+      }, 280);
     }
   };
 
   const toggleFullscreen = async () => {
+    const el = containerRef.current;
+    const v = videoRef.current;
     try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await containerRef.current?.requestFullscreen?.();
+      // Already fullscreen (standard or WebKit desktop) → exit.
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        await (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
+        return;
+      }
+      // Standard element Fullscreen API — Android Chrome, desktop, etc.
+      if (el?.requestFullscreen) {
+        await el.requestFullscreen();
         // Rotate to landscape on mobile; unsupported on desktop/iOS (ignored).
         try {
           await window.screen?.orientation?.lock?.("landscape");
         } catch {
           /* orientation lock not available */
         }
+        return;
+      }
+      if (el?.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+        return;
+      }
+      // iOS (Safari/Chrome/all WebKit): elements can't go fullscreen, only the
+      // <video> can via its own native player. Push the active subtitle track to
+      // "showing" so cues still appear inside Apple's player (we normally render
+      // them ourselves); webkitendfullscreen reverts it.
+      if (v?.webkitEnterFullscreen && v.webkitSupportsFullscreen !== false) {
+        const sub = activeSubRef.current;
+        if (sub) {
+          const t = Array.from(v.textTracks || []).find((x) => x.label === sub.label);
+          if (t) t.mode = "showing";
+        }
+        v.webkitEnterFullscreen();
       }
     } catch {
       /* fullscreen not available */
