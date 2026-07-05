@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { detailPath } from "../../utils/slug";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -87,7 +88,7 @@ const TrendingRow = ({
       >
         {items.map((item, i) => {
           const rank = i + 1;
-          const link = `/${item.media_type}/${item.id}`;
+          const link = detailPath(item.media_type, item.id, item.title || item.name);
           const poster = apiConfig.w500Image(item.poster_path);
           const dateStr = item.release_date || item.first_air_date;
           const year = dateStr ? new Date(dateStr).getFullYear() : "TBA";

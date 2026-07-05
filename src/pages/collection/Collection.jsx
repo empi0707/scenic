@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { detailPath } from "../../utils/slug";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import Loading from "../../components/loading/Loading";
@@ -104,7 +105,7 @@ const Collection = () => {
                 style={{ "--row": i }}
                 key={item.id}
               >
-                <Link to={`/movie/${item.id}`} className="collection-row">
+                <Link to={detailPath("movie", item.id, item.title)} className="collection-row">
                   <span className="collection-row__index">
                     {String(i + 1).padStart(2, "0")}
                   </span>

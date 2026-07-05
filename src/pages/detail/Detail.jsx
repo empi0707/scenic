@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
+import { detailPath, idFromParam } from "../../utils/slug";
 import "./detail.scss";
 import CastList from "./CastList/CastList";
 import MovieList from "../../components/movie-list/MovieList";
@@ -23,7 +24,8 @@ import lazyWithRetry from "../../utils/lazyWithRetry";
 const SeriesVideoPlayer = lazyWithRetry(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
 const Detail = () => {
-  const { category, id } = useParams();
+  const { category, id: idParam } = useParams();
+  const id = idFromParam(idParam); // accept /tv/kohrra-230034 or bare /tv/230034
   const location = useLocation();
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
@@ -224,6 +226,17 @@ const Detail = () => {
     getDetail();
     // eslint-disable-next-line
   }, [category, id]);
+
+  // Redirect legacy/bare-id URLs to the pretty slug (bookmarks keep working,
+  // never 404). Query + hash are preserved so play/season/episode flows survive.
+  useEffect(() => {
+    if (!item) return;
+    const canonical = detailPath(category, id, item.title || item.name || "");
+    if (canonical !== decodeURIComponent(location.pathname)) {
+      navigate(canonical + location.search + location.hash, { replace: true });
+    }
+    // eslint-disable-next-line
+  }, [item, category, id]);
 
   // Autoplay handoff from Continue Watching; strip params so a refresh doesn't replay.
   useEffect(() => {

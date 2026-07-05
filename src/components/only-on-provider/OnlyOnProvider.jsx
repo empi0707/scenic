@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { detailPath } from "../../utils/slug";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -293,7 +294,7 @@ const OnlyOnProvider = ({ mediaType = "tv", limit = 12 }) => {
   // the row's mediaType prop (movie/tv).
   const linkFor = (item) => {
     const type = item.media_type || (mediaType === "tv" ? "tv" : "movie");
-    return `/${type === "tv" ? "tv" : "movie"}/${item.id}`;
+    return detailPath(type === "tv" ? "tv" : "movie", item.id, item.title || item.name);
   };
 
   return (

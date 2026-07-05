@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { detailPath } from "../../utils/slug";
 import toast from "react-hot-toast";
 import tmdbApi from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
@@ -34,7 +35,7 @@ const SharedCard = ({ item }) => {
   };
 
   return (
-    <Link to={`/${item.mediaType}/${item.id}`} className="my-list__card-link">
+    <Link to={detailPath(item.mediaType, item.id, item.title || item.name)} className="my-list__card-link">
       <div className="my-list__card">
         <div
           className="my-list__poster"

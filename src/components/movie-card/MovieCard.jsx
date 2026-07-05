@@ -9,6 +9,7 @@ import BookmarkButton from '../bookmark-button/BookmarkButton';
 
 import { category } from '../../api/tmdbApi';
 import apiConfig from '../../api/apiConfig';
+import { detailPath } from '../../utils/slug';
 
 const MovieCard = props => {
 
@@ -20,7 +21,7 @@ const MovieCard = props => {
         ? (item.media_type === 'tv' ? category.tv : category.movie)
         : category[props.category];
 
-    const link = '/' + resolvedCategory + '/' + item.id;
+    const link = detailPath(resolvedCategory, item.id, item.title || item.name);
 
     const posterPath = item.poster_path || item.backdrop_path;
     const bg = posterPath ? apiConfig.w500Image(posterPath) : null;

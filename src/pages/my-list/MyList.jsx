@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { detailPath } from "../../utils/slug";
 import toast from "react-hot-toast";
 import { watchlist } from "../../utils/watchlist";
 import { buildShareText } from "../../utils/shareList";
@@ -19,7 +20,7 @@ const formatYear = (date) => {
 };
 
 const ListCard = ({ item }) => {
-  const link = `/${item.mediaType}/${item.id}`;
+  const link = detailPath(item.mediaType, item.id, item.title || item.name);
   const bg = apiConfig.w500Image(item.posterPath || item.backdropPath);
   const year = formatYear(item.releaseDate);
 

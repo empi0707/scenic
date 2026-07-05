@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import apiConfig from "../../api/apiConfig";
 import { watchedEpisodes } from "../../utils/watchedEpisodes";
 import { playbackProgress } from "../../utils/playbackProgress";
+import { detailPath } from "../../utils/slug";
 
 // Landscape (16:9) card used inside Continue Watching. For series we
 // prefer the episode's own still image (so the user sees what they were
@@ -13,7 +14,7 @@ const ContinueWatchingCard = ({ entry }) => {
   // player automatically on the right episode + saved server, so the
   // user can resume from Continue Watching in one click.
   const buildLink = () => {
-    const base = `/${entry.mediaType}/${entry.id}`;
+    const base = detailPath(entry.mediaType, entry.id, entry.title);
     if (entry.mediaType === "tv") {
       const last = watchedEpisodes.getLastWatched(entry.id);
       if (last) {
