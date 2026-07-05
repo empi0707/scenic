@@ -1,7 +1,7 @@
 // Dev-only: makes /api/* routes work under `npm start` (where Vercel functions
 // don't run). Mirrors the api/*.js handlers. In production the Vercel functions
 // serve these routes instead. Runs in the CRA dev server's Node process.
-const { resolveStream } = require("../api/_sources");
+const { resolveStream, listSources } = require("../api/_sources");
 const { listSubtitles, downloadVtt } = require("../api/_subtitle");
 
 const UA =
@@ -147,6 +147,19 @@ module.exports = function (app) {
       return res.json({ ...stream, src: idx, next });
     } catch (e) {
       return res.status(502).json({ error: e.message || "Extraction failed" });
+    }
+  });
+
+  // Mirrors api/sources.js — the full source list for the picker.
+  app.use("/api/sources", async (req, res) => {
+    const { type = "movie", id, season, episode } = req.query || {};
+    res.set("Cache-Control", "no-store");
+    if (!id) return res.status(400).json({ error: "Missing id" });
+    try {
+      const sources = await listSources({ type: type === "tv" ? "tv" : "movie", id, season, episode });
+      return res.json({ sources });
+    } catch {
+      return res.json({ sources: [] });
     }
   });
 

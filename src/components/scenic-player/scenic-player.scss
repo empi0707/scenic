@@ -642,7 +642,7 @@ $glass: rgba(16, 16, 24, 0.66);
     gap: 1px;
     animation: sp-menu 0.18s ease both;
 
-    &--wide { min-width: 172px; }
+    &--wide { min-width: 208px; }
     &--scroll { max-height: 320px; min-width: 150px; }
 
     button {
@@ -671,6 +671,140 @@ $glass: rgba(16, 16, 24, 0.66);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: rgba(255, 255, 255, 0.4);
+  }
+
+  // Source (server) selector — top-left overlay button + dropdown
+  &__srcwrap {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 6;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  &.controls-on &__srcwrap {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  &__srcbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 38px;
+    padding: 0 0.7rem 0 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    background: rgba(16, 16, 22, 0.62);
+    backdrop-filter: blur(14px) saturate(1.3);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+
+    &-icon { display: grid; place-items: center; font-size: 1.05rem; opacity: 0.85; }
+    &-name { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+    &-chev {
+      display: grid;
+      place-items: center;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      transition: transform 0.2s ease;
+    }
+    &:hover { background: rgba(24, 24, 32, 0.72); }
+    &.is-open {
+      border-color: rgba(99, 102, 241, 0.55);
+      .scenic-player__srcbtn-chev { transform: rotate(180deg); }
+    }
+  }
+
+  &__srcmenu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 230px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 0.4rem;
+    border-radius: 14px;
+    background: $glass;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 46px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(18px) saturate(1.4);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    animation: sp-menu 0.18s ease both;
+  }
+  &__srcmenu-title {
+    padding: 0.4rem 0.55rem 0.35rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  &__srcmenu &__source-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    width: 100%;
+    height: auto;
+    padding: 0.5rem 0.6rem;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover { background: rgba(255, 255, 255, 0.1); }
+    &.sel { background: rgba(99, 102, 241, 0.22); color: $accent-bright; }
+    &.is-failed {
+      opacity: 0.5;
+      .scenic-player__source-item-name { text-decoration: line-through; }
+      &:hover { background: rgba(255, 255, 255, 0.05); }
+    }
+  }
+  &__source-tags {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.26rem;
+
+    em {
+      font-style: normal;
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.13rem 0.34rem;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.82);
+      font-variant-numeric: tabular-nums;
+
+      &.is-q { background: rgba(99, 102, 241, 0.28); color: $accent-bright; }
+      &.is-bad { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    }
+  }
+  &__srcmenu &__source-more {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: $accent-bright;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 9px;
+    &:hover { background: rgba(255, 255, 255, 0.08); }
   }
 
   // ---- Subtitles panel (self-contained; no base-menu button bleed) --------

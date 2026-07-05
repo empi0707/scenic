@@ -27,6 +27,11 @@ export const server8Domains = (process.env.REACT_APP_SERVER8_DOMAINS || "")
   .map((s) => s.trim())
   .filter(Boolean);
 
+export const SOURCE_NAMES = [
+  "Nova", "Pulse", "Orbit", "Comet", "Prime", "Apex", "Vega", "Vortex",
+  "Onyx", "Titan", "Helix", "Prism", "Flux", "Photon", "Cosmos", "Halo",
+];
+
 // Scenic+ player subtitle appearance options.
 export const SUB_FONTS = ["Arial", "Roboto", "Trebuchet MS", "Verdana", "Courier New"];
 export const SUB_WEIGHTS = [

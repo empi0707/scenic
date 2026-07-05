@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
 import apiConfig from "../../api/apiConfig";
 import Subtitles from "./Subtitles";
-import { SUB_DEFAULTS } from "../../constants/constants";
+import { SUB_DEFAULTS, SOURCE_NAMES } from "../../constants/constants";
 import { strokeCss, hexToRgba, cueLines } from "./subtitleStyle";
 import { playbackProgress, progressKey } from "../../utils/playbackProgress";
 import { watchedEpisodes } from "../../utils/watchedEpisodes";
@@ -44,6 +44,8 @@ const Ic = {
   exit: <S><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M16 21v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" /></S>,
   alert: <S><circle cx="12" cy="12" r="9" /><path d="M12 8v4.5M12 16h.01" /></S>,
   kbd: <S><rect x="2.5" y="6" width="19" height="12" rx="2" /><path d="M6 9.6h.01M9.5 9.6h.01M13 9.6h.01M16.5 9.6h.01M6 13h.01M18 13h.01M9 13h6" /></S>,
+  server: <S><rect x="3" y="4" width="18" height="7" rx="2" /><rect x="3" y="13" width="18" height="7" rx="2" /><path d="M7 7.5h.01M7 16.5h.01" /></S>,
+  chevron: <S><path d="M6 9l6 6 6-6" /></S>,
   sun: <S><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></S>,
   spinner: <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" className="scenic-player__spin" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.22)" strokeWidth="3" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>,
 };
@@ -81,9 +83,17 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const markedRef = useRef(false);
   const tapRef = useRef(null); // { time, side } for double-tap seek
   const singleTapTimer = useRef(null);
+  const failedRef = useRef({}); // { [src]: true } sources that failed to play
+  const sourceListRef = useRef([]); // mirror of sourceList for the once-mounted effects
   mediaRef.current = media;
   hasNextRef.current = hasNext;
   onNextRef.current = onNext;
+
+  // Friendly name for a source index, by its position in the resolved list.
+  const nameOf = useCallback((src) => {
+    const i = sourceListRef.current.findIndex((s) => s.src === src);
+    return i >= 0 ? SOURCE_NAMES[i] || `Source ${i + 1}` : "";
+  }, []);
 
   const [status, setStatus] = useState("loading"); // loading | ready | error
   const [errorMsg, setErrorMsg] = useState("");
@@ -123,6 +133,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const [countdown, setCountdown] = useState(null); // seconds until autoplay-next, or null
   const [showHelp, setShowHelp] = useState(false); // keyboard shortcuts overlay
   const [seekFx, setSeekFx] = useState(null); // { side, amount } double-tap seek ripple
+  const [pendingName, setPendingName] = useState(""); // name of the source being switched to
+  const [sourceList, setSourceList] = useState([]); // [{src, type, subs}] all available sources
+  sourceListRef.current = sourceList;
   const [srcIdx, setSrcIdx] = useState(0); // which ordered source to resolve (0 = primary)
   const [switching, setSwitching] = useState(false); // falling back to another source
 
@@ -131,8 +144,28 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     setSrcIdx(0);
     setSwitching(false);
     setCountdown(null);
+    failedRef.current = {};
+    setSourceList([]);
+    setPendingName("");
     didResumeRef.current = false;
     markedRef.current = false;
+  }, [media?.type, media?.id, media?.season, media?.episode]);
+
+  // Load the full source list in the background so the picker shows every
+  // available server at once (playback isn't blocked on this).
+  useEffect(() => {
+    if (!media?.id) return undefined;
+    let alive = true;
+    const params = new URLSearchParams({ type: media.type || "movie", id: String(media.id) });
+    if (media.type === "tv") {
+      params.set("season", String(media.season));
+      params.set("episode", String(media.episode));
+    }
+    fetch(`/api/sources?${params.toString()}`)
+      .then((r) => r.json())
+      .then((d) => { if (alive) setSourceList(Array.isArray(d.sources) ? d.sources : []); })
+      .catch(() => {});
+    return () => { alive = false; };
   }, [media?.type, media?.id, media?.season, media?.episode]);
 
   // Fetch the stream URL from /api/stream, then attach hls.js. On resolve or
@@ -164,9 +197,13 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     const fallback = () => {
       if (cancelled) return;
       clearTimeout(watchdog);
+      // A source that resolved but couldn't play is marked unavailable so the
+      // dropdown can show it dimmed.
+      failedRef.current[srcIdx] = true;
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       if (nextRef.current != null) {
         setSwitching(true);
+        setPendingName(nameOf(nextRef.current));
         setSrcIdx(nextRef.current);
       } else {
         setErrorMsg("No ad-free source found for this title.");
@@ -175,10 +212,12 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     };
 
     const attach = (url, kind) => {
-      // Direct progressive MP4 (no CORS on these hosts, so play without
-      // crossOrigin and without the proxy — the browser range-requests it).
+      // No crossOrigin: stream hosts (MP4/HLS) send no CORS headers, and every
+      // subtitle track is proxied same-origin, so cues load either way. Setting
+      // crossOrigin="anonymous" here would break same-origin track cues on HLS.
+      video.crossOrigin = null;
+      // Direct progressive MP4 (the browser range-requests it, no proxy).
       if (kind === "mp4") {
-        video.crossOrigin = null;
         setLevels([]);
         setAudioTracks([]);
         setCurrentAudio(-1);
@@ -187,6 +226,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         video.addEventListener("loadedmetadata", () => {
           if (cancelled) return;
           clearTimeout(watchdog);
+          setActiveHeight(video.videoHeight || 0);
           setStatus("ready");
           setSwitching(false);
           resume();
@@ -200,7 +240,6 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         }, { once: true });
         return;
       }
-      video.crossOrigin = "anonymous";
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
@@ -287,7 +326,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
       clearTimeout(watchdog);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     };
-  }, [media?.type, media?.id, media?.season, media?.episode, srcIdx]);
+  }, [media?.type, media?.id, media?.season, media?.episode, srcIdx, nameOf]);
 
   // TMDB backdrop, shown behind the video while loading/buffering/paused.
   useEffect(() => {
@@ -476,6 +515,20 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     });
   }, [extSubs]);
 
+  // Manual source switch. Auto-fallback still runs until a source plays; this
+  // lets the user jump straight to any resolved source (e.g. for 4K/subs), or
+  // discover the next one.
+  const jumpToSource = useCallback(
+    (target) => {
+      if (target == null || target === srcIdx) { setMenu(null); return; }
+      setPendingName(nameOf(target));
+      setSwitching(true);
+      setMenu(null);
+      setSrcIdx(target);
+    },
+    [srcIdx, nameOf]
+  );
+
 
   const seekTo = (e) => {
     const v = videoRef.current;
@@ -662,6 +715,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const paused = started && !playing && !buffering && status === "ready";
   const showBackdrop = !!backdrop && (status === "loading" || buffering || !started);
   const showNowWatching = status === "ready" && !buffering && (!started || paused);
+  const activeName = nameOf(srcIdx);
   const isTvEp = media?.type === "tv" && media?.season != null;
   const epTag = isTvEp ? `${title} · S${media.season}:E${media.episode}` : title;
   // Pause-card metadata: TV shows season/episode + episode title + synopsis;
@@ -673,7 +727,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   return (
     <div
       ref={containerRef}
-      className={`scenic-player${controlsVisible || !playing ? " controls-on" : ""}`}
+      className={`scenic-player${controlsVisible || !playing || menu ? " controls-on" : ""}`}
       onMouseMove={showControls}
       onMouseLeave={() => playing && setControlsVisible(false)}
       onTouchStart={onTouchStart}
@@ -768,7 +822,11 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
       {(status === "loading" || buffering) && status !== "error" && (
         <div className="scenic-player__spinner">
           {Ic.spinner}
-          {switching && <span className="scenic-player__spinner-note">Trying another source…</span>}
+          {switching && (
+            <span className="scenic-player__spinner-note">
+              {pendingName ? `Trying ${pendingName}…` : "Trying another source…"}
+            </span>
+          )}
         </div>
       )}
 
@@ -778,6 +836,44 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
           {Ic.alert}
           <p>{errorMsg}</p>
           <span>Switching to another server...</span>
+        </div>
+      )}
+
+      {/* Source (server) selector — top-left, hidden in fullscreen */}
+      {status === "ready" && !isFs && sourceList.length > 0 && (
+        <div className="scenic-player__srcwrap" onClick={(e) => e.stopPropagation()}>
+          <button
+            className={`scenic-player__srcbtn${menu === "source" ? " is-open" : ""}`}
+            onClick={() => setMenu(menu === "source" ? null : "source")}
+            aria-label="Select source"
+          >
+            <span className="scenic-player__srcbtn-icon">{Ic.server}</span>
+            <span className="scenic-player__srcbtn-name">{activeName || "Source"}</span>
+            <span className="scenic-player__srcbtn-chev">{Ic.chevron}</span>
+          </button>
+          {menu === "source" && (
+            <div className="scenic-player__srcmenu">
+              <div className="scenic-player__srcmenu-title">Select source</div>
+              {sourceList.map((s, i) => {
+                const active = s.src === srcIdx;
+                const failed = failedRef.current[s.src];
+                return (
+                  <button
+                    key={s.src}
+                    className={`scenic-player__source-item${active ? " sel" : ""}${failed ? " is-failed" : ""}`}
+                    onClick={() => jumpToSource(s.src)}
+                  >
+                    <span className="scenic-player__source-item-name">{SOURCE_NAMES[i] || `Source ${i + 1}`}</span>
+                    <span className="scenic-player__source-tags">
+                      {active && qualityTag && <em className="is-q">{qualityTag}</em>}
+                      {s.subs > 0 && <em>{s.subs} CC</em>}
+                      {failed && <em className="is-bad">off</em>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

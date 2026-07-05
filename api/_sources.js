@@ -42,4 +42,27 @@ async function resolveStream({ type, id, season, episode, src }) {
   return { stream, src: idx, next };
 }
 
-module.exports = { resolveStream };
+// Resolve every configured source in parallel and return the ones that resolved,
+// ordered by index, with light metadata for the source picker.
+async function listSources({ type, id, season, episode }) {
+  const args = { type, id, season, episode };
+  const jobs = [];
+  for (const tier of TIERS) {
+    if (!tier.ok()) continue;
+    for (let c = 0; c < tier.slots; c++) {
+      const src = tier.base + c;
+      jobs.push(
+        Promise.resolve(tier.resolve(args, c))
+          .then((r) =>
+            r?.stream?.url
+              ? { src, type: r.stream.type === "mp4" ? "mp4" : "hls", subs: (r.stream.subtitles || []).length }
+              : null
+          )
+          .catch(() => null)
+      );
+    }
+  }
+  return (await Promise.all(jobs)).filter(Boolean).sort((a, b) => a.src - b.src);
+}
+
+module.exports = { resolveStream, listSources };
