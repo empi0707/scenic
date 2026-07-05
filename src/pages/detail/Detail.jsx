@@ -519,6 +519,8 @@ const Detail = () => {
             <VideoPlayer
               id={item.id}
               title={title}
+              overview={item.overview}
+              year={(item.release_date || item.first_air_date || "").slice(0, 4)}
               shouldOpenPlayer={shouldOpenPlayer}
               onPlayerOpen={() => setShouldOpenPlayer(false)}
             />

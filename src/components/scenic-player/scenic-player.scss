@@ -98,62 +98,70 @@ $glass: rgba(16, 16, 24, 0.66);
 
     .scenic-player__nw-eyebrow {
       display: block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.32em;
-      text-transform: uppercase;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
       color: rgba(255, 255, 255, 0.6);
     }
     strong {
       display: block;
-      margin-top: 0.4rem;
-      font-size: clamp(1.2rem, 3vw, 1.9rem);
+      margin-top: 0.3rem;
+      font-size: clamp(1.4rem, 3vw, 2rem);
       font-weight: 700;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.015em;
       color: #fff;
       text-shadow: 0 2px 24px rgba(0, 0, 0, 0.9);
     }
-    .scenic-player__nw-sub,
-    .scenic-player__nw-hint { display: none; }
+    // Metadata rows only appear in the paused view.
+    .scenic-player__nw-se,
+    .scenic-player__nw-epname,
+    .scenic-player__nw-desc { display: none; }
 
-    // Netflix-style paused view: left, large title + metadata, clear of controls.
+    // Netflix-style paused view: left-aligned title, metadata and synopsis.
     &.is-paused {
       top: auto;
-      bottom: 28%;
+      bottom: 22%;
       left: 5.5%;
       right: auto;
       text-align: left;
-      max-width: 82%;
+      max-width: min(46ch, 84%);
       animation: sp-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 
-      .scenic-player__nw-eyebrow {
-        display: block;
-        font-size: 0.72rem;
-        letter-spacing: 0.28em;
-        color: rgba(255, 255, 255, 0.72);
-      }
       strong {
-        margin-top: 0.7rem;
-        font-size: clamp(2.2rem, 6vw, 4rem);
-        line-height: 1.02;
-        letter-spacing: -0.025em;
+        margin-top: 0.45rem;
+        font-size: clamp(2.1rem, 5.6vw, 3.8rem);
+        line-height: 1.03;
+        letter-spacing: -0.03em;
         text-shadow: 0 6px 44px rgba(0, 0, 0, 0.95);
       }
-      .scenic-player__nw-sub {
+      .scenic-player__nw-se {
         display: block;
-        margin-top: 0.7rem;
-        font-size: clamp(0.85rem, 1.8vw, 1.05rem);
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.82);
+        margin-top: 0.55rem;
+        font-size: clamp(0.85rem, 1.7vw, 1rem);
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
         text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
       }
-      .scenic-player__nw-hint {
+      .scenic-player__nw-epname {
         display: block;
-        margin-top: 1.15rem;
-        font-size: 0.74rem;
-        font-weight: 500;
-        letter-spacing: 0.05em;
-        color: rgba(255, 255, 255, 0.48);
+        margin-top: 0.85rem;
+        font-size: clamp(0.98rem, 1.9vw, 1.15rem);
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+      }
+      .scenic-player__nw-desc {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+        margin-top: 0.4rem;
+        font-size: clamp(0.82rem, 1.5vw, 0.95rem);
+        font-weight: 400;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.66);
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
       }
     }
   }
@@ -464,9 +472,10 @@ $glass: rgba(16, 16, 24, 0.66);
 
     svg { font-size: 1.7rem; color: #fff; }
 
-    // Volume (left-half swipe) shows on the left; brightness on the right.
-    &--volume { left: 18%; }
-    &--brightness { left: 82%; }
+    // Volume (left-half swipe) shows left-of-centre; brightness right-of-centre.
+    // Kept vertically centred (top: 50%) and close to the edges.
+    &--volume { top: 50%; left: 11%; }
+    &--brightness { top: 50%; left: 89%; }
   }
   &__gesture-bar {
     position: relative;
@@ -919,7 +928,7 @@ $glass: rgba(16, 16, 24, 0.66);
     &__bar &__play { width: 38px; height: 38px; svg { font-size: 1.6rem; } }
     &__time { font-size: 0.74rem; margin-left: 0.2rem; white-space: nowrap; }
     &__volume { display: none; }
-    &__kbd-btn { display: none; } // no keyboard on touch devices
+    &__bar &__kbd-btn { display: none; } // no keyboard on touch devices
 
     &__bigplay {
       width: 60px;

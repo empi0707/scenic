@@ -3,7 +3,14 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import ContinueWatchingCard from "./ContinueWatchingCard";
 import { continueWatching } from "../../utils/continueWatching";
+import { watchedEpisodes } from "../../utils/watchedEpisodes";
 import "./continue-watching.scss";
+
+// A series is done once every episode is watched; hide it from the row.
+const isFinished = (entry) =>
+  entry.mediaType === "tv" &&
+  entry.totalEpisodes > 0 &&
+  watchedEpisodes.getSeriesWatched(entry.id).size >= entry.totalEpisodes;
 
 const ContinueWatching = () => {
   const [items, setItems] = useState(() => continueWatching.getAll());
@@ -11,10 +18,13 @@ const ContinueWatching = () => {
   useEffect(() => {
     const sync = () => setItems(continueWatching.getAll());
     sync();
-    return continueWatching.subscribe(sync);
+    const offCw = continueWatching.subscribe(sync);
+    const offWe = watchedEpisodes.subscribe(sync); // re-filter as episodes complete
+    return () => { offCw(); offWe(); };
   }, []);
 
-  if (items.length === 0) return null;
+  const visible = items.filter((e) => !isFinished(e));
+  if (visible.length === 0) return null;
 
   return (
     <div className="continue-watching movie-list">
@@ -33,7 +43,7 @@ const ContinueWatching = () => {
           1280: { slidesPerView: 3, slidesPerGroup: 2 },
         }}
       >
-        {items.map((entry) => (
+        {visible.map((entry) => (
           <SwiperSlide key={`${entry.mediaType}:${entry.id}`}>
             <ContinueWatchingCard entry={entry} />
           </SwiperSlide>

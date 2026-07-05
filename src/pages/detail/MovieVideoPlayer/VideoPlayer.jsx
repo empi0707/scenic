@@ -24,7 +24,7 @@ const readSavedServer = (id) => {
   }
 };
 
-const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
+const VideoPlayer = ({ id, title, overview, year, shouldOpenPlayer, onPlayerOpen }) => {
   const [selectedServer, setSelectedServer] = useState(() => readSavedServer(id));
   const [serverUrl, setServerUrl] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,7 +85,7 @@ const VideoPlayer = ({ id, title, shouldOpenPlayer, onPlayerOpen }) => {
       mirrorIndex={Math.max(mirrorRef.current, 0) + 1}
       hasPrevious={false}
       hasNext={false}
-      streamMedia={{ type: "movie", id }}
+      streamMedia={{ type: "movie", id, overview, year }}
       download={{ mediaType: "movie", id, title, available: downloadAvailable }}
     />
   );

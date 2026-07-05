@@ -384,6 +384,8 @@ const SeriesVideoPlayer = ({
           id,
           season: selectedSeason,
           episode: selectedEpisode,
+          episodeName: episodes.find((e) => e.episode_number === selectedEpisode)?.name || "",
+          episodeOverview: episodes.find((e) => e.episode_number === selectedEpisode)?.overview || "",
         }}
         download={{
           mediaType: "tv",

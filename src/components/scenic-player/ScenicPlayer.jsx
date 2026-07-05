@@ -6,6 +6,7 @@ import { SUB_DEFAULTS } from "../../constants/constants";
 import { strokeCss, hexToRgba, cueLines } from "./subtitleStyle";
 import { playbackProgress, progressKey } from "../../utils/playbackProgress";
 import { watchedEpisodes } from "../../utils/watchedEpisodes";
+import { continueWatching } from "../../utils/continueWatching";
 import "./scenic-player.scss";
 
 
@@ -346,10 +347,19 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     const onWaiting = () => setBuffering(true);
     const onPlaying = () => setBuffering(false);
     // End of title: finished, so clear resume, tick the episode, offer next.
+    // A finished movie (or the final episode of a series) drops off Continue
+    // Watching; a series with more episodes stays and autoplays the next one.
     const onEnded = () => {
-      playbackProgress.clear(progressKey(mediaRef.current));
+      const m = mediaRef.current;
+      playbackProgress.clear(progressKey(m));
       markEpisodeWatched();
-      if (hasNextRef.current && onNextRef.current) setCountdown(10);
+      if (m?.id == null) return;
+      if (m.type === "tv") {
+        if (hasNextRef.current && onNextRef.current) setCountdown(10);
+        else continueWatching.remove(m.id, "tv");
+      } else {
+        continueWatching.remove(m.id, "movie");
+      }
     };
 
     v.addEventListener("timeupdate", onTime);
@@ -626,10 +636,13 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const paused = started && !playing && !buffering && status === "ready";
   const showBackdrop = !!backdrop && (status === "loading" || buffering || !started);
   const showNowWatching = status === "ready" && !buffering && (!started || paused);
-  const epTag =
-    media?.type === "tv" && media?.season != null
-      ? `${title} · S${media.season}:E${media.episode}`
-      : title;
+  const isTvEp = media?.type === "tv" && media?.season != null;
+  const epTag = isTvEp ? `${title} · S${media.season}:E${media.episode}` : title;
+  // Pause-card metadata: TV shows season/episode + episode title + synopsis;
+  // movies show the year + synopsis.
+  const nwMeta = isTvEp ? `Season ${media.season}: Episode ${media.episode}` : media?.year || "";
+  const nwName = isTvEp && media?.episodeName && media.episodeName !== `Episode ${media.episode}` ? media.episodeName : "";
+  const nwDesc = isTvEp ? media?.episodeOverview || "" : media?.overview || "";
 
   return (
     <div
@@ -709,7 +722,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         <div className={`scenic-player__nowwatching${paused ? " is-paused" : ""}`}>
           <span className="scenic-player__nw-eyebrow">You're watching</span>
           <strong>{title}</strong>
-          {subtitle && <p className="scenic-player__nw-sub">{subtitle}</p>}
+          {nwMeta && <span className="scenic-player__nw-se">{nwMeta}</span>}
+          {nwName && <span className="scenic-player__nw-epname">{nwName}</span>}
+          {nwDesc && <p className="scenic-player__nw-desc">{nwDesc}</p>}
         </div>
       )}
 
