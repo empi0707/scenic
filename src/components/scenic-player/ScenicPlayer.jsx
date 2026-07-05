@@ -345,6 +345,9 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   }, [media?.type, media?.id]);
 
   useEffect(() => { setActiveSub(null); }, [media?.type, media?.id, media?.season, media?.episode]);
+  // Turn subtitles off when the source changes — a different server won't carry
+  // the same track, and the media reload resets it anyway.
+  useEffect(() => { setActiveSub(null); setCueText(""); }, [srcIdx]);
   useEffect(() => {
     try { localStorage.setItem("scenic:substyle", JSON.stringify(subStyle)); } catch { /* ignore */ }
   }, [subStyle]);
