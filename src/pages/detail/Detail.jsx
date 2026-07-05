@@ -423,7 +423,7 @@ const Detail = () => {
               {(item.runtime || item.episode_run_time?.[0]) && (
                 <>
                   <span className="meta-divider"></span>
-                  <span>{item.runtime || item.episode_run_time?.[0]} min</span>
+                  <span>{item.runtime ? `${item.runtime} min` : `${item.episode_run_time[0]} min/ep`}</span>
                 </>
               )}
               {item.seasons && (
