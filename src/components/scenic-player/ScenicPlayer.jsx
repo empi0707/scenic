@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
 import apiConfig from "../../api/apiConfig";
+import tmdbApi from "../../api/tmdbApi";
 import Subtitles from "./Subtitles";
 import { SUB_DEFAULTS, SOURCE_NAMES } from "../../constants/constants";
 import { strokeCss, hexToRgba, cueLines } from "./subtitleStyle";
@@ -334,9 +335,10 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     let alive = true;
     setBackdrop("");
     const cate = media.type === "tv" ? "tv" : "movie";
-    const key = process.env.REACT_APP_API_KEY;
-    fetch(`https://api.themoviedb.org/3/${cate}/${media.id}?api_key=${key}`)
-      .then((r) => r.json())
+    // Route through tmdbApi so the key stays server-side via the /api/tmdb
+    // proxy in prod; a direct api.themoviedb.org call has no key there and 401s.
+    tmdbApi
+      .detail(cate, media.id, { params: {} })
       .then((d) => {
         if (alive && d?.backdrop_path) setBackdrop(apiConfig.w1280Image(d.backdrop_path));
       })
