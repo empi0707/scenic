@@ -174,7 +174,33 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
       }
     };
 
-    const attach = (url) => {
+    const attach = (url, kind) => {
+      // Direct progressive MP4 (no CORS on these hosts, so play without
+      // crossOrigin and without the proxy — the browser range-requests it).
+      if (kind === "mp4") {
+        video.crossOrigin = null;
+        setLevels([]);
+        setAudioTracks([]);
+        setCurrentAudio(-1);
+        watchdog = setTimeout(() => { if (!cancelled) fallback(); }, 12000);
+        video.src = url;
+        video.addEventListener("loadedmetadata", () => {
+          if (cancelled) return;
+          clearTimeout(watchdog);
+          setStatus("ready");
+          setSwitching(false);
+          resume();
+          video.play().catch(() => {});
+        }, { once: true });
+        video.addEventListener("error", () => {
+          if (cancelled) return;
+          clearTimeout(watchdog);
+          if (nextRef.current != null) fallback();
+          else { setErrorMsg("Playback failed for this title."); setStatus("error"); }
+        }, { once: true });
+        return;
+      }
+      video.crossOrigin = "anonymous";
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
@@ -249,7 +275,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         nextRef.current = data?.next ?? null;
         if (!data?.url) { fallback(); return; }
         setExtSubs(Array.isArray(data.subtitles) ? data.subtitles : []);
-        attach(data.url);
+        attach(data.url, data.type);
       })
       .catch(() => {
         if (cancelled) return;
@@ -662,7 +688,6 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         ref={videoRef}
         className="scenic-player__video"
         playsInline
-        crossOrigin="anonymous"
         poster={backdrop || undefined}
         style={{ filter: `brightness(${brightness})` }}
       >

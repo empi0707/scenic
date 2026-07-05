@@ -1,12 +1,14 @@
 // Tertiary ad-free source: an id-native aggregator that returns its stream list
-// as a custom-base64 payload decoded here. Host, provider route, and the stream
-// host's referer are env-driven. The decoded list is HLS; each entry is a
-// fallback candidate the client can walk when one fails to play.
+// as a custom-base64 payload decoded here. Host, provider routes, stream referer
+// and the subtitle host are env-driven. Streams may be HLS (proxied) or a direct
+// MP4; each provider is a fallback candidate the client walks when one fails.
 const RELAY_BASE = (process.env.RELAY_BASE || "").replace(/\/+$/, "");
 // Comma-separated provider routes tried in order; coverage varies per title, so
 // each is a fallback candidate the client walks.
 const PROVIDERS = (process.env.RELAY_PROVIDER || "").split(",").map((s) => s.trim()).filter(Boolean);
 const RELAY_REFERER = process.env.RELAY_REFERER || "";
+// Optional id-native subtitle host (returns [{label, file}] per title).
+const RELAY_SUB_BASE = (process.env.RELAY_SUB_BASE || "").replace(/\/+$/, "");
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
@@ -52,20 +54,40 @@ async function tryFetch(url, opts, tries = 4) {
   return { ok: false, status: last, json: async () => null };
 }
 
-// Walk the arbitrarily-shaped decoded payload and collect HLS stream URLs.
-function collectHls(node, acc) {
+// Walk the arbitrarily-shaped decoded payload and collect playable stream URLs.
+function collectStreams(node, acc) {
   if (!node || typeof node !== "object") return acc;
   if (Array.isArray(node)) {
-    for (const x of node) collectHls(x, acc);
+    for (const x of node) collectStreams(x, acc);
     return acc;
   }
   const url = node.url || node.link || node.file || node.playlist;
-  const type = String(node.type || "").toLowerCase();
-  if (typeof url === "string" && (type === "hls" || /mpegurl/i.test(type) || /\.m3u8|\/pl\//i.test(url))) {
-    acc.push(url);
+  const t = String(node.type || "").toLowerCase();
+  if (typeof url === "string") {
+    if (t === "hls" || /mpegurl/i.test(t) || /\.m3u8|\/pl\//i.test(url)) acc.push({ url, type: "hls" });
+    else if (t === "mp4" || /\.mp4(\?|$)/i.test(url)) acc.push({ url, type: "mp4" });
   }
-  for (const k in node) if (node[k] && typeof node[k] === "object") collectHls(node[k], acc);
+  for (const k in node) if (node[k] && typeof node[k] === "object") collectStreams(node[k], acc);
   return acc;
+}
+
+// Id-native subtitles, routed through the proxy so they load same-origin.
+async function relaySubs({ type, id, season, episode }) {
+  if (!RELAY_SUB_BASE) return [];
+  const path = type === "tv" ? `/v2/tv/${id}/${season}/${episode}` : `/v2/movie/${id}`;
+  const res = await tryFetch(`${RELAY_SUB_BASE}${path}`, { headers: { "User-Agent": UA } });
+  if (!res.ok) return [];
+  const list = await res.json().catch(() => null);
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((s) => ({ file: s.file || s.url, label: s.label || s.language }))
+    .filter((s) => s.file)
+    .slice(0, 30)
+    .map((s) => ({
+      lang: (s.label || "en").trim().slice(0, 2).toLowerCase(),
+      label: s.label || "Subtitle",
+      url: proxied(s.file, { "User-Agent": UA }),
+    }));
 }
 
 async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
@@ -86,14 +108,27 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
   if (j.encrypted) {
     try { obj = JSON.parse(decodePayload(j.data || "")); } catch { obj = null; }
   }
-  // Prefer master/variant playlists over single-rendition ones.
-  const urls = [...new Set(collectHls(obj, []))].sort(
-    (a, b) => (/(master|\/pl\/)/i.test(b) ? 1 : 0) - (/(master|\/pl\/)/i.test(a) ? 1 : 0)
-  );
-  if (!urls.length) return { stream: { url: null, _diag: { stage: "nostream", provider } }, total };
+  // Prefer HLS over MP4, and master/variant playlists over single renditions.
+  const seen = new Set();
+  const streams = collectStreams(obj, [])
+    .filter((s) => !seen.has(s.url) && seen.add(s.url))
+    .sort((a, b) => rank(b) - rank(a));
+  if (!streams.length) return { stream: { url: null, _diag: { stage: "nostream", provider } }, total };
 
+  const chosen = streams[0];
   const headers = { Referer: RELAY_REFERER || `${RELAY_BASE}/`, "User-Agent": UA };
-  return { stream: { type: "hls", url: proxied(urls[0], headers), subtitles: [] }, total };
+  const subtitles = await relaySubs({ type, id, season, episode });
+  // HLS goes through the proxy (Referer/CORS); a direct MP4 plays as-is.
+  return {
+    stream: {
+      type: chosen.type,
+      url: chosen.type === "mp4" ? chosen.url : proxied(chosen.url, headers),
+      subtitles,
+    },
+    total,
+  };
 }
+
+const rank = (s) => (s.type === "hls" ? 2 : 0) + (/(master|\/pl\/)/i.test(s.url) ? 1 : 0);
 
 module.exports = { getRelaySource };
