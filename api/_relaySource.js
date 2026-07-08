@@ -108,7 +108,8 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
   if (j.encrypted) {
     try { obj = JSON.parse(decodePayload(j.data || "")); } catch { obj = null; }
   }
-  // Prefer HLS over MP4, and master/variant playlists over single renditions.
+  // Prefer a direct MP4 (plays as-is, no proxy = no origin-transfer cost) over
+  // HLS (which we must proxy); among HLS, prefer master/variant playlists.
   const seen = new Set();
   const streams = collectStreams(obj, [])
     .filter((s) => !seen.has(s.url) && seen.add(s.url))
@@ -129,6 +130,6 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
   };
 }
 
-const rank = (s) => (s.type === "hls" ? 2 : 0) + (/(master|\/pl\/)/i.test(s.url) ? 1 : 0);
+const rank = (s) => (s.type === "mp4" ? 2 : 0) + (/(master|\/pl\/)/i.test(s.url) ? 1 : 0);
 
 module.exports = { getRelaySource };
