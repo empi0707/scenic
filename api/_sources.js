@@ -55,7 +55,14 @@ async function listSources({ type, id, season, episode }) {
         Promise.resolve(tier.resolve(args, c))
           .then((r) =>
             r?.stream?.url
-              ? { src, type: r.stream.type === "mp4" ? "mp4" : "hls", subs: (r.stream.subtitles || []).length }
+              ? {
+                  src,
+                  type: r.stream.type === "mp4" ? "mp4" : "hls",
+                  subs: (r.stream.subtitles || []).length,
+                  // Direct = plays browser->CDN (no /api/hls-proxy), so zero
+                  // Fast Origin Transfer. Proxied HLS routes video through us.
+                  direct: !String(r.stream.url).startsWith("/api/hls-proxy"),
+                }
               : null
           )
           .catch(() => null)

@@ -97,6 +97,23 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     return i >= 0 ? SOURCE_NAMES[i] || `Source ${i + 1}` : "";
   }, []);
 
+  // Choose the next source to try on failure, preferring direct-play sources
+  // (catalog HLS + MP4) over proxied HLS so we don't route video through our
+  // functions (Fast Origin Transfer) unless nothing direct is left. Falls back
+  // to the server-suggested index while the full list is still loading.
+  const pickNextSrc = useCallback((serverNext) => {
+    const list = sourceListRef.current;
+    const failed = failedRef.current;
+    if (list && list.length) {
+      const avail = list.filter((s) => !failed[s.src]);
+      const direct = avail.filter((s) => s.direct).map((s) => s.src);
+      const proxied = avail.filter((s) => !s.direct).map((s) => s.src);
+      const nx = [...direct, ...proxied][0];
+      if (nx != null) return nx;
+    }
+    return serverNext != null && !failed[serverNext] ? serverNext : null;
+  }, []);
+
   const [status, setStatus] = useState("loading"); // loading | ready | error
   const [errorMsg, setErrorMsg] = useState("");
   const [playing, setPlaying] = useState(false);
@@ -204,10 +221,11 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
       // dropdown can show it dimmed.
       failedRef.current[srcIdx] = true;
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      if (nextRef.current != null) {
+      const nx = pickNextSrc(nextRef.current);
+      if (nx != null) {
         setSwitching(true);
-        setPendingName(nameOf(nextRef.current));
-        setSrcIdx(nextRef.current);
+        setPendingName(nameOf(nx));
+        setSrcIdx(nx);
       } else {
         setErrorMsg("No ad-free source found for this title.");
         setStatus("error");
@@ -329,7 +347,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
       clearTimeout(watchdog);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     };
-  }, [media?.type, media?.id, media?.season, media?.episode, srcIdx, nameOf]);
+  }, [media?.type, media?.id, media?.season, media?.episode, srcIdx, nameOf, pickNextSrc]);
 
   // TMDB backdrop, shown behind the video while loading/buffering/paused.
   useEffect(() => {
