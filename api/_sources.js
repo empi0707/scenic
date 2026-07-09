@@ -42,6 +42,16 @@ async function resolveStream({ type, id, season, episode, src }) {
   return { stream, src: idx, next };
 }
 
+// A single slow/hanging upstream (internal retry loops) must not sink the whole
+// response and trip Vercel's function timeout — cap each candidate and treat a
+// timeout as "no source" so the rest still return.
+const CANDIDATE_TIMEOUT_MS = 7000;
+const withTimeout = (p) =>
+  Promise.race([
+    Promise.resolve(p).catch(() => null),
+    new Promise((res) => setTimeout(() => res(null), CANDIDATE_TIMEOUT_MS)),
+  ]);
+
 // Resolve every configured source in parallel and return the ones that resolved,
 // ordered by index, with light metadata for the source picker.
 async function listSources({ type, id, season, episode }) {
@@ -52,7 +62,7 @@ async function listSources({ type, id, season, episode }) {
     for (let c = 0; c < tier.slots; c++) {
       const src = tier.base + c;
       jobs.push(
-        Promise.resolve(tier.resolve(args, c))
+        withTimeout(tier.resolve(args, c))
           .then((r) =>
             r?.stream?.url
               ? {
