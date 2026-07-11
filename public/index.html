@@ -2,6 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Direct-play CDNs (e.g. hakunaymatata) reject any Referer header (429),
+         which surfaces as a <video> MEDIA_ERR_SRC_NOT_SUPPORTED (code 4). Send
+         no referrer so cross-origin stream requests are accepted. Same-origin
+         /api routes don't rely on Referer, so this is safe app-wide. -->
+    <meta name="referrer" content="no-referrer" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <link rel="alternate icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

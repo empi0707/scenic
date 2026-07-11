@@ -108,8 +108,11 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
   if (j.encrypted) {
     try { obj = JSON.parse(decodePayload(j.data || "")); } catch { obj = null; }
   }
-  // Prefer a direct MP4 (plays as-is, no proxy = no origin-transfer cost) over
-  // HLS (which we must proxy); among HLS, prefer master/variant playlists.
+  // Prefer a browser-playable direct MP4 (H.264 — plays as-is everywhere, no
+  // proxy = no origin-transfer cost) over HLS (which we must proxy). H.265/HEVC
+  // MP4s are pushed below HLS: no browser reliably plays them (Chrome/Firefox
+  // lack the decoder; Safari rejects the hev1 sample entry), so they're a last
+  // resort only. Among HLS, prefer master/variant playlists.
   const seen = new Set();
   const streams = collectStreams(obj, [])
     .filter((s) => !seen.has(s.url) && seen.add(s.url))
@@ -130,6 +133,11 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
   };
 }
 
-const rank = (s) => (s.type === "mp4" ? 2 : 0) + (/(master|\/pl\/)/i.test(s.url) ? 1 : 0);
+// H.264 MP4 (4) > HLS master (3) > HLS (2) > H.265/HEVC MP4 (-1, last resort).
+const isHevc = (url) => /\/h265\/|hevc|hev1|hvc1/i.test(url);
+const rank = (s) => {
+  if (s.type === "mp4") return isHevc(s.url) ? -1 : 4;
+  return 2 + (/(master|\/pl\/)/i.test(s.url) ? 1 : 0);
+};
 
 module.exports = { getRelaySource };

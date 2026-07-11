@@ -242,9 +242,21 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         setLevels([]);
         setAudioTracks([]);
         setCurrentAudio(-1);
+        // Don't gate on canPlayType — it's unreliable for HEVC (Chromium and
+        // Safari both report "" for encodes they actually decode). Attach and let
+        // real decode decide: a playable encode fires `loadeddata` (a decoded
+        // frame); one the browser can't decode fires `error`, and the watchdog
+        // falls through to the next source if neither happens.
+        // If a prior HLS source left hls.js/MSE on the element, destroy it and
+        // set src before load() so the media-load algorithm re-runs cleanly.
+        if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
         watchdog = setTimeout(() => { if (!cancelled) fallback(); }, 12000);
         video.src = url;
-        video.addEventListener("loadedmetadata", () => {
+        video.load();
+        // Wait for a decoded frame (loadeddata), not just parsed metadata: an
+        // undecodable encode fires loadedmetadata but never loadeddata, so this
+        // keeps the watchdog armed until the source is genuinely playable.
+        video.addEventListener("loadeddata", () => {
           if (cancelled) return;
           clearTimeout(watchdog);
           setActiveHeight(video.videoHeight || 0);
@@ -256,8 +268,7 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
         video.addEventListener("error", () => {
           if (cancelled) return;
           clearTimeout(watchdog);
-          if (nextRef.current != null) fallback();
-          else { setErrorMsg("Playback failed for this title."); setStatus("error"); }
+          fallback();
         }, { once: true });
         return;
       }
