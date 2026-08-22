@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { watchlist } from "../../utils/watchlist";
 import GlobalSearch from "../global-search/GlobalSearch";
+import { BRAND, LOGO_URL } from "../../config/embedBranding";
 import "./header.scss";
 
 const baseNav = [
@@ -47,6 +48,9 @@ const Header = () => {
   const active = headerNav.findIndex((e) => e.path === pathname);
 
   const [searchOpen, setSearchOpen] = useState(false);
+  // Falls back to the text wordmark if an embed's custom ?logo= 404s or
+  // fails to load, rather than leaving a broken image icon in the header.
+  const [logoBroken, setLogoBroken] = useState(false);
 
   // "/" opens search (unless the user is already typing in a field).
   useEffect(() => {
@@ -86,7 +90,18 @@ const Header = () => {
       <div ref={headerRef} className="header">
         <div className="header__wrap container">
           <div className="logo">
-            <Link to="/">Scenic</Link>
+            <Link to="/">
+              {LOGO_URL && !logoBroken ? (
+                <img
+                  src={LOGO_URL}
+                  alt={BRAND}
+                  className="logo__image"
+                  onError={() => setLogoBroken(true)}
+                />
+              ) : (
+                BRAND
+              )}
+            </Link>
           </div>
           <ul className="header__nav">
             {headerNav.map((e, i) => (

@@ -145,7 +145,7 @@
 
   // The portion of the title matching the typed query.
   &__hl {
-    background: rgba(99, 102, 241, 0.22);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
     color: #c7d2fe;
     border-radius: 3px;
     padding: 0 1px;

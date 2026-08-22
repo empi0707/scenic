@@ -112,7 +112,7 @@
       ),
       radial-gradient(
         120% 90% at 0% 100%,
-        rgba(99, 102, 241, 0.16) 0%,
+        rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.16) 0%,
         transparent 50%
       );
   }

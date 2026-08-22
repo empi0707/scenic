@@ -20,6 +20,8 @@ import { DetailSkeleton } from "../../components/skeleton/Skeleton";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import { continueWatching } from "../../utils/continueWatching";
 import lazyWithRetry from "../../utils/lazyWithRetry";
+import AdSlot from "../../components/ad-slot/AdSlot";
+import { DETAIL_PAGE_AD, WATCH_PAGE_AD } from "../../config/adsConfig";
 
 const SeriesVideoPlayer = lazyWithRetry(() => import("./SeriesVideoPlayer/SeriesVideoPlayer"));
 
@@ -488,6 +490,7 @@ const Detail = () => {
               </div>
               <CastList casts={item.credits?.cast} />
             </div>
+            <AdSlot config={DETAIL_PAGE_AD} />
           </div>
         </div>
       </div>
@@ -539,6 +542,7 @@ const Detail = () => {
             />
           )}
         </div>
+        <AdSlot config={WATCH_PAGE_AD} />
         <div className="section mb-3">
           <div className="section__header mb-2">
             <h2>Reviews</h2>

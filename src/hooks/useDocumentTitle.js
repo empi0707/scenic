@@ -1,12 +1,14 @@
 import { useEffect } from "react";
+import { BRAND } from "../config/embedBranding";
 
-// Sets the browser tab title to "<name> (Scenic)" while a name is present, and
-// restores the default "Scenic" when it clears or the page unmounts.
+// Sets the browser tab title to "<name> (<brand>)" while a name is present, and
+// restores the default "<brand>" when it clears or the page unmounts. <brand> is
+// "Scenic" unless an embed overrode it via ?brand= (see config/embedBranding).
 export default function useDocumentTitle(name) {
   useEffect(() => {
-    if (name) document.title = `${name} (Scenic)`;
+    if (name) document.title = `${name} (${BRAND})`;
     return () => {
-      document.title = "Scenic";
+      document.title = BRAND;
     };
   }, [name]);
 }

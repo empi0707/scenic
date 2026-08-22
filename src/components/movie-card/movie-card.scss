@@ -25,7 +25,7 @@
     &--no-poster {
         background: linear-gradient(
             135deg,
-            rgba(99, 102, 241, 0.22) 0%,
+            rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22) 0%,
             rgba(168, 85, 247, 0.12) 60%,
             rgba(0, 0, 0, 0.5) 100%
         );
@@ -103,8 +103,8 @@
         color: $white;
 
         &--tv {
-            background: rgba(99, 102, 241, 0.22);
-            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
+            border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
             color: #c7d2fe;
         }
 

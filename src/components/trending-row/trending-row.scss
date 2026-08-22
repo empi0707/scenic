@@ -204,7 +204,7 @@
         backdrop-filter: blur(20px) saturate(160%);
         -webkit-backdrop-filter: blur(20px) saturate(160%);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-left: 2px solid rgba(99, 102, 241, 0.85);
+        border-left: 2px solid rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.85);
         border-radius: 4px;
         box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 
@@ -319,8 +319,8 @@
         color: $white;
 
         &--tv {
-            background: rgba(99, 102, 241, 0.22);
-            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
+            border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
             color: #c7d2fe;
         }
 
@@ -397,7 +397,7 @@
                 padding-left: 0.42rem;
                 box-shadow:
                     0 6px 18px rgba(0, 0, 0, 0.65),
-                    0 0 24px rgba(99, 102, 241, 0.22),
+                    0 0 24px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22),
                     inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
             }
         }

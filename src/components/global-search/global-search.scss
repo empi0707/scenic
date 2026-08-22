@@ -85,8 +85,8 @@
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
 
     &:focus-within {
-      border-color: rgba(99, 102, 241, 0.45);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18);
+      border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.45);
+      box-shadow: 0 0 0 2px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.18);
     }
 
     .search-input {

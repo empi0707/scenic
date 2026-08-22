@@ -10,10 +10,15 @@ $card-bg: #141414;
 $card-hover: #1c1c1c;
 
 // Monochromatic accent — white for interactive, indigo for CTA
+//
+// $accent-color / $accent-hover fall back to CSS custom properties so an
+// embed can retint the whole app at runtime via ?color= (see
+// src/config/embedBranding.js) — the fallback hex is what renders outside
+// an iframe, where those custom properties are never set.
 $main-color: #e5e5e5;
 $main-color-hover: #ffffff;
-$accent-color: #6366f1;
-$accent-hover: #4f46e5;
+$accent-color: var(--scenic-accent, #6366f1);
+$accent-hover: var(--scenic-accent-hover, #4f46e5);
 $accent-secondary: #b3b3b3;
 $success-color: #46d369;
 $error-color: #e50914;
@@ -73,9 +78,9 @@ $glass-light-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
 $glass-light-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
 // Accent — indigo-tinted glass
-$glass-accent-bg: rgba(99, 102, 241, 0.15);
-$glass-accent-border: rgba(99, 102, 241, 0.30);
-$glass-accent-glow: inset 0 1px 0 0 rgba(99, 102, 241, 0.12);
+$glass-accent-bg: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.15);
+$glass-accent-border: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.30);
+$glass-accent-glow: inset 0 1px 0 0 rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.12);
 
 // === LAYOUT — tight, professional radii ===
 $header-height: 4.25rem;

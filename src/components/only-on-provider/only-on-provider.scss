@@ -196,11 +196,11 @@
         transition: background 180ms ease;
 
         &:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.1);
         }
 
         &.is-selected {
-            background: rgba(99, 102, 241, 0.14);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.14);
         }
     }
 
@@ -470,8 +470,8 @@
         color: $white;
 
         &--tv {
-            background: rgba(99, 102, 241, 0.22);
-            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
+            border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
             color: #c7d2fe;
         }
 

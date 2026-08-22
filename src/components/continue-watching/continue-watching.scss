@@ -33,7 +33,7 @@
                 filter 400ms ease;
 
     &--no-image {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(168, 85, 247, 0.12));
+        background: linear-gradient(135deg, rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22), rgba(168, 85, 247, 0.12));
         filter: none;
     }
 
@@ -53,8 +53,8 @@
         color: $white;
 
         &--tv {
-            background: rgba(99, 102, 241, 0.22);
-            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
+            border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
             color: #c7d2fe;
         }
 
@@ -80,8 +80,8 @@
         font-weight: 700;
         letter-spacing: 0.04em;
         color: #c7d2fe;
-        background: rgba(99, 102, 241, 0.22);
-        border-color: rgba(99, 102, 241, 0.4);
+        background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
+        border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
     }
 
     // Bottom shade: subtle gradient so the progress bar always reads
@@ -156,7 +156,7 @@
             $accent-color 0%,
             #818cf8 100%
         );
-        box-shadow: 0 0 8px rgba(99, 102, 241, 0.55);
+        box-shadow: 0 0 8px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.55);
         transition: width 400ms ease;
     }
 }

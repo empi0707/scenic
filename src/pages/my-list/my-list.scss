@@ -85,7 +85,7 @@
     }
 
     &:hover {
-        background: rgba(99, 102, 241, 0.16);
+        background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.16);
         border-color: $accent-color;
         color: $white;
     }
@@ -207,7 +207,7 @@
     font-size: 3rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.4);
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.1));
+    background: linear-gradient(135deg, rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.18), rgba(168, 85, 247, 0.1));
 }
 
 .my-list__badge {
@@ -225,8 +225,8 @@
     color: $white;
 
     &--tv {
-        background: rgba(99, 102, 241, 0.22);
-        border-color: rgba(99, 102, 241, 0.4);
+        background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
+        border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
         color: #c7d2fe;
     }
 

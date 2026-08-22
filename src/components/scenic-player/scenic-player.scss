@@ -1,5 +1,8 @@
-$accent: #6366f1;
-$accent-bright: #818cf8;
+// Fall back to CSS custom properties so an embed can retint the player via
+// ?color= (see src/config/embedBranding.js); the hex fallback is what
+// renders outside an iframe, where those custom properties are never set.
+$accent: var(--scenic-accent, #6366f1);
+$accent-bright: var(--scenic-accent-bright, #818cf8);
 $glass: rgba(16, 16, 24, 0.66);
 
 // Zero-specificity button reset for the subtitles panel so every button class
@@ -69,7 +72,7 @@ $glass: rgba(16, 16, 24, 0.66);
     svg {
       font-size: 3rem;
       color: #fff;
-      filter: drop-shadow(0 0 14px rgba(99, 102, 241, 0.7));
+      filter: drop-shadow(0 0 14px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.7));
     }
   }
 
@@ -224,7 +227,7 @@ $glass: rgba(16, 16, 24, 0.66);
     gap: 0.55rem;
     padding: 1.5rem;
     text-align: center;
-    background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12), transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.12), transparent 70%);
 
     svg { font-size: 2.6rem; color: $accent-bright; }
     p { margin: 0; font-size: 1.05rem; font-weight: 600; color: #fff; }
@@ -254,7 +257,7 @@ $glass: rgba(16, 16, 24, 0.66);
     &:hover {
       background: $accent;
       border-color: transparent;
-      box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.18), 0 12px 40px rgba(99, 102, 241, 0.45);
+      box-shadow: 0 0 0 6px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.18), 0 12px 40px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.45);
       transform: translate(-50%, -50%) scale(1.07);
     }
   }
@@ -324,7 +327,7 @@ $glass: rgba(16, 16, 24, 0.66);
     inset: 0 auto 0 0;
     border-radius: 99px;
     background: linear-gradient(90deg, $accent, $accent-bright);
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.7);
+    box-shadow: 0 0 12px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.7);
   }
   &__scrub-knob {
     position: absolute;
@@ -334,7 +337,7 @@ $glass: rgba(16, 16, 24, 0.66);
     height: 14px;
     border-radius: 50%;
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 0 4px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.35);
     transform: translateY(-50%) scale(0);
     transition: transform 0.15s ease;
   }
@@ -657,7 +660,7 @@ $glass: rgba(16, 16, 24, 0.66);
       color: rgba(255, 255, 255, 0.8);
       &:hover { background: rgba(255, 255, 255, 0.1); }
       &.sel {
-        background: rgba(99, 102, 241, 0.22);
+        background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22);
         color: $accent-bright;
         font-weight: 600;
       }
@@ -715,7 +718,7 @@ $glass: rgba(16, 16, 24, 0.66);
     }
     &:hover { background: rgba(24, 24, 32, 0.72); }
     &.is-open {
-      border-color: rgba(99, 102, 241, 0.55);
+      border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.55);
       .scenic-player__srcbtn-chev { transform: rotate(180deg); }
     }
   }
@@ -765,7 +768,7 @@ $glass: rgba(16, 16, 24, 0.66);
     text-align: left;
 
     &:hover { background: rgba(255, 255, 255, 0.1); }
-    &.sel { background: rgba(99, 102, 241, 0.22); color: $accent-bright; }
+    &.sel { background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22); color: $accent-bright; }
     &.is-failed {
       opacity: 0.5;
       .scenic-player__source-item-name { text-decoration: line-through; }
@@ -789,7 +792,7 @@ $glass: rgba(16, 16, 24, 0.66);
       color: rgba(255, 255, 255, 0.82);
       font-variant-numeric: tabular-nums;
 
-      &.is-q { background: rgba(99, 102, 241, 0.28); color: $accent-bright; }
+      &.is-q { background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.28); color: $accent-bright; }
       &.is-bad { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
     }
   }
@@ -885,7 +888,7 @@ $glass: rgba(16, 16, 24, 0.66);
     &.is-on {
       background: $accent;
       color: #fff;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 4px 16px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
     }
   }
 
@@ -926,7 +929,7 @@ $glass: rgba(16, 16, 24, 0.66);
     color: rgba(255, 255, 255, 0.85);
     font-size: 0.9rem;
     &:hover { background: rgba(255, 255, 255, 0.1); }
-    &.is-sel { background: rgba(99, 102, 241, 0.22); color: $accent-bright; }
+    &.is-sel { background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22); color: $accent-bright; }
   }
   &__caps-flag {
     font-size: 1.25rem;

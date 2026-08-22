@@ -559,8 +559,8 @@
             }
 
             &.is-success {
-                background: rgba(99, 102, 241, 0.16);
-                border-color: rgba(99, 102, 241, 0.4);
+                background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.16);
+                border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
                 color: #a5b4fc;
             }
 
@@ -645,7 +645,7 @@
             transform: translateY(-4px);
             box-shadow:
                 0 20px 60px rgba(0, 0, 0, 0.8),
-                0 0 50px rgba(99, 102, 241, 0.1),
+                0 0 50px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.1),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 
             &::before {
@@ -697,7 +697,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(168, 85, 247, 0.14));
+                background: linear-gradient(135deg, rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.22), rgba(168, 85, 247, 0.14));
                 color: rgba(255, 255, 255, 0.78);
                 font-size: 1.45rem;
                 font-weight: 600;
@@ -720,7 +720,7 @@
 
         &:hover {
             .casts__item__img {
-                border-color: rgba(99, 102, 241, 0.4);
+                border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
                 transform: scale(1.08);
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             }
@@ -757,7 +757,7 @@
                 to right,
                 transparent 0%,
                 rgba(255, 255, 255, 0.06) 20%,
-                rgba(99, 102, 241, 0.12) 50%,
+                rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.12) 50%,
                 rgba(255, 255, 255, 0.06) 80%,
                 transparent 100%
             );

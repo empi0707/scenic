@@ -38,7 +38,7 @@
   }
 
   &:hover {
-    background: lighten($accent-color, 6%);
+    background: $accent-hover;
   }
 
   &:active {

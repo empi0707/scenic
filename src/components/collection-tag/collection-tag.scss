@@ -19,9 +19,9 @@
 
   &:hover {
     transform: translateY(-1px);
-    border-color: rgba(99, 102, 241, 0.45);
+    border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.45);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(99, 102, 241, 0.15);
+      0 0 0 1px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.15);
 
     .collection-tag__icon {
       color: $accent-color;
@@ -78,7 +78,7 @@
     gap: 0.25rem;
     padding: 0.28rem 0.6rem;
     border-radius: $border-radius-full;
-    background: rgba(99, 102, 241, 0.16);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.16);
     color: #c7d2fe;
     font-size: 0.74rem;
     font-weight: 600;

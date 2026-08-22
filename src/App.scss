@@ -137,7 +137,7 @@ iframe {
 
 // Selection
 ::selection {
-    background: rgba(99, 102, 241, 0.3);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.3);
     color: $white;
 }
 
@@ -164,13 +164,13 @@ iframe {
         padding: 0.6rem 1.5rem;
         border: none;
         border-radius: 8px;
-        background: rgba(99, 102, 241, 0.9);
+        background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.9);
         color: $white;
         font-weight: 600;
         cursor: pointer;
 
         &:hover {
-            background: rgba(99, 102, 241, 1);
+            background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 1);
         }
     }
 }

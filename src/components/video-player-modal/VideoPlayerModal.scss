@@ -161,7 +161,7 @@
   flex-shrink: 0;
 
   &:hover {
-    background: rgba(99, 102, 241, 0.15);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.15);
     border-color: $accent-color;
     color: $accent-color;
     transform: scale(1.05);
@@ -234,8 +234,8 @@
   gap: 0.35rem;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  background: rgba(99, 102, 241, 0.16);
-  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.16);
+  border: 1px solid rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4);
   color: #c7d2fe;
   font-family: $font-body;
   font-size: 0.74rem;
@@ -263,8 +263,8 @@
   height: 34px;
   padding: 0 0.75rem;
   border-radius: 999px;
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.28);
+  background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.1);
+  border: 1px solid rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.28);
   color: #c7d2fe;
   font-family: $font-body;
   font-size: 0.78rem;
@@ -287,8 +287,8 @@
   }
 
   &:hover {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.2);
+    border-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.5);
   }
 
   &:active {
@@ -389,7 +389,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.7);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.7);
     border-radius: 20px;
   }
 
@@ -444,7 +444,7 @@
   }
 
   &.active {
-    background: rgba(99, 102, 241, 0.15);
+    background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.15);
     color: $accent-color;
 
     i.bx-radio-circle-marked {

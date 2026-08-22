@@ -74,8 +74,8 @@
     }
 
     &[data-open="true"] {
-        background: rgba(99, 102, 241, 0.045);
-        border-bottom-color: rgba(99, 102, 241, 0.18);
+        background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.045);
+        border-bottom-color: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.18);
     }
 
     &__head {
@@ -129,7 +129,7 @@
             justify-content: center;
             background: linear-gradient(
                 135deg,
-                rgba(99, 102, 241, 0.28),
+                rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.28),
                 rgba(168, 85, 247, 0.18)
             );
             color: rgba(255, 255, 255, 0.9);

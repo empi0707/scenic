@@ -99,14 +99,14 @@
             border: 1px solid transparent;
             color: $white;
             box-shadow:
-                0 4px 14px rgba(99, 102, 241, 0.3),
+                0 4px 14px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.3),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
 
             &:hover {
                 background: $accent-hover;
                 transform: translateY(-1px);
                 box-shadow:
-                    0 6px 20px rgba(99, 102, 241, 0.4),
+                    0 6px 20px rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.4),
                     inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
             }
 

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { BRAND } from '../../config/embedBranding';
 import './footer.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 
 const MENUS = {
     movies: {
@@ -95,8 +94,8 @@ const Footer = () => {
         <footer className="footer">
             <div className="footer__top container">
                 <div className="footer__brand">
-                    <h3 className="footer__logo">Scenic</h3>
-                    <p className="footer__tagline">Whether you're searching for the latest blockbuster or discovering a hidden gem, Scenic has you covered. Stream content from multiple servers and watch trailers instantly to make your viewing decisions effortless.</p>
+                    <h3 className="footer__logo">{BRAND}</h3>
+                    <p className="footer__tagline">Whether you're searching for the latest blockbuster or discovering a hidden gem, {BRAND} has you covered. Stream content from multiple servers and watch trailers instantly to make your viewing decisions effortless.</p>
                 </div>
 
                 <nav className="footer__nav" aria-label="Footer" ref={navRef}>
@@ -105,24 +104,15 @@ const Footer = () => {
                     <FooterMega id="tv" menu={MENUS.tv} openId={openId} onToggle={toggle} onClose={close} />
                     <Link to="/anime" className="footer__nav-link">Anime</Link>
                 </nav>
-
-                <div className="footer__social">
-                    <a href="https://github.com/vanshaj-pahwa" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-                        <FontAwesomeIcon icon={faGithub} />
-                    </a>
-                    <a href="https://linkedin.com/in/vanshaj-pahwa" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                        <FontAwesomeIcon icon={faLinkedin} />
-                    </a>
-                </div>
             </div>
 
             <div className="footer__legal">
                 <div className="container">
                     <p className="footer__disclaimer">
-                        Scenic does not host or store any media files on its servers. It operates as a content aggregator, providing links to and embedding content from third-party services. For any copyright concerns or DMCA takedown requests, please contact the respective content providers directly.
+                        {BRAND} does not host or store any media files on its servers. It operates as a content aggregator, providing links to and embedding content from third-party services. For any copyright concerns or DMCA takedown requests, please contact the respective content providers directly.
                     </p>
                     <p className="footer__credit">
-                        © {currentYear} Scenic. Developed with ❤️ by <a href="https://github.com/vanshaj-pahwa" target="_blank" rel="noopener noreferrer">Vanshaj Pahwa</a>
+                        © {currentYear} {BRAND}.
                     </p>
                 </div>
             </div>

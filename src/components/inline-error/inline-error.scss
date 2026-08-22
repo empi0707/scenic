@@ -40,7 +40,7 @@
     }
 
     &:hover {
-      background: rgba(99, 102, 241, 0.16);
+      background: rgba(var(--scenic-accent-rgb, 99, 102, 241), 0.16);
       border-color: $accent-color;
       color: $white;
     }
