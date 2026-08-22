@@ -1,7 +1,7 @@
 // OpenSubtitles: list a title's subtitles (all languages) and download one as WebVTT.
 const OS_API = "https://api.opensubtitles.com/api/v1";
 const OS_KEY = process.env.OPENSUBTITLES_API_KEY || "";
-const OS_UA = process.env.OPENSUBTITLES_UA || "Scenic v1.0";
+const OS_UA = process.env.OPENSUBTITLES_UA || "FreeMovies v1.0";
 const TMDB_KEY = process.env.TMDB_API_KEY || process.env.REACT_APP_API_KEY || "";
 
 function srtToVtt(srt) {

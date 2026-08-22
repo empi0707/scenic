@@ -30,7 +30,7 @@ export const buildShareUrl = (items) =>
 export const buildShareText = (items) => {
   const list = items || [];
   const noun = list.length === 1 ? "title" : "titles";
-  const lines = [`My Scenic watchlist (${list.length} ${noun}):`];
+  const lines = [`My FreeMovies watchlist (${list.length} ${noun}):`];
 
   const section = (label, mediaType) => {
     const names = list
@@ -45,5 +45,5 @@ export const buildShareText = (items) => {
   section("Movies", "movie");
   section("Series", "tv");
 
-  return `${lines.join("\n")}\n\nStream movies, series and anime for free on Scenic!\nOpen and import this list:\n${buildShareUrl(items)}`;
+  return `${lines.join("\n")}\n\nStream movies, series and anime for free on FreeMovies!\nOpen and import this list:\n${buildShareUrl(items)}`;
 };

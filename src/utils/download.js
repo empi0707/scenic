@@ -1,15 +1,15 @@
 // Download helpers. Links are fetched through the serverless proxy
 // (/api/download) and the file is renamed by rewriting the URL's `n`
-// (filename) param. Series -> "Title_S1_E1_ByScenic.mkv"; movies (no S/E) ->
-// "Title_ByScenic.mkv". The extension is taken from the provider's file.
+// (filename) param. Series -> "Title_S1_E1_ByFreeMovies.mkv"; movies (no S/E) ->
+// "Title_ByFreeMovies.mkv". The extension is taken from the provider's file.
 
 const sanitizeTitle = (title) =>
-  (title || "Scenic")
+  (title || "FreeMovies")
     .replace(/[<>:"/\\|?* -]/g, "")
     .trim()
     .replace(/\s+/g, "_")
     .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "") || "Scenic";
+    .replace(/^_+|_+$/g, "") || "FreeMovies";
 
 const extOf = (download) => {
   const name = download.filename || "";
@@ -28,9 +28,9 @@ export const buildDownloadFilename = ({
   const base = sanitizeTitle(title);
   const ext = extOf(download);
   if (mediaType === "tv") {
-    return `${base}_S${season}_E${episode}_ByScenic.${ext}`;
+    return `${base}_S${season}_E${episode}_ByFreeMovies.${ext}`;
   }
-  return `${base}_ByScenic.${ext}`;
+  return `${base}_ByFreeMovies.${ext}`;
 };
 
 // The proxy returns absolute URLs; carry our custom filename via the `n` param.

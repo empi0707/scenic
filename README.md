@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="public/logo.svg" alt="Scenic" width="88" />
+<img src="public/logo.svg" alt="FreeMovies" width="88" />
 
-# Scenic
+# FreeMovies
 
-Stream movies, TV series, and anime from various publicly available servers, for free. Whether you're searching for the latest blockbuster or discovering a hidden gem, Scenic has you covered.
+Stream movies, TV series, and anime from various publicly available servers, for free. Whether you're searching for the latest blockbuster or discovering a hidden gem, FreeMovies has you covered.
 
 [![Live demo](https://img.shields.io/badge/Live%20demo-scenic--stream.vercel.app-6366f1?style=plastic&logo=vercel&logoColor=white)](https://scenic-stream.vercel.app)
 [![TMDB](https://img.shields.io/badge/Data-TMDB-01B4E4?style=plastic&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org)
@@ -14,7 +14,7 @@ Stream movies, TV series, and anime from various publicly available servers, for
 
 </div>
 
-<p align="center"><img src="docs/screenshots/home.png" alt="Scenic home page" width="100%" /></p>
+<p align="center"><img src="docs/screenshots/home.png" alt="FreeMovies home page" width="100%" /></p>
 
 ## Table of contents
 
@@ -37,7 +37,7 @@ Stream movies, TV series, and anime from various publicly available servers, for
 
 ## About
 
-Scenic is a web app for finding and watching movies, TV series, and anime. It uses [The Movie Database (TMDB)](https://www.themoviedb.org) for data, understands plain-language search such as "punjabi movies", "movies like inception", or "directed by nolan", plays trailers inline, and remembers what you were watching.
+FreeMovies is a web app for finding and watching movies, TV series, and anime. It uses [The Movie Database (TMDB)](https://www.themoviedb.org) for data, understands plain-language search such as "punjabi movies", "movies like inception", or "directed by nolan", plays trailers inline, and remembers what you were watching.
 
 There is no sign-up and no backend database. Your watchlist, continue-watching history, and episode progress are stored in the browser with `localStorage`. Movie and TV detail pages are rendered at the edge so links preview correctly and search engines can read them; the rest of the app is a single-page app.
 
@@ -118,51 +118,51 @@ See it all on the [live demo](https://scenic-stream.vercel.app).
 
 ## How it works
 
-Scenic gets all its movie and show information - titles, posters, cast, ratings, and trailers - from TMDB. It does not store any video itself. When you press play, it loads the video from streaming servers that are already public on the internet.
+FreeMovies gets all its movie and show information - titles, posters, cast, ratings, and trailers - from TMDB. It does not store any video itself. When you press play, it loads the video from streaming servers that are already public on the internet.
 
 Here is the journey, from opening the app to watching something:
 
 1. **Browse.** The home and catalog pages ask TMDB for lists (trending, popular, top rated, or whatever you searched) and show them as cards.
 2. **Open a title.** Clicking a card opens its detail page using that title's TMDB id, then loads its info, cast, recommendations, and trailer.
-3. **Watch.** When you press play, Scenic builds a link from that TMDB id (plus the season and episode for shows) and loads the video from one of the streaming servers. If one is down, you can switch to another.
+3. **Watch.** When you press play, FreeMovies builds a link from that TMDB id (plus the season and episode for shows) and loads the video from one of the streaming servers. If one is down, you can switch to another.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor You
-    participant Scenic
+    participant FreeMovies
     participant TMDB
     participant Server as Streaming server
 
     rect rgba(99, 102, 241, 0.1)
     Note over You,Server: Browse
-    You->>Scenic: Open the app
-    Scenic->>TMDB: Get trending, popular, or search results
-    TMDB-->>Scenic: List of titles
-    Scenic-->>You: Show the cards
+    You->>FreeMovies: Open the app
+    FreeMovies->>TMDB: Get trending, popular, or search results
+    TMDB-->>FreeMovies: List of titles
+    FreeMovies-->>You: Show the cards
     end
 
     rect rgba(34, 197, 94, 0.1)
     Note over You,Server: Open a title
-    You->>Scenic: Click a card
-    Scenic->>TMDB: Get details and trailer by id
-    TMDB-->>Scenic: Info, cast, trailer
-    Scenic-->>You: Detail page with the trailer
+    You->>FreeMovies: Click a card
+    FreeMovies->>TMDB: Get details and trailer by id
+    TMDB-->>FreeMovies: Info, cast, trailer
+    FreeMovies-->>You: Detail page with the trailer
     end
 
     rect rgba(244, 114, 182, 0.1)
     Note over You,Server: Watch
-    You->>Scenic: Press play
-    Scenic->>Server: Open the video for that id
+    You->>FreeMovies: Press play
+    FreeMovies->>Server: Open the video for that id
     Server-->>You: Streams the movie or episode
     end
 ```
 
-Scenic does not host or store any video. The streaming sources are third-party servers that are already publicly available; the app only embeds them (set through environment variables), and all metadata comes from TMDB.
+FreeMovies does not host or store any video. The streaming sources are third-party servers that are already publicly available; the app only embeds them (set through environment variables), and all metadata comes from TMDB.
 
 ## Under the hood
 
-Scenic is a Create React App single-page app with a few Vercel edge functions for things a static SPA cannot do on its own: hiding the API key, rendering detail-page meta tags for link previews and SEO, and proxying downloads.
+FreeMovies is a Create React App single-page app with a few Vercel edge functions for things a static SPA cannot do on its own: hiding the API key, rendering detail-page meta tags for link previews and SEO, and proxying downloads.
 
 ```mermaid
 flowchart LR
@@ -321,4 +321,4 @@ Vanshaj Pahwa, [github.com/vanshaj-pahwa](https://github.com/vanshaj-pahwa).
 
 ## Disclaimer
 
-Scenic is a personal, educational project. It does not host, upload, or store any video. It is a front-end that reads metadata from TMDB and embeds third-party streaming sources set through environment variables. All content rights belong to their respective owners. Use it in line with the laws of your country; the author is not responsible for content served by third-party sources.
+FreeMovies is a personal, educational project. It does not host, upload, or store any video. It is a front-end that reads metadata from TMDB and embeds third-party streaming sources set through environment variables. All content rights belong to their respective owners. Use it in line with the laws of your country; the author is not responsible for content served by third-party sources.

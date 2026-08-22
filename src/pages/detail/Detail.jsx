@@ -151,8 +151,8 @@ const Detail = () => {
     const displayTitle = year ? `${title} (${year})` : title;
     const subject = category === "tv" ? "this series" : "this movie";
     const url = window.location.href;
-    const promo = `Watch ${subject} free on Scenic. Stream blockbusters and hidden gems instantly, no signup needed.`;
-    const credit = `© ${new Date().getFullYear()} Scenic. Developed with ❤️ by Vanshaj Pahwa`;
+    const promo = `Watch ${subject} free on FreeMovies. Stream blockbusters and hidden gems instantly, no signup needed.`;
+    const credit = `© ${new Date().getFullYear()} FreeMovies`;
     const fullMessage = `${displayTitle}\n\n${promo}\n\n${credit}\n\n${url}`;
 
     const flashSuccess = () => {
@@ -164,7 +164,7 @@ const Detail = () => {
       try {
         // URL inside `text` (not the url field) so WhatsApp puts it on its own line.
         await navigator.share({
-          title: `${displayTitle} - Scenic`,
+          title: `${displayTitle} - FreeMovies`,
           text: fullMessage,
         });
         flashSuccess();

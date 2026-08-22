@@ -18,8 +18,8 @@ export const servers = [
 // Sentinel index for the ad-free HLS player; kept out of `servers` so iframe
 // server indices and saved preferences stay stable.
 export const AD_FREE_SERVER = -1;
-export const AD_FREE_LABEL = "Scenic+";
-// Env-driven so Scenic+ can be toggled per environment. Defaults off.
+export const AD_FREE_LABEL = "FreeMovies+";
+// Env-driven so FreeMovies+ can be toggled per environment. Defaults off.
 export const AD_FREE_ENABLED = process.env.REACT_APP_ADFREE_ENABLED === "true";
 
 export const server8Domains = (process.env.REACT_APP_SERVER8_DOMAINS || "")
@@ -32,7 +32,7 @@ export const SOURCE_NAMES = [
   "Onyx", "Titan", "Helix", "Prism", "Flux", "Photon", "Cosmos", "Halo",
 ];
 
-// Scenic+ player subtitle appearance options.
+// FreeMovies+ player subtitle appearance options.
 export const SUB_FONTS = ["Arial", "Roboto", "Trebuchet MS", "Verdana", "Courier New"];
 export const SUB_WEIGHTS = [
   { v: 400, l: "Regular" },

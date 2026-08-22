@@ -38,7 +38,7 @@ const VideoPlayerModal = ({
   const handleStreamFatal = () => {
     const next = selectedServer === AD_FREE_SERVER ? 0 : selectedServer + 1;
     if (next < servers.length) {
-      setAutoSwitchMsg("Scenic+ isn't available for this title. Switching to the next server...");
+      setAutoSwitchMsg("FreeMovies+ isn't available for this title. Switching to the next server...");
       onServerChange(next);
     } else {
       setAutoSwitchMsg("No source found. Pick a server above to try another.");

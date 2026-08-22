@@ -253,7 +253,7 @@ const MultiSearch = () => {
             <p className="search-empty__headline">
               {submittedTerm.trim()
                 ? `No results for "${submittedTerm}"`
-                : "Search Scenic"}
+                : "Search FreeMovies"}
             </p>
             <p className="search-empty__sub">
               {submittedTerm.trim()

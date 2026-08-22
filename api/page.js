@@ -64,7 +64,7 @@ export default async function handler(request) {
 
     if (tmdbRes.ok) {
       const data = await tmdbRes.json();
-      const title = data.title || data.name || 'Scenic';
+      const title = data.title || data.name || 'FreeMovies';
       const releaseDate = data.release_date || data.first_air_date || '';
       const year = releaseDate.slice(0, 4);
       const posterPath = data.backdrop_path || data.poster_path;
@@ -83,14 +83,14 @@ export default async function handler(request) {
         .filter(Boolean);
 
       const displayTitle = year
-        ? `${title} (${year}) - Scenic`
-        : `${title} - Scenic`;
+        ? `${title} (${year}) - FreeMovies`
+        : `${title} - FreeMovies`;
 
       // Real synopsis makes the page rank for the title; fall back to a
       // descriptive line when TMDB has no overview.
       const description =
         truncate(data.overview, 160) ||
-        `Watch ${title}${year ? ` (${year})` : ''} on Scenic.${
+        `Watch ${title}${year ? ` (${year})` : ''} on FreeMovies.${
           genres.length ? ` ${genres.join(', ')}.` : ''
         } Stream instantly and watch the trailer, no signup needed.`;
 
@@ -100,7 +100,7 @@ export default async function handler(request) {
         `watch ${title} online`,
         `${title} ${type === 'movie' ? 'full movie' : 'series'}`,
         ...genres,
-        'Scenic',
+        'FreeMovies',
       ]
         .filter(Boolean)
         .join(', ');
@@ -151,7 +151,7 @@ export default async function handler(request) {
         `<meta property="og:type" content="video.${
           type === 'movie' ? 'movie' : 'tv_show'
         }" />`,
-        `<meta property="og:site_name" content="Scenic" />`,
+        `<meta property="og:site_name" content="FreeMovies" />`,
         `<meta property="og:title" content="${escapeHtml(displayTitle)}" />`,
         `<meta property="og:description" content="${escapeHtml(description)}" />`,
         `<meta property="og:url" content="${escapeHtml(fullUrl)}" />`,

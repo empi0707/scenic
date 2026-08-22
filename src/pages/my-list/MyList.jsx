@@ -93,7 +93,7 @@ const MyList = () => {
     };
     if (navigator.share) {
       try {
-        await navigator.share({ title: "My Scenic watchlist", text });
+        await navigator.share({ title: "My FreeMovies watchlist", text });
         flash();
         return;
       } catch (err) {
@@ -116,7 +116,7 @@ const MyList = () => {
           <div className="my-list__title">
             <h2>My List</h2>
             <InfoTooltip label="About My List">
-              Your list is saved on this browser only. Since Scenic doesn't ask
+              Your list is saved on this browser only. Since FreeMovies doesn't ask
               you to sign up, anything you add here won't appear on other
               devices or browsers. Clearing site data will erase the list.
             </InfoTooltip>

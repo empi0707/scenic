@@ -1,14 +1,14 @@
-// Lets Scenic be white-labeled when embedded in an iframe: a parent page can
-// pass ?brand=&logo=&color= on the query string once, and Scenic keeps using
+// Lets FreeMovies be white-labeled when embedded in an iframe: a parent page can
+// pass ?brand=&logo=&color= on the query string once, and FreeMovies keeps using
 // those values (via sessionStorage) as the visitor moves to other pages
 // inside the embed, even though those later URLs don't carry the params.
 // Ported from the same pattern in the movieace project (src/config/brand.ts).
 //
 // Outside an iframe this is a no-op — BRAND/LOGO_URL/PRIMARY_COLOR stay at
 // their defaults and nothing is written to document.title or CSS custom
-// properties, so a normal visit to Scenic looks exactly as before.
+// properties, so a normal visit to FreeMovies looks exactly as before.
 
-const DEFAULT_BRAND = "Scenic";
+const DEFAULT_BRAND = "FreeMovies";
 const DEFAULT_PRIMARY_COLOR = "#6366f1";
 const BRAND_SESSION_KEY = "embed-brand";
 const LOGO_SESSION_KEY = "embed-logo";
