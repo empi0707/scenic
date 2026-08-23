@@ -1,18 +1,21 @@
-// Config for inline ad slots rendered inside the app (placed wherever a page
-// mounts <AdSlot config={...} />), ported from the same pattern used in the
-// movieace project (src/config/ads.ts / src/components/ads/AdSlot.vue).
+// Config for the two in-page ad slots (src/components/ad-slot/AdSlot.jsx),
+// mounted at a fixed spot inside a page's own layout — as opposed to the
+// fixed, always-on-screen banners in src/ads.html (see GlobalAds.jsx), which
+// aren't tied to any one page.
 //
-// Each slot points at an ad-network "invoke" script keyed by an ad unit id.
-// All the network-specific bits are env-driven so a real key/host never has
-// to be hardcoded into the repo — set them in .env (see .env.example). An
-// empty key means "not configured": AdSlot renders nothing for that slot
-// instead of pointing at a fake host.
-const NETWORK_HOST = process.env.REACT_APP_AD_NETWORK_HOST || "";
+// This is the ONE file to edit to change an ad-network key/host/size for
+// these two slots — everything is a plain JS value here (no .env layer), so
+// an edit takes effect on save with no dev-server restart. Same
+// "invoke.js"/atOptions network pattern as movieace's src/config/ads.ts and
+// src/ads.html.
+//
+// An empty key means "not configured": AdSlot renders nothing for that slot.
+const NETWORK_HOST = "focusameneducation.com";
 const scriptSrc = (key) => `https://${NETWORK_HOST}/${key}/invoke.js`;
 
 // Shown on movie/TV detail pages, below the top cast section.
 export const DETAIL_PAGE_AD = {
-  key: process.env.REACT_APP_AD_DETAIL_KEY || "",
+  key: "b8df2b4252342db2db56dcf778d5d27d",
   width: 320,
   height: 50,
   scriptSrc,
@@ -20,7 +23,7 @@ export const DETAIL_PAGE_AD = {
 
 // Shown below the player once a title starts playing.
 export const WATCH_PAGE_AD = {
-  key: process.env.REACT_APP_AD_WATCH_KEY || "",
+  key: "b8df2b4252342db2db56dcf778d5d27d",
   width: 320,
   height: 50,
   scriptSrc,

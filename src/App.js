@@ -14,6 +14,7 @@ import ScrollToTop from './components/ScrollToTop';
 import TopProgressBar from './components/top-progress-bar/TopProgressBar';
 import Loading from './components/loading/Loading';
 import ChunkErrorBoundary from './components/ChunkErrorBoundary';
+import GlobalAds from './components/global-ads/GlobalAds';
 import lazyWithRetry from './utils/lazyWithRetry';
 
 // Lazy-loaded route components
@@ -38,6 +39,7 @@ function App() {
             >
                 <ScrollToTop />
                 <TopProgressBar />
+                <GlobalAds />
                 <Header />
                 <ChunkErrorBoundary>
                 <Suspense fallback={<Loading />}>
