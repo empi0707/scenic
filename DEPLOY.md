@@ -41,6 +41,15 @@ npm run build           # -> build/
 `npm run build` only needs to run again when the source changes — the
 Express server just serves whatever is in `build/`.
 
+> **`npm run build` never restarts the Node process.** It only regenerates
+> `build/`, the static frontend — `server/` is a separate long-running
+> process PM2 manages, and it keeps running whatever code it loaded at
+> startup until you restart it. After **any** change to `server/index.js`,
+> `server/edgeHandlers.js`, `.env`, or anything under `/api`, you need
+> `pm2 restart freemovies` (see step 3) — rebuilding alone will not pick it
+> up, and the server will keep failing/behaving the old way even though the
+> repo now has the fix.
+
 ## 3. Run the server with PM2
 
 ```bash
@@ -92,7 +101,19 @@ In WebAdmin: **Virtual Hosts → your vhost → External App** → add a
 **Context** → add a Proxy context for path `/` targeting that external app.
 Nginx's syntax above is more commonly documented if you have a choice of OS.
 
-## 5. What's intentionally out of scope here
+## 5. Pulling later updates
+
+Every one of these steps matters — skipping the last one is why a fix can be
+in the repo and still not be live:
+
+```bash
+git pull origin main
+npm install        # only needed if package.json changed
+npm run build       # regenerates build/ (frontend only)
+pm2 restart freemovies   # loads the new server/ code — REQUIRED, not optional
+```
+
+## 6. What's intentionally out of scope here
 
 - **`worker/` (Cloudflare Worker HLS proxy)** — a separate deploy target
   (`wrangler deploy` on Cloudflare), unrelated to this VPS. Without it,
@@ -105,7 +126,7 @@ Nginx's syntax above is more commonly documented if you have a choice of OS.
   free; on a VPS you own them. `pm2 reload freemovies` after a rebuild does
   a zero-downtime restart if you need it.
 
-## 6. Sanity checklist after deploying
+## 7. Sanity checklist after deploying
 
 ```bash
 curl -I https://your-domain.com/                       # 200, static app
