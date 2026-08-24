@@ -9,10 +9,15 @@
 // (serve = `node server/index.js`; PORT defaults to 3001 — see README's
 // deployment section for the Nginx reverse-proxy + PM2 setup.)
 
-require("dotenv").config();
-
 const path = require("path");
 const express = require("express");
+
+// Load .env from the project root explicitly — dotenv's default `.config()`
+// resolves ".env" relative to process.cwd(), which is wherever PM2/systemd
+// happened to launch this from, not this file's own directory. That mismatch
+// silently produces an empty environment (no error, just undefined vars) if
+// the process manager's working directory isn't the project root.
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const { tmdbHandler, downloadHandler, pageHandler, sitemapHandler } = require("./edgeHandlers");
 
